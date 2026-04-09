@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-tertiary: #f1f5f9;
+
+  --border-radius-DEFAULT: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.10);
+
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-pulse-soft: pulseSoft 2s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulseSoft {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-surface-secondary);
+    color: #0f172a;
+  }
+}
+
+@layer components {
+  .card {
+    background-color: #ffffff;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-hover {
+    background-color: #ffffff;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e2e8f0;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.2s;
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .input-base {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 0.875rem;
+    color: #0f172a;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .input-base::placeholder {
+    color: #94a3b8;
+  }
+
+  .input-base:focus {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px #6366f1;
+  }
+
+  .input-base:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: #4f46e5;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #4338ca;
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .btn-secondary:hover {
+    background-color: #f8fafc;
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: transparent;
+    color: #4b5563;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .btn-ghost:hover {
+    background-color: #f1f5f9;
+  }
+
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .streaming-cursor::after {
+    content: "▋";
+    color: #6366f1;
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
