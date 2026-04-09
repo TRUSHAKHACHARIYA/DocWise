@@ -1,0 +1,20 @@
+{
+  "name": "docwise",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev"
+  },
+  "dependencies": {
+    "axios": "^1.15.0",
+    "lucide-react": "^1.7.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2"
+  }
+}
