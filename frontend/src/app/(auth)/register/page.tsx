@@ -34,7 +34,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(name, email);
+      await register(name, email, password);
       router.push("/dashboard"); 
     } catch (error) {
       toast.error("Registration failed", "Please try again later.");

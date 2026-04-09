@@ -1,0 +1,163 @@
+import { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { prisma } from '../utils/prisma';
+import { requireAuth } from '../middleware/auth';
+import { retrieveRelevantChunks } from '../services/retriever';
+import { buildPrompt, getStreamingLLMResponse } from '../services/llm';
+
+export async function chatRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth);
+
+  // Get all chat sessions
+  app.get('/', async (req, reply) => {
+    const userId = req.user!.id;
+    const sessions = await prisma.chatSession.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1, // latest message
+        }
+      }
+    });
+    return reply.send({ sessions });
+  });
+
+  // Create new session
+  app.post('/', async (req, reply) => {
+    const userId = req.user!.id;
+    const { documentIds, title } = z.object({
+      documentIds: z.array(z.string()).optional(),
+      title: z.string().optional()
+    }).parse(req.body);
+
+    const session = await prisma.chatSession.create({
+      data: {
+        userId,
+        title: title || 'New Chat',
+      }
+    });
+
+    if (documentIds && documentIds.length > 0) {
+      await prisma.chatSessionDoc.createMany({
+        data: documentIds.map(docId => ({
+          sessionId: session.id,
+          documentId: docId
+        }))
+      });
+    }
+
+    return reply.send({ session });
+  });
+
+  // Get single session with messages
+  app.get('/:sessionId', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId } = req.params as { sessionId: string };
+
+    const session = await prisma.chatSession.findFirst({
+      where: { id: sessionId, userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        },
+        documents: {
+          include: { document: true }
+        }
+      }
+    });
+
+    if (!session) return reply.code(404).send({ error: 'Session not found' });
+    return reply.send({ session });
+  });
+
+  // Send message and stream response (SSE)
+  app.post('/:sessionId/message', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId } = req.params as { sessionId: string };
+    const { content } = z.object({ content: z.string() }).parse(req.body);
+
+    const session = await prisma.chatSession.findFirst({
+      where: { id: sessionId, userId },
+      include: {
+        documents: true,
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    });
+
+    if (!session) return reply.code(404).send({ error: 'Session not found' });
+
+    // Save user message to DB
+    await prisma.message.create({
+      data: {
+        sessionId,
+        role: 'USER',
+        content,
+      }
+    });
+
+    // Determine document constraints
+    const documentIds = session.documents.map(d => d.documentId);
+
+    // Retrieve chunks
+    const chunks = await retrieveRelevantChunks(userId, content, documentIds.length > 0 ? documentIds : undefined);
+
+    // Setup history for Claude (only actual history, not this new message)
+    const history = session.messages.map(msg => ({
+      role: msg.role === 'USER' ? 'user' : 'assistant',
+      content: msg.content
+    }));
+
+    // Build prompt
+    const systemPrompt = "You are DocWise, an intelligent assistant. Only use the provided context to answer questions.";
+    const { messages } = await buildPrompt(systemPrompt, history, content, chunks);
+
+    // Set up SSE headers
+    reply.raw.setHeader('Content-Type', 'text/event-stream');
+    reply.raw.setHeader('Cache-Control', 'no-cache');
+    reply.raw.setHeader('Connection', 'keep-alive');
+    
+    // Send sources first as metadata
+    reply.raw.write(`data: ${JSON.stringify({ sources: chunks })}\n\n`);
+
+    try {
+      // Gather raw result internally to save to DB while streaming
+      let fullAssistantContent = '';
+      
+      const stream = await (new (require('@anthropic-ai/sdk').default)({ apiKey: process.env.ANTHROPIC_API_KEY })).messages.create({
+        model: 'claude-3-5-sonnet-20240620',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: messages,
+        stream: true,
+      });
+
+      for await (const chunk of stream) {
+        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+          const text = chunk.delta.text;
+          fullAssistantContent += text;
+          reply.raw.write(`data: ${JSON.stringify({ text })}\n\n`);
+        }
+      }
+
+      await prisma.message.create({
+        data: {
+          sessionId,
+          role: 'ASSISTANT',
+          content: fullAssistantContent,
+          sources: JSON.stringify(chunks)
+        }
+      });
+
+      reply.raw.write('data: [DONE]\n\n');
+      reply.raw.end();
+    } catch (err) {
+      app.log.error(err);
+      reply.raw.write(`data: ${JSON.stringify({ error: 'Failed to generate response' })}\n\n`);
+      reply.raw.end();
+    }
+  });
+}

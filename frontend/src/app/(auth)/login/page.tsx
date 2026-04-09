@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(email);
+      await login(email, password);
       router.push("/dashboard");
     } catch (error) {
       toast.error("Login failed", "Please try again later.");
