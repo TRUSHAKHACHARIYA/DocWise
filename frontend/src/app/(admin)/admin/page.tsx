@@ -14,13 +14,18 @@ import StatCard from "@/components/dashboard/StatCard";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+import { useEffect } from "react";
+import { useAdmin } from "@/hooks/useAdmin";
+
 export default function AdminOverviewPage() {
-  const recentSignups = [
-    { id: 1, name: "Alex Johnson", email: "alex@example.com", plan: "Pro", date: "5m ago" },
-    { id: 2, name: "Sarah Miller", email: "sarah.m@gmail.com", plan: "Free", date: "12m ago" },
-    { id: 3, name: "Data Corp", email: "admin@datacorp.io", plan: "Enterprise", date: "1h ago" },
-    { id: 4, name: "Michael Chen", email: "mchen@uni.edu", plan: "Free", date: "3h ago" },
-  ];
+  const { stats, users, fetchStats, fetchUsers, isLoading } = useAdmin();
+
+  useEffect(() => {
+    fetchStats();
+    fetchUsers("", 1); // Get first batch of users for recent list
+  }, []);
+
+  const recentSignups = users.slice(0, 4);
 
   return (
     <div className="space-y-10">
@@ -28,30 +33,27 @@ export default function AdminOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Users" 
-          value="1,284" 
+          value={isLoading ? "..." : stats?.userCount?.toLocaleString() || "0"} 
           icon={<Users size={24} />} 
-          trend={{ value: "12%", isUp: true }}
+          trend={{ value: "Live", isUp: true }}
           color="brand"
         />
         <StatCard 
-          title="Active Subscriptions" 
-          value="452" 
-          icon={<CreditCard size={24} />} 
-          trend={{ value: "8%", isUp: true }}
+          title="Active (7d)" 
+          value={isLoading ? "..." : stats?.activeUsers?.toLocaleString() || "0"} 
+          icon={<Activity size={24} />} 
           color="emerald"
         />
         <StatCard 
-          title="Documents Processed" 
-          value="12,402" 
+          title="Documents" 
+          value={isLoading ? "..." : stats?.docCount?.toLocaleString() || "0"} 
           icon={<FileText size={24} />} 
-          trend={{ value: "24%", isUp: true }}
           color="purple"
         />
         <StatCard 
-          title="API Latency" 
-          value="142ms" 
-          icon={<Activity size={24} />} 
-          trend={{ value: "4ms", isUp: false }}
+          title="Messages" 
+          value={isLoading ? "..." : stats?.messageCount?.toLocaleString() || "0"} 
+          icon={<ArrowRight size={24} />} 
           color="amber"
         />
       </div>
@@ -90,24 +92,32 @@ export default function AdminOverviewPage() {
               <div key={signup.id} className="p-5 flex items-center justify-between hover:bg-zinc-50 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold border border-zinc-200">
-                    {signup.name.charAt(0)}
+                    {signup.name?.charAt(0) || "U"}
                   </div>
-                  <div>
-                    <h5 className="text-sm font-black text-zinc-900">{signup.name}</h5>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{signup.email}</p>
+                  <div className="min-w-0">
+                    <h5 className="text-sm font-black text-zinc-900 truncate">{signup.name}</h5>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">{signup.email}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <span className={cn(
                     "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                    signup.plan === 'Enterprise' ? "bg-purple-100 text-purple-700" : signup.plan === 'Pro' ? "bg-brand-100 text-brand-700" : "bg-zinc-100 text-zinc-500"
+                    signup.plan === 'ENTERPRISE' ? "bg-purple-100 text-purple-700" : signup.plan === 'PRO' ? "bg-brand-100 text-brand-700" : "bg-zinc-100 text-zinc-500"
                   )}>
                     {signup.plan}
                   </span>
-                  <p className="text-[10px] font-bold text-zinc-400 mt-1 uppercase">{signup.date}</p>
+                  <p className="text-[10px] font-bold text-zinc-400 mt-1 uppercase">
+                    {new Date(signup.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
             ))}
+            {recentSignups.length === 0 && !isLoading && (
+              <div className="p-10 text-center text-zinc-400 font-bold text-xs">No users found.</div>
+            )}
+            {isLoading && (
+              <div className="p-10 text-center text-zinc-400 animate-pulse">Loading users...</div>
+            )}
             <Link 
               href="/admin/users" 
               className="p-5 bg-zinc-50/50 hover:bg-zinc-100 text-center text-[10px] font-black uppercase text-zinc-400 tracking-widest hover:text-zinc-600 transition-all block"

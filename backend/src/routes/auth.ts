@@ -38,7 +38,7 @@ export async function authRoutes(app: FastifyInstance) {
         },
       });
 
-      const tokens = generateTokens(user.id);
+      const tokens = generateTokens(user.id, user.role);
       
       return reply.code(201).send({
         user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
@@ -67,7 +67,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.code(401).send({ error: 'Invalid credentials' });
       }
 
-      const tokens = generateTokens(user.id);
+      const tokens = generateTokens(user.id, user.role);
 
       return reply.send({
         user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
@@ -93,7 +93,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.code(401).send({ error: 'Invalid token' });
       }
 
-      const tokens = generateTokens(user.id);
+      const tokens = generateTokens(user.id, user.role);
       return reply.send(tokens);
     } catch (error) {
       return reply.code(401).send({ error: 'Invalid or expired refresh token' });

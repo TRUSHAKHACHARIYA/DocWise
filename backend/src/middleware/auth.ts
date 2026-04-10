@@ -12,8 +12,20 @@ export const requireAuth = async (req: FastifyRequest, reply: FastifyReply) => {
     const decoded = verifyAccessToken(token);
 
     // Decorate request with user info
-    req.user = { id: decoded.userId };
+    req.user = { 
+      id: decoded.userId,
+      role: decoded.role
+    };
   } catch (err) {
     return reply.code(401).send({ error: 'Invalid or expired token' });
+  }
+};
+
+export const requireAdmin = async (req: FastifyRequest, reply: FastifyReply) => {
+  await requireAuth(req, reply);
+  if (reply.sent) return;
+
+  if (req.user?.role !== 'ADMIN') {
+    return reply.code(403).send({ error: 'Forbidden: Admin access required' });
   }
 };

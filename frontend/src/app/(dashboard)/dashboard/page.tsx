@@ -14,21 +14,21 @@ import {
 import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
 import Button from "@/components/ui/Button";
-import { useChat } from "@/hooks/useChat";
-import { useDocuments } from "@/hooks/useDocuments";
-import { useUsage } from "@/hooks/useUsage";
+import Skeleton from "@/components/ui/Skeleton";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { sessions, fetchSessions } = useChat();
-  const { documents, loadDocuments } = useDocuments();
-  const { usage } = useUsage();
+  const { sessions, fetchSessions, isLoading: chatLoading } = useChat();
+  const { documents, loadDocuments, isLoading: docsLoading } = useDocuments();
+  const { usage, isLoading: usageLoading } = useUsage();
 
   useEffect(() => {
     fetchSessions();
     loadDocuments();
   }, []);
 
+  const isLoading = chatLoading || docsLoading || usageLoading;
   const recentChats = sessions.slice(0, 3);
   const recentDocs = documents.slice(0, 3);
 
@@ -37,9 +37,13 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Hi, {user?.name || "there"}! 👋
-          </h2>
+          {isLoading ? (
+            <Skeleton variant="text" className="w-48 h-10 mb-2" />
+          ) : (
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Hi, {user?.name || "there"}! 👋
+            </h2>
+          )}
           <p className="text-slate-500 font-medium mt-1">
             Here's what's happening with your documents today.
           </p>
@@ -64,14 +68,14 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Documents" 
-          value={usage?.docsUploaded || 0} 
+          value={usageLoading ? "..." : usage?.docsUploaded || 0} 
           icon={<FileText size={24} />} 
           description="Total uploaded"
           color="brand"
         />
         <StatCard 
           title="Questions" 
-          value={usage?.questionsUsed || 0} 
+          value={usageLoading ? "..." : usage?.questionsUsed || 0} 
           icon={<BrainCircuit size={24} />} 
           description="AI interactions"
           color="purple"
@@ -85,7 +89,7 @@ export default function DashboardPage() {
         />
         <StatCard 
           title="Limit" 
-          value={usage?.questionsLimit || 20} 
+          value={usageLoading ? "..." : usage?.questionsLimit || 20} 
           icon={<Clock size={24} />} 
           description="Monthly quota"
           color="amber"
@@ -106,30 +110,33 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-4">
-            {recentChats.map((chat) => (
-              <Link 
-                key={chat.id} 
-                href="/chat"
-                onClick={() => { /* Should ideally set active session here */ }}
-                className="group p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-brand-300 hover:shadow-md transition-all duration-300"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-brand-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors">
-                    <MessageSquare size={20} />
+            {chatLoading ? (
+              [1, 2, 3].map(i => <Skeleton key={i} className="h-20" />)
+            ) : (
+              recentChats.map((chat) => (
+                <Link 
+                  key={chat.id} 
+                  href="/chat"
+                  className="group p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-brand-300 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-brand-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors">
+                      <MessageSquare size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors truncate max-w-[200px]">
+                        {chat.title}
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {new Date(chat.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors truncate max-w-[200px]">
-                      {chat.title}
-                    </h4>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {new Date(chat.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight size={18} className="text-slate-300 group-hover:text-brand-500 transition-all group-hover:translate-x-1" />
-              </Link>
-            ))}
-            {recentChats.length === 0 && (
+                  <ArrowRight size={18} className="text-slate-300 group-hover:text-brand-500 transition-all group-hover:translate-x-1" />
+                </Link>
+              ))
+            )}
+            {!chatLoading && recentChats.length === 0 && (
               <div className="p-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm">
                 No conversations yet. Start chatting now!
               </div>
@@ -150,28 +157,32 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100 flex flex-col">
-            {recentDocs.map((doc) => (
-              <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                    <FileText size={16} />
+            {docsLoading ? (
+              [1, 2, 3].map(i => <Skeleton key={i} className="h-14 mx-4 my-2" />)
+            ) : (
+              recentDocs.map((doc) => (
+                <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                      <FileText size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <h5 className="text-sm font-bold text-slate-900 truncate">
+                        {doc.name}
+                      </h5>
+                      <p className="text-[10px] text-slate-500 font-bold">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h5 className="text-sm font-bold text-slate-900 truncate">
-                      {doc.name}
-                    </h5>
-                    <p className="text-[10px] text-slate-500 font-bold">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</p>
-                  </div>
+                  <span className={cn(
+                    "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest leading-none shrink-0",
+                    doc.status === 'READY' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                  )}>
+                    {doc.status.toLowerCase()}
+                  </span>
                 </div>
-                <span className={cn(
-                  "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest leading-none shrink-0",
-                  doc.status === 'READY' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                )}>
-                  {doc.status.toLowerCase()}
-                </span>
-              </div>
-            ))}
-            {recentDocs.length === 0 && (
+              ))
+            )}
+            {!docsLoading && recentDocs.length === 0 && (
               <div className="p-8 text-center text-slate-400 font-bold text-xs">
                 No documents uploaded.
               </div>

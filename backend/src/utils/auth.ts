@@ -11,12 +11,12 @@ export const comparePassword = async (password: string, hash: string): Promise<b
   return bcrypt.compare(password, hash);
 };
 
-export const generateTokens = (userId: string) => {
-  const accessToken = jwt.sign({ userId }, env.JWT_ACCESS_SECRET, {
+export const generateTokens = (userId: string, role: string) => {
+  const accessToken = jwt.sign({ userId, role }, env.JWT_ACCESS_SECRET, {
     expiresIn: env.JWT_ACCESS_EXPIRES as jwt.SignOptions['expiresIn'],
   });
 
-  const refreshToken = jwt.sign({ userId }, env.JWT_REFRESH_SECRET, {
+  const refreshToken = jwt.sign({ userId, role }, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES as jwt.SignOptions['expiresIn'],
   });
 
@@ -24,9 +24,9 @@ export const generateTokens = (userId: string) => {
 };
 
 export const verifyAccessToken = (token: string) => {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET) as { userId: string };
+  return jwt.verify(token, env.JWT_ACCESS_SECRET) as { userId: string, role: string };
 };
 
 export const verifyRefreshToken = (token: string) => {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET) as { userId: string };
+  return jwt.verify(token, env.JWT_REFRESH_SECRET) as { userId: string, role: string };
 };
