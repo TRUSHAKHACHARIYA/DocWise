@@ -72,6 +72,37 @@ export async function chatRoutes(app: FastifyInstance) {
     return reply.send({ session });
   });
 
+  // Update session documents
+  app.patch('/:sessionId/documents', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId } = req.params as { sessionId: string };
+    const { documentIds } = z.object({
+      documentIds: z.array(z.string())
+    }).parse(req.body);
+
+    const session = await prisma.chatSession.findFirst({
+      where: { id: sessionId, userId }
+    });
+
+    if (!session) return reply.code(404).send({ error: 'Session not found' });
+
+    // Replace documents for the session
+    await prisma.chatSessionDoc.deleteMany({
+      where: { sessionId }
+    });
+
+    if (documentIds.length > 0) {
+      await prisma.chatSessionDoc.createMany({
+        data: documentIds.map(docId => ({
+          sessionId,
+          documentId: docId
+        }))
+      });
+    }
+
+    return reply.send({ success: true, documentIds });
+  });
+
   // Send message and stream response (SSE)
   app.post('/:sessionId/message', async (req, reply) => {
     const userId = req.user!.id;

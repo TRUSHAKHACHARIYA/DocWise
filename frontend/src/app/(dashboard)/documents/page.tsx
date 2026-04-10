@@ -1,24 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, Plus, LayoutGrid, List, FileText } from "lucide-react";
 import UploadZone from "@/components/documents/UploadZone";
 import DocumentCard from "@/components/documents/DocumentCard";
-import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import { cn } from "@/lib/utils";
-
-const INITIAL_DOCS = [
-  { id: "1", name: "Annual Report 2023.pdf", type: "PDF", size: "2.4 MB", status: "READY" as const, uploadedAt: "Oct 12, 2023" },
-  { id: "2", name: "Project Requirements.docx", type: "DOCX", size: "1.1 MB", status: "READY" as const, uploadedAt: "Oct 10, 2023" },
-  { id: "3", name: "Research Paper - AI.pdf", type: "PDF", size: "4.8 MB", status: "PROCESSING" as const, uploadedAt: "Just now" },
-  { id: "4", name: "Terms of Service.txt", type: "TXT", size: "45 KB", status: "READY" as const, uploadedAt: "Oct 05, 2023" },
-  { id: "5", name: "Meeting Minutes.docx", type: "DOCX", size: "156 KB", status: "FAILED" as const, uploadedAt: "Sep 28, 2023" },
-];
+import { useDocuments } from "@/hooks/useDocuments";
 
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState(INITIAL_DOCS);
+  const { documents, loadDocuments, deleteDocument, isLoading } = useDocuments();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showUpload, setShowUpload] = useState(false);
@@ -26,6 +18,10 @@ export default function DocumentsPage() {
     isOpen: false,
     id: null
   });
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
   const filteredDocs = documents.filter(doc => 
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -35,9 +31,9 @@ export default function DocumentsPage() {
     setDeleteModal({ isOpen: true, id });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteModal.id) {
-      setDocuments(prev => prev.filter(doc => doc.id !== deleteModal.id));
+      await deleteDocument(deleteModal.id);
       setDeleteModal({ isOpen: false, id: null });
     }
   };
@@ -110,7 +106,11 @@ export default function DocumentsPage() {
       </div>
 
       {/* Content */}
-      {filteredDocs.length > 0 ? (
+      {isLoading && documents.length === 0 ? (
+        <div className="flex justify-center p-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600" />
+        </div>
+      ) : filteredDocs.length > 0 ? (
         <div className={cn(
           "grid gap-6",
           viewMode === 'grid' ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"

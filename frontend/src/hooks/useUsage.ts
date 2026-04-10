@@ -11,41 +11,35 @@ interface UsageStats {
   month: string;
 }
 
-// Mock usage data — replace with real GET /usage call in Day 18
-const MOCK_USAGE: UsageStats = {
-  questionsUsed: 9,
-  questionsLimit: 20,
-  docsUploaded: 3,
-  docsLimit: 5,
-  storageUsedMB: 8.4,
-  storageLimitMB: 50,
-  plan: "FREE",
-  month: new Date().toISOString().slice(0, 7),
-};
+
+import api from "@/lib/api";
 
 export function useUsage() {
   const [usage, setUsage] = useState<UsageStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const loadUsage = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get("/user/me");
+      setUsage(response.data.usage);
+    } catch (err) {
+      console.error("Failed to load usage", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadUsage = async () => {
-      setIsLoading(true);
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        setUsage(MOCK_USAGE);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     loadUsage();
   }, []);
 
-  const questionPercentage = usage
-    ? Math.round((usage.questionsUsed / usage.questionsLimit) * 100)
+  const questionPercentage = usage && usage.questionsLimit > 0
+    ? Math.min(100, Math.round((usage.questionsUsed / usage.questionsLimit) * 100))
     : 0;
 
-  const storagePercentage = usage
-    ? Math.round((usage.storageUsedMB / usage.storageLimitMB) * 100)
+  const storagePercentage = usage && usage.storageLimitMB > 0
+    ? Math.min(100, Math.round((usage.storageUsedMB / usage.storageLimitMB) * 100))
     : 0;
 
   const isNearLimit = questionPercentage >= 80;
@@ -58,5 +52,6 @@ export function useUsage() {
     storagePercentage,
     isNearLimit,
     isAtLimit,
+    loadUsage
   };
 }
