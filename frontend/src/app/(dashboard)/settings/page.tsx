@@ -7,15 +7,58 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
+import { toast } from "@/store/toastStore";
+import api from "@/lib/api";
+
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'api'>('profile');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Form states
+  const [profileName, setProfileName] = useState(user?.name || "");
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'api', label: 'API Access', icon: Key },
   ];
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const response = await api.patch("/user/profile", { name: profileName });
+      updateUser(response.data.user);
+      toast.success("Success", "Profile updated successfully.");
+    } catch (err) {
+      toast.error("Error", "Failed to update profile.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwords.new !== passwords.confirm) {
+      return toast.error("Error", "Passwords do not match.");
+    }
+    
+    setIsLoading(true);
+    try {
+      await api.post("/user/change-password", { 
+        currentPassword: passwords.current, 
+        newPassword: passwords.new 
+      });
+      setPasswords({ current: "", new: "", confirm: "" });
+      toast.success("Success", "Password changed successfully.");
+    } catch (err: any) {
+      toast.error("Error", err.response?.data?.error || "Failed to change password.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -65,15 +108,20 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleProfileUpdate}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Input label="Full Name" defaultValue={user?.name || ""} placeholder="Jane Doe" />
+                  <Input 
+                    label="Full Name" 
+                    value={profileName} 
+                    onChange={(e) => setProfileName(e.target.value)} 
+                    placeholder="Jane Doe" 
+                  />
                   <Input label="Email Address" defaultValue={user?.email || ""} placeholder="jane@example.com" disabled />
                 </div>
                 <Input label="Job Title" placeholder="Research Analyst" />
                 
                 <div className="pt-4 flex justify-end">
-                  <Button className="gap-2">
+                  <Button type="submit" loading={isLoading} className="gap-2">
                     <Save size={18} />
                     Save Changes
                   </Button>
@@ -86,11 +134,29 @@ export default function SettingsPage() {
             <div className="space-y-8 animate-fade-in">
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-slate-900">Change Password</h3>
-                <form className="space-y-4 max-w-md">
-                  <Input type="password" label="Current Password" placeholder="••••••••" />
-                  <Input type="password" label="New Password" placeholder="••••••••" />
-                  <Input type="password" label="Confirm New Password" placeholder="••••••••" />
-                  <Button className="mt-2">Update Password</Button>
+                <form className="space-y-4 max-w-md" onSubmit={handlePasswordChange}>
+                  <Input 
+                    type="password" 
+                    label="Current Password" 
+                    placeholder="••••••••" 
+                    value={passwords.current}
+                    onChange={(e) => setPasswords({...passwords, current: e.target.value})}
+                  />
+                  <Input 
+                    type="password" 
+                    label="New Password" 
+                    placeholder="••••••••" 
+                    value={passwords.new}
+                    onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                  />
+                  <Input 
+                    type="password" 
+                    label="Confirm New Password" 
+                    placeholder="••••••••" 
+                    value={passwords.confirm}
+                    onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                  />
+                  <Button type="submit" loading={isLoading} className="mt-2">Update Password</Button>
                 </form>
               </div>
 

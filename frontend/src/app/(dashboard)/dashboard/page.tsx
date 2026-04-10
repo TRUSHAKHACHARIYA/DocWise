@@ -14,23 +14,23 @@ import {
 import Link from "next/link";
 import StatCard from "@/components/dashboard/StatCard";
 import Button from "@/components/ui/Button";
-import { useAuth } from "@/hooks/useAuth";
+import { useChat } from "@/hooks/useChat";
+import { useDocuments } from "@/hooks/useDocuments";
+import { useUsage } from "@/hooks/useUsage";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { sessions, fetchSessions } = useChat();
+  const { documents, loadDocuments } = useDocuments();
+  const { usage } = useUsage();
 
-  // Mock data for initial UI
-  const recentChats = [
-    { id: 1, title: "Q3 Financial Analysis", date: "2 hours ago", messages: 14 },
-    { id: 2, title: "Employment Contract Review", date: "Yesterday", messages: 6 },
-    { id: 3, title: "Product Technical Specs", date: "3 days ago", messages: 21 },
-  ];
+  useEffect(() => {
+    fetchSessions();
+    loadDocuments();
+  }, []);
 
-  const recentDocs = [
-    { id: 1, name: "annual_report_2023.pdf", size: "2.4 MB", status: "Ready" },
-    { id: 2, name: "legal_terms_v2.docx", size: "1.1 MB", status: "Ready" },
-    { id: 3, name: "onboarding_guide.pdf", size: "4.8 MB", status: "Processing" },
-  ];
+  const recentChats = sessions.slice(0, 3);
+  const recentDocs = documents.slice(0, 3);
 
   return (
     <div className="space-y-10">
@@ -64,18 +64,16 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Documents" 
-          value={12} 
+          value={usage?.docsUploaded || 0} 
           icon={<FileText size={24} />} 
           description="Total uploaded"
-          trend={{ value: "2", isUp: true }}
           color="brand"
         />
         <StatCard 
           title="Questions" 
-          value={142} 
+          value={usage?.questionsUsed || 0} 
           icon={<BrainCircuit size={24} />} 
           description="AI interactions"
-          trend={{ value: "12%", isUp: true }}
           color="purple"
         />
         <StatCard 
@@ -86,11 +84,10 @@ export default function DashboardPage() {
           color="emerald"
         />
         <StatCard 
-          title="Time Saved" 
-          value="4.5h" 
+          title="Limit" 
+          value={usage?.questionsLimit || 20} 
           icon={<Clock size={24} />} 
-          description="This week"
-          trend={{ value: "1.2h", isUp: true }}
+          description="Monthly quota"
           color="amber"
         />
       </div>
@@ -112,7 +109,8 @@ export default function DashboardPage() {
             {recentChats.map((chat) => (
               <Link 
                 key={chat.id} 
-                href={`/chat/${chat.id}`}
+                href="/chat"
+                onClick={() => { /* Should ideally set active session here */ }}
                 className="group p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:border-brand-300 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center gap-4">
@@ -120,13 +118,22 @@ export default function DashboardPage() {
                     <MessageSquare size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">{chat.title}</h4>
-                    <p className="text-xs text-slate-500 font-medium">{chat.messages} messages • {chat.date}</p>
+                    <h4 className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors truncate max-w-[200px]">
+                      {chat.title}
+                    </h4>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {new Date(chat.updatedAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
                 <ArrowRight size={18} className="text-slate-300 group-hover:text-brand-500 transition-all group-hover:translate-x-1" />
               </Link>
             ))}
+            {recentChats.length === 0 && (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm">
+                No conversations yet. Start chatting now!
+              </div>
+            )}
           </div>
         </div>
 
@@ -145,24 +152,30 @@ export default function DashboardPage() {
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100 flex flex-col">
             {recentDocs.map((doc) => (
               <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                     <FileText size={16} />
                   </div>
-                  <div>
-                    <h5 className="text-sm font-bold text-slate-900 truncate max-w-[140px] uppercase">
-                      {doc.name.split('.')[0]}
+                  <div className="min-w-0">
+                    <h5 className="text-sm font-bold text-slate-900 truncate">
+                      {doc.name}
                     </h5>
-                    <p className="text-[10px] text-slate-500 font-bold">{doc.size} • {doc.name.split('.').pop()}</p>
+                    <p className="text-[10px] text-slate-500 font-bold">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</p>
                   </div>
                 </div>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  doc.status === 'Ready' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700 animate-pulse'
-                }`}>
-                  {doc.status}
+                <span className={cn(
+                  "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest leading-none shrink-0",
+                  doc.status === 'READY' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                )}>
+                  {doc.status.toLowerCase()}
                 </span>
               </div>
             ))}
+            {recentDocs.length === 0 && (
+              <div className="p-8 text-center text-slate-400 font-bold text-xs">
+                No documents uploaded.
+              </div>
+            )}
             <Link 
               href="/documents" 
               className="p-4 bg-slate-50/50 hover:bg-slate-100 text-center text-sm font-bold text-slate-600 transition-colors"
@@ -178,9 +191,11 @@ export default function DashboardPage() {
             </div>
             <h4 className="text-lg font-bold mb-2 relative z-10">Running low on credits?</h4>
             <p className="text-slate-400 text-sm mb-4 relative z-10">Get unlimited questions and multi-document chat with Pro.</p>
-            <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold border-none relative z-10">
-              Upgrade Now
-            </Button>
+            <Link href="/billing">
+              <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 font-bold border-none relative z-10">
+                Upgrade Now
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

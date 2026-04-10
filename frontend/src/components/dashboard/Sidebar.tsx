@@ -12,18 +12,21 @@ import {
   Zap
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUsage } from "@/hooks/useUsage";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Documents", href: "/documents", icon: Files },
   { name: "Chat", href: "/chat", icon: MessageSquare },
+  { name: "Billing", href: "/billing", icon: Zap },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { usage, questionPercentage } = useUsage();
 
   return (
     <aside className="w-64 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col h-screen sticky top-0">
@@ -72,27 +75,39 @@ export default function Sidebar() {
 
       {/* Usage Indicator */}
       <div className="px-4 mb-6">
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Free Plan</span>
-            <Zap size={14} className="text-amber-500 fill-amber-500" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+              {user?.plan || "Free"} Plan
+            </span>
+            <Zap size={14} className={cn(
+              "shrink-0",
+              user?.plan === "PRO" ? "text-brand-500 fill-brand-500" : "text-amber-500 fill-amber-500"
+            )} />
           </div>
-          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-brand-500 w-[45%]" />
+          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mt-2">
+            <div 
+              className="h-full bg-brand-500 transition-all duration-500" 
+              style={{ width: `${questionPercentage}%` }} 
+            />
           </div>
-          <p className="mt-2.5 text-xs text-slate-500 font-medium">
-            9 / 20 questions used
+          <p className="mt-2.5 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+            {usage?.questionsUsed || 0} / {usage?.questionsLimit || 20} questions
           </p>
-          <button className="mt-3 w-full py-2 text-xs font-bold text-brand-600 bg-white border border-brand-200 rounded-lg hover:bg-brand-50 transition-colors shadow-sm">
-            Upgrade to Pro
-          </button>
+          {(user?.plan === "FREE" || !user?.plan) && (
+            <Link href="/billing">
+              <button className="mt-3 w-full py-2 text-[10px] font-black uppercase tracking-widest text-brand-600 bg-white border border-brand-200 rounded-xl hover:bg-brand-50 transition-all shadow-sm active:scale-95">
+                Upgrade to Pro
+              </button>
+            </Link>
+          )}
         </div>
       </div>
 
       {/* User / Logout */}
       <div className="p-4 border-t border-slate-100">
         <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white shrink-0">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">

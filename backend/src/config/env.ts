@@ -36,4 +36,9 @@ export const env = {
 
   RESEND_API_KEY: optional("RESEND_API_KEY", ""),
   EMAIL_FROM: optional("EMAIL_FROM", "noreply@docwise.app"),
+
+  STRIPE_SECRET_KEY: optional("STRIPE_SECRET_KEY", ""),
+  STRIPE_WEBHOOK_SECRET: optional("STRIPE_WEBHOOK_SECRET", ""),
+  STRIPE_PRICE_STARTER: optional("STRIPE_PRICE_STARTER", ""),
+  STRIPE_PRICE_PRO: optional("STRIPE_PRICE_PRO", ""),
 };

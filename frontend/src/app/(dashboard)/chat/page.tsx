@@ -1,74 +1,81 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { 
   MessageSquare, 
   Plus, 
   Search, 
-  MoreVertical, 
   Settings2,
   Trash2,
-  Sparkles,
-  Info
+  Info,
+  Files,
+  Check
 } from "lucide-react";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import { cn } from "@/lib/utils";
-
-const MOCK_SESSIONS = [
-  { id: "1", title: "Financial Report Analysis", lastMsg: "The EBITDA margin increased by 2.4%...", time: "2h ago" },
-  { id: "2", title: "Legal Contract Review", lastMsg: "The liability clause is standard.", time: "Yesterday" },
-  { id: "3", title: "Study Notes on GPT-4", lastMsg: "Explain the attention mechanism.", time: "3d ago" },
-];
-
-const INITIAL_MESSAGES = [
-  { 
-    role: "ai" as const, 
-    content: "Hi! I'm your DocWise assistant. I've indexed your documents and I'm ready to answer any questions. What would you like to know today?",
-  },
-];
-
-interface Message {
-  role: "ai" | "user";
-  content: string;
-  sources?: any[];
-}
+import { useChat } from "@/hooks/useChat";
+import { useDocuments } from "@/hooks/useDocuments";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-  const [sessions, setSessions] = useState(MOCK_SESSIONS);
-  const [activeSession, setActiveSession] = useState("1");
-  const [isLoading, setIsLoading] = useState(false);
+  const { 
+    sessions, 
+    activeSessionId, 
+    messages, 
+    isStreaming, 
+    fetchSessions,
+    fetchSessionMessages,
+    createSession,
+    deleteSession,
+    updateSessionDocuments,
+    sendMessage,
+    setActiveSession
+  } = useChat();
+
+  const { documents: availableDocs, loadDocuments } = useDocuments();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  useEffect(() => {
+    fetchSessions();
+    loadDocuments();
+  }, []);
+
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+  // Selected doc IDs from the active session (backend structure session.documents = [{documentId, document: {...}}, ...])
+  const selectedDocIds = activeSession?.documents?.map((d: any) => d.documentId) || [];
+
+  useEffect(() => {
+    if (activeSessionId) {
+      fetchSessionMessages(activeSessionId);
+    }
+  }, [activeSessionId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async (content: string) => {
-    // Add user message
-    const userMsg = { role: "user" as const, content };
-    setMessages(prev => [...prev, userMsg]);
-    setIsLoading(true);
+  const handleDocToggle = async (docId: string) => {
+    if (!activeSessionId) return;
+    
+    let newSelectedIds: string[];
+    if (selectedDocIds.includes(docId)) {
+      newSelectedIds = selectedDocIds.filter((id: string) => id !== docId);
+    } else {
+      newSelectedIds = [...selectedDocIds, docId];
+    }
+    
+    await updateSessionDocuments(activeSessionId, newSelectedIds);
+    // Refresh session data to update UI
+    fetchSessions();
+  };
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = { 
-        role: "ai" as const, 
-        content: `I've analyzed your documents, and according to the 2023 Financial Report, the EBITDA growth was driven by optimization in operational costs.`,
-        sources: [
-          { title: "Financial Report 2023.pdf", excerpt: "EBITDA growth of 2.4% attributed to cost reduction...", page: 12 },
-          { title: "Operational Audit.docx", excerpt: "Efficiency improvements in supply chain...", page: 4 }
-        ]
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleNewChat = () => {
+    createSession();
   };
 
   return (
@@ -76,7 +83,10 @@ export default function ChatPage() {
       {/* Sessions Sidebar */}
       <aside className="w-80 border-r border-slate-100 flex flex-col bg-slate-50/30">
         <div className="p-6">
-          <button className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-800 shadow-sm hover:border-brand-300 hover:text-brand-600 transition-all group active:scale-[0.98]">
+          <button 
+            onClick={handleNewChat}
+            className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-800 shadow-sm hover:border-brand-300 hover:text-brand-600 transition-all group active:scale-[0.98]"
+          >
             New Chat
             <Plus size={18} className="text-slate-400 group-hover:text-brand-600" />
           </button>
@@ -101,7 +111,7 @@ export default function ChatPage() {
               onClick={() => setActiveSession(session.id)}
               className={cn(
                 "w-full text-left p-4 rounded-2xl transition-all group relative",
-                activeSession === session.id 
+                activeSessionId === session.id 
                   ? "bg-white shadow-md border border-slate-100" 
                   : "hover:bg-white hover:shadow-sm"
               )}
@@ -109,15 +119,16 @@ export default function ChatPage() {
               <div className="flex items-center justify-between mb-1">
                 <h4 className={cn(
                   "font-bold text-sm truncate pr-4",
-                  activeSession === session.id ? "text-slate-900" : "text-slate-600 group-hover:text-slate-900"
+                  activeSessionId === session.id ? "text-slate-900" : "text-slate-600 group-hover:text-slate-900"
                 )}>
                   {session.title}
                 </h4>
-                <span className="text-[10px] font-bold text-slate-400 shrink-0">{session.time}</span>
               </div>
-              <p className="text-xs text-slate-500 line-clamp-1 font-medium">{session.lastMsg}</p>
+              <p className="text-[10px] font-bold text-slate-400 shrink-0">
+                {new Date(session.updatedAt).toLocaleDateString()}
+              </p>
               
-              {activeSession === session.id && (
+              {activeSessionId === session.id && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand-500 rounded-r-full" />
               )}
             </button>
@@ -125,17 +136,49 @@ export default function ChatPage() {
         </div>
         
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="bg-brand-50 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center text-brand-600 shrink-0">
-              <Info size={16} />
+          {activeSessionId ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Knowledge Base</p>
+                <Files size={12} className="text-slate-400" />
+              </div>
+              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                {availableDocs.map((doc) => {
+                  const isSelected = selectedDocIds.includes(doc.id);
+                  return (
+                    <button
+                      key={doc.id}
+                      onClick={() => handleDocToggle(doc.id)}
+                      className={cn(
+                        "w-full flex items-center justify-between p-2 rounded-xl text-xs font-medium transition-all",
+                        isSelected 
+                          ? "bg-brand-50 text-brand-700 border border-brand-100" 
+                          : "text-slate-500 hover:bg-white hover:shadow-sm border border-transparent"
+                      )}
+                    >
+                      <span className="truncate pr-2">{doc.name}</span>
+                      {isSelected && <Check size={14} className="shrink-0" />}
+                    </button>
+                  );
+                })}
+                {availableDocs.length === 0 && (
+                  <p className="text-[10px] text-slate-400 italic px-2">No documents available.</p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-brand-800 mb-0.5">Pro Tip</p>
-              <p className="text-[10px] font-medium text-brand-600 leading-relaxed">
-                Mention specific documents using @ symbol to focus the AI's search.
-              </p>
+          ) : (
+            <div className="bg-brand-50 rounded-2xl p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center text-brand-600 shrink-0">
+                <Info size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-brand-800 mb-0.5">Pro Tip</p>
+                <p className="text-[10px] font-medium text-brand-600 leading-relaxed">
+                  Upload more documents to expand your knowledge base.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </aside>
 
@@ -149,12 +192,14 @@ export default function ChatPage() {
             </div>
             <div>
               <h3 className="font-bold text-slate-900">
-                {sessions.find(s => s.id === activeSession)?.title || "Chat Session"}
+                {sessions.find(s => s.id === activeSessionId)?.title || "Select a chat"}
               </h3>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Model: Claude 3.5 Sonnet</span>
-              </div>
+              {activeSessionId && (
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI Model: Claude 3.5 Sonnet</span>
+                </div>
+              )}
             </div>
           </div>
           
@@ -162,7 +207,10 @@ export default function ChatPage() {
             <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
               <Settings2 size={20} />
             </button>
-            <button className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+            <button 
+              onClick={() => activeSessionId && deleteSession(activeSessionId)}
+              className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            >
               <Trash2 size={20} />
             </button>
           </div>
@@ -171,17 +219,36 @@ export default function ChatPage() {
         {/* Messages List */}
         <div className="flex-1 overflow-y-auto p-8 space-y-4">
           <div className="max-w-4xl mx-auto">
-            {messages.map((msg, idx) => (
-              <MessageBubble key={idx} message={msg} />
-            ))}
-            <div ref={messagesEndRef} />
+            {!activeSessionId ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-300">
+                  <MessageSquare size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Start a new conversation</h3>
+                <p className="text-slate-500 max-w-xs font-medium">Select a chat from the sidebar or create a new one to begin chatting with your documents.</p>
+                <button 
+                   onClick={handleNewChat}
+                   className="flex items-center gap-2 px-6 py-3 bg-brand-600 text-white rounded-2xl font-bold shadow-lg shadow-brand-200 hover:bg-brand-700 transition-all active:scale-95 text-sm"
+                >
+                  <Plus size={18} />
+                  New Chat
+                </button>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg, idx) => (
+                  <MessageBubble key={idx} message={{ ...msg, role: msg.role === "USER" ? "user" : "ai" }} />
+                ))}
+                <div ref={messagesEndRef} />
+              </>
+            )}
           </div>
         </div>
 
         {/* Input Bar */}
         <div className="p-8 pb-10 flex-shrink-0">
           <div className="max-w-4xl mx-auto">
-            <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+            <ChatInput onSend={sendMessage} isLoading={isStreaming} disabled={!activeSessionId} />
             <p className="text-center text-[10px] text-slate-400 font-medium mt-3">
               DocWise can make mistakes. Consider checking important information.
             </p>
