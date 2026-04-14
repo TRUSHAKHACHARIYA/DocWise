@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocuments } from "@/hooks/useDocuments";
+import ChatInput from "@/components/chat/ChatInput";
+import MessageBubble from "@/components/chat/MessageBubble";
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -27,11 +29,13 @@ export default function ChatPage() {
     isStreaming,
     fetchSessions, 
     sendMessage,
-    createNewSession
+    createSession,
+    updateSessionDocuments
   } = useChat();
 
   const { documents, loadDocuments } = useDocuments();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +49,24 @@ export default function ChatPage() {
     }
   }, [messages, isStreaming]);
 
+  const handleNewSession = async () => {
+    await createSession("New Conversation", selectedDocIds);
+  };
+
+  const toggleDocSelection = (docId: string) => {
+    setSelectedDocIds(prev => {
+      const newSelection = prev.includes(docId) 
+        ? prev.filter(id => id !== docId) 
+        : [...prev, docId];
+      
+      // If we are in an active session, update it on the backend too
+      if (activeSessionId) {
+        updateSessionDocuments(activeSessionId, newSelection);
+      }
+      return newSelection;
+    });
+  };
+
   return (
     <div className="flex h-[calc(100vh-120px)] gap-6 relative">
       {/* Sidebar: Chat Sessions */}
@@ -54,7 +76,7 @@ export default function ChatPage() {
       )}>
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h3 className="font-black text-slate-900 uppercase tracking-tighter text-lg">Conversations</h3>
-          <Button onClick={createNewSession} size="sm" className="w-8 h-8 p-0 rounded-xl bg-slate-900 border-none">
+          <Button onClick={handleNewSession} size="sm" className="w-8 h-8 p-0 rounded-xl bg-slate-900 border-none">
             <Plus size={16} />
           </Button>
         </div>
@@ -87,14 +109,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Toggle Sidebar Button */}
-      <button 
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-20 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 shadow-sm z-30 opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        {isSidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-      </button>
-
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm relative">
         {!activeSessionId ? (
@@ -106,52 +120,105 @@ export default function ChatPage() {
             <p className="text-slate-500 font-medium max-w-xs mb-8 uppercase text-[10px] tracking-widest leading-relaxed">
               Select a previous conversation or start a new one to unlock the power of your documents.
             </p>
-            <Button onClick={createNewSession} size="lg" className="rounded-2xl shadow-xl shadow-slate-100">
+            <Button onClick={handleNewSession} size="lg" className="rounded-2xl shadow-xl shadow-slate-100">
               New Conversation
             </Button>
           </div>
         ) : (
           <>
-            {/* Messages would go here - abstracted to components previously */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
-              {messages.map((m, i) => (
-                <div key={i} className={cn("flex", m.role === 'USER' ? "justify-end" : "justify-start")}>
-                  <div className={cn(
-                    "max-w-[80%] p-4 rounded-[1.5rem]",
-                    m.role === 'USER' ? "bg-slate-900 text-white rounded-tr-sm" : "bg-slate-50 text-slate-900 border border-slate-100 rounded-tl-sm"
-                  )}>
-                    {m.content}
-                  </div>
+            {/* Header info about documents */}
+            <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                   {selectedDocIds.slice(0, 3).map(id => (
+                     <div key={id} className="w-6 h-6 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center">
+                        <FileText size={10} className="text-brand-600" />
+                     </div>
+                   ))}
                 </div>
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                  {selectedDocIds.length} Document(s) active
+                </span>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-8" ref={scrollRef}>
+              {messages.map((m) => (
+                <MessageBubble 
+                  key={m.id} 
+                  message={{
+                    role: m.role === 'USER' ? 'user' : 'ai',
+                    content: m.content,
+                    sources: m.sources as any,
+                    isStreaming: isStreaming && m.id === messages[messages.length - 1].id && m.role === 'ASSISTANT'
+                  }} 
+                />
               ))}
-              {isStreaming && (
-                <div className="flex justify-start">
-                  <Skeleton className="h-10 w-24 rounded-2xl rounded-tl-sm" />
-                </div>
-              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-6 bg-gradient-to-t from-white via-white to-transparent">
+              <ChatInput 
+                onSend={sendMessage} 
+                isLoading={isStreaming} 
+              />
             </div>
           </>
         )}
       </div>
 
       {/* Right Sidebar: Knowledge Base / Context Selector */}
-      <div className="w-72 hidden xl:flex flex-col bg-slate-900 rounded-[2.5rem] p-6 text-white overflow-hidden shadow-2xl">
+      <div className="w-72 hidden xl:flex flex-col bg-slate-900 rounded-[2.5rem] p-6 text-white overflow-hidden shadow-2xl transition-all">
         <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
           <FileText size={16} />
-          Knowledge Base
+          Context Selection
         </h4>
-        <div className="space-y-3 overflow-y-auto">
+        <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
           {documents.map(doc => (
-            <div key={doc.id} className="p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
-              <p className="text-xs font-bold truncate mb-1">{doc.name}</p>
+            <div 
+              key={doc.id} 
+              onClick={() => toggleDocSelection(doc.id)}
+              className={cn(
+                "p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden",
+                selectedDocIds.includes(doc.id)
+                  ? "bg-brand-600 border-brand-500 shadow-lg shadow-brand-500/20"
+                  : "bg-white/5 border-white/5 hover:bg-white/10"
+              )}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <p className={cn(
+                  "text-xs font-bold truncate pr-6",
+                  selectedDocIds.includes(doc.id) ? "text-white" : "text-slate-200"
+                )}>
+                  {doc.name}
+                </p>
+                {selectedDocIds.includes(doc.id) && (
+                  <div className="absolute right-3 top-3 w-4 h-4 bg-white/20 rounded-full flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                  </div>
+                )}
+              </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-slate-500">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</span>
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <span className="text-[10px] font-black uppercase text-slate-500">
+                  {(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB
+                </span>
+                <span className={cn(
+                  "text-[9px] font-bold uppercase",
+                  selectedDocIds.includes(doc.id) ? "text-brand-200" : "text-slate-600"
+                )}>
+                  {selectedDocIds.includes(doc.id) ? "Selected" : "Exclude"}
+                </span>
               </div>
             </div>
           ))}
           {documents.length === 0 && (
-            <p className="text-[10px] font-bold text-slate-500 uppercase text-center mt-10 tracking-widest">No documents available</p>
+            <div className="flex flex-col items-center justify-center mt-20 text-center px-4">
+              <Plus className="text-slate-600 mb-4 h-8 w-8" />
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
+                Connect your documents first to start chatting
+              </p>
+            </div>
           )}
         </div>
       </div>
