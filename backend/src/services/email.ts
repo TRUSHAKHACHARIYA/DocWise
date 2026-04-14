@@ -69,3 +69,54 @@ export const sendVerificationEmail = async (email: string, name: string, token: 
     throw error;
   }
 };
+
+export const sendPasswordResetEmail = async (email: string, name: string, token: string) => {
+  const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+
+  const mailOptions = {
+    from: env.EMAIL_FROM,
+    to: email,
+    subject: 'Reset your DocWise password',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>Hi ${name},</p>
+        <p>We received a request to reset your DocWise password. Click the button below to set a new password. This link will expire in 1 hour.</p>
+        <div style="margin: 30px 0;">
+          <a href="${resetUrl}" 
+             style="background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #666; font-size: 14px;">
+          If you didn't request a password reset, you can safely ignore this email.
+        </p>
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
+        <p style="color: #999; font-size: 12px;">
+          DocWise Security Team
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    if (env.NODE_ENV === 'development' && !process.env.SMTP_HOST) {
+      const testAccount = await nodemailer.createTestAccount();
+      const devTransporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: { user: testAccount.user, pass: testAccount.pass },
+      });
+      const info = await devTransporter.sendMail(mailOptions);
+      console.log('Password reset email sent (Dev): %s', nodemailer.getTestMessageUrl(info));
+      return info;
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    return info;
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
+};

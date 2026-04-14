@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { prisma } from '../utils/prisma';
 import { hashPassword, comparePassword, generateTokens, verifyRefreshToken } from '../utils/auth';
 import { v4 as uuidv4 } from 'uuid';
-import { sendVerificationEmail } from '../services/email';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email';
+import { logAudit } from '../services/audit';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -22,6 +23,15 @@ const verifyEmailSchema = z.object({
 
 const resendVerificationSchema = z.object({
   email: z.string().email(),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string(),
+  password: z.string().min(8),
 });
 
 const refreshSchema = z.object({
@@ -58,8 +68,9 @@ export async function authRoutes(app: FastifyInstance) {
         await sendVerificationEmail(email, name, verificationToken);
       } catch (emailError) {
         app.log.error('Failed to send verification email:', emailError);
-        // We continue anyway, user can request a resend later
       }
+
+      await logAudit(user.id, 'USER_REGISTERED', 'User', user.id);
       
       return reply.code(201).send({
         message: 'Registration successful. Please check your email to verify your account.',
@@ -151,6 +162,8 @@ export async function authRoutes(app: FastifyInstance) {
         },
       });
 
+      await logAudit(user.id, 'USER_EMAIL_VERIFIED', 'User', user.id);
+
       const tokens = generateTokens(user.id, user.role);
 
       return reply.send({
@@ -207,5 +220,70 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/logout', async (req, reply) => {
     // In a future version with token blacklisting, we'd handle that here.
     return reply.send({ message: 'Logged out successfully' });
+  });
+
+  app.post('/forgot-password', async (req, reply) => {
+    try {
+      const { email } = forgotPasswordSchema.parse(req.body);
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        // Security: Don't reveal if user exists
+        return reply.send({ message: 'If an account exists with that email, a reset link has been sent.' });
+      }
+
+      const resetPasswordToken = uuidv4();
+      const resetPasswordExpires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetPasswordToken, resetPasswordExpires },
+      });
+
+      await sendPasswordResetEmail(user.email, user.name, resetPasswordToken);
+      await logAudit(user.id, 'PASSWORD_RESET_REQUESTED', 'User', user.id);
+
+      return reply.send({ message: 'If an account exists with that email, a reset link has been sent.' });
+    } catch (error) {
+      if (error instanceof z.ZodError) return reply.code(400).send({ error: 'Invalid email' });
+      app.log.error(error);
+      return reply.code(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  app.post('/reset-password', async (req, reply) => {
+    try {
+      const { token, password } = resetPasswordSchema.parse(req.body);
+
+      const user = await prisma.user.findFirst({
+        where: {
+          resetPasswordToken: token,
+          resetPasswordExpires: { gt: new Date() },
+        },
+      });
+
+      if (!user) {
+        return reply.code(400).send({ error: 'Invalid or expired reset token' });
+      }
+
+      const passwordHash = await hashPassword(password);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
+
+      await logAudit(user.id, 'PASSWORD_RESET_SUCCESSFUL', 'User', user.id);
+
+      return reply.send({ message: 'Password reset successful' });
+    } catch (error) {
+      if (error instanceof z.ZodError) return reply.code(400).send({ error: 'Validation failed' });
+      app.log.error(error);
+      return reply.code(500).send({ error: 'Internal server error' });
+    }
   });
 }

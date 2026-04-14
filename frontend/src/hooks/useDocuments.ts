@@ -1,7 +1,7 @@
+import { useEffect, useRef } from "react";
 import { useDocumentStore } from "@/store/documentStore";
 import { toast } from "@/store/toastStore";
 import api from "@/lib/api";
-import type { Document } from "@/types/document";
 
 export function useDocuments() {
   const {
@@ -11,13 +11,14 @@ export function useDocuments() {
     setDocuments,
     addDocument,
     removeDocument,
-    updateDocumentStatus,
     setLoading,
     setError,
   } = useDocumentStore();
 
-  const loadDocuments = async () => {
-    setLoading(true);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const loadDocuments = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const response = await api.get("/api/documents");
       setDocuments(response.data.documents);
@@ -25,17 +26,35 @@ export function useDocuments() {
       setError("Failed to load documents.");
       toast.error("Error", "Could not load your documents.");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
+
+  // Setup polling if any document is processing
+  useEffect(() => {
+    const isProcessing = documents.some(doc => doc.status === 'PROCESSING');
+    
+    if (isProcessing && !pollingIntervalRef.current) {
+      pollingIntervalRef.current = setInterval(() => {
+        loadDocuments(false); // Silent reload
+      }, 5000);
+    } else if (!isProcessing && pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [documents]);
 
   const uploadDocument = async (file: File): Promise<void> => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      // Optimistically show uploading status, handle later
-      const tempId = `temp_${Date.now()}`;
       
       const response = await api.post("/api/documents/upload", formData, {
         headers: {

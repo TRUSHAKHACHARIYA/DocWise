@@ -1,0 +1,20 @@
+[
+  {
+    "id": "q1",
+    "question": "What is the primary objective of the DocWise project?",
+    "expected_answer": "The primary objective is to create a secure, high-performance RAG-based document analysis platform using modern technologies like Next.js, Fastify, and Pinecone.",
+    "document_ids": ["doc_main_readme"]
+  },
+  {
+    "id": "q2",
+    "question": "Which LLM model is used for generating responses?",
+    "expected_answer": "Anthropic Claude 3.5 Sonnet is used for intelligent conversation and document analysis.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q3",
+    "question": "How does the system handle document reranking?",
+    "expected_answer": "DocWise uses Cohere Rerank English v3.0 to process top chunks retrieved from Pinecone for improved accuracy.",
+    "document_ids": ["doc_pipeline"]
+  }
+]

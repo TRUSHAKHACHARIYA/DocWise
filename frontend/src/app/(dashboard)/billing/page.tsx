@@ -6,6 +6,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUsage } from "@/hooks/useUsage";
 import { useBilling } from "@/hooks/useBilling";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "@/store/toastStore";
 
 const PLANS_INFO = [
   {
@@ -35,9 +38,16 @@ const PLANS_INFO = [
 ];
 
 export default function BillingPage() {
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { usage, questionPercentage, storagePercentage } = useUsage();
   const { createCheckoutSession, openCustomerPortal, isLoading } = useBilling();
+
+  useEffect(() => {
+    if (searchParams.get("billing_cancelled")) {
+      toast.error("Checkout Cancelled", "Your plan was not changed. If you have questions, please contact support.");
+    }
+  }, [searchParams]);
 
   const currentPlan = user?.plan || "FREE";
 

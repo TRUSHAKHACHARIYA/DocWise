@@ -7,3 +7,5 @@ dist/
 .DS_Store
 coverage/
 evals/results/*.json
+*.db
+*.db-journal
