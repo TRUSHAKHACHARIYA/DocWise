@@ -46,7 +46,7 @@ export async function documentRoutes(app: FastifyInstance) {
 
       // We run pipeline synchronously for MVP
       try {
-        const text = await extractText(buffer, data.mimetype);
+        const { text, pageCount } = await extractText(buffer, data.mimetype, data.filename);
         const chunks = chunkText(text);
 
         if (chunks.length > 0) {
@@ -72,7 +72,8 @@ export async function documentRoutes(app: FastifyInstance) {
             where: { id: document.id },
             data: { 
               status: 'READY',
-              chunkCount: chunks.length
+              chunkCount: chunks.length,
+              pageCount: pageCount || 0
             }
           });
         } else {
