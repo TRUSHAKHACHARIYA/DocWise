@@ -2,16 +2,14 @@
 
 > **Transform your documents into interactive knowledge.** Upload PDFs, ask questions, and get precise, cited answers powered by RAG technology.
 
-![DocWise Preview](https://github.com/TRUSHAKHACHARIYA/DocWise/blob/main/docs/preview.png?raw=true)
-
-DocWise is a premium SaaS platform built for researches, legal teams, and businesses. It solves the "needle in the haystack" problem by allowing you to chat with your document library using advanced Retrieval-Augmented Generation (RAG).
+DocWise is a premium SaaS platform built for researchers, legal teams, and businesses. It solves the "needle in the haystack" problem by allowing you to chat with your document library using advanced Retrieval-Augmented Generation (RAG).
 
 ---
 
 ## ✨ Key Features
 
 ### 🧠 Intelligent RAG Pipeline
--   **Context-Aware Chat**: Clause 3.5 Sonnet integrated for high-quality, human-like reasoning.
+-   **Context-Aware Chat**: Claude Sonnet 4 (claude-sonnet-4-20250514) integrated for high-quality, human-like reasoning.
 -   **Source Citations**: Every answer includes clickable excerpts from the original documents to prevent hallucinations.
 -   **Multi-Document Analysis**: Select multiple files in the sidebar to query across your entire knowledge base simultaneously.
 -   **Semantic Search**: Powered by Pinecone vector storage and OpenAI embeddings.
@@ -33,11 +31,11 @@ DocWise is a premium SaaS platform built for researches, legal teams, and busine
 
 | Layer | Technology |
 | :--- | :--- |
-| **Frontend** | Next.js 16 (App Router), Tailwind CSS, Zustand |
+| **Frontend** | Next.js 15 (App Router), Tailwind CSS, Zustand |
 | **Backend** | Fastify, Node.js, Prisma ORM |
-| **AI/ML** | Claude 3.5 Sonnet, OpenAI Embeddings, Cohere Rerank v3 |
+| **AI/ML** | Claude Sonnet 4 (claude-sonnet-4-20250514), OpenAI Embeddings, Cohere Rerank v3 |
 | **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector) |
-| **Security** | JWT, Bcrypt, Audit Rails |
+| **Security** | JWT, Bcrypt, Audit Logs |
 | **Billing** | Stripe (Checkout & Billing Portal) |
 | **Email** | Nodemailer / Resend |
 
@@ -68,6 +66,9 @@ DocWise is a premium SaaS platform built for researches, legal teams, and busine
    ```bash
    # In /backend
    cp .env.example .env
+   
+   # In /frontend
+   cp .env.example .env.local
    ```
    *Required Keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PINECONE_API_KEY`, `STRIPE_SECRET_KEY`.*
 
