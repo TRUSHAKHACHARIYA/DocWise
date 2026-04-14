@@ -40,16 +40,18 @@ enum MessageRole {
 }
 
 model User {
-  id               String    @id @default(uuid())
-  email            String    @unique
-  passwordHash     String
-  name             String
-  role             Role      @default(USER)
-  plan             Plan      @default(FREE)
-  stripeCustomerId String?
-  verifiedAt       DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  name              String
+  role              Role      @default(USER)
+  plan              Plan      @default(FREE)
+  stripeCustomerId  String?
+  verifiedAt        DateTime?
+  verificationToken String?   @unique
+  verificationExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   documents     Document[]
   chatSessions  ChatSession[]

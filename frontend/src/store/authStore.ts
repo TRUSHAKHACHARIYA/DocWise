@@ -12,6 +12,8 @@ interface AuthStore {
 
   login: (email: string, password?: string) => Promise<void>;
   register: (name: string, email: string, password?: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
 }
@@ -44,13 +46,39 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
         try {
           const res = await api.post("/api/auth/register", { name, email, password });
+          toast.success("Account created!", res.data.message || "Please check your email to verify your account.");
+        } catch (error: any) {
+          toast.error("Registration failed", error.response?.data?.error || "An error occurred");
+          throw error;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      verifyEmail: async (token: string) => {
+        set({ isLoading: true });
+        try {
+          const res = await api.post("/api/auth/verify-email", { token });
           const { user, tokens } = res.data;
           
           auth.setTokens(tokens.accessToken, tokens.refreshToken);
           set({ user, isAuthenticated: true });
-          toast.success("Account created!", "Welcome to DocWise.");
+          toast.success("Email verified!", "Your account is now ready to use.");
         } catch (error: any) {
-          toast.error("Registration failed", error.response?.data?.error || "An error occurred");
+          toast.error("Verification failed", error.response?.data?.error || "Invalid or expired token");
+          throw error;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      resendVerification: async (email: string) => {
+        set({ isLoading: true });
+        try {
+          const res = await api.post("/api/auth/resend-verification", { email });
+          toast.success("Email sent", res.data.message || "Verification email has been resent.");
+        } catch (error: any) {
+          toast.error("Failed to resend email", error.response?.data?.error || "An error occurred");
           throw error;
         } finally {
           set({ isLoading: false });
