@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma';
 import { stripe } from '../utils/stripe';
 import { env } from '../config/env';
 import Stripe from 'stripe';
+import { syncUserPlan } from '../services/billing';
 
 export async function webhookRoutes(app: FastifyInstance) {
   // Capture raw body for Stripe signature verification
@@ -31,35 +32,15 @@ export async function webhookRoutes(app: FastifyInstance) {
         const stripeSubId = session.subscription as string;
 
         if (userId && stripeSubId) {
-            const subscription = await stripe.subscriptions.retrieve(stripeSubId);
-            const priceId = subscription.items.data[0].price.id;
-            
-            let plan: 'FREE' | 'STARTER' | 'PRO' = 'FREE';
-            if (priceId === env.STRIPE_PRICE_STARTER) plan = 'STARTER';
-            if (priceId === env.STRIPE_PRICE_PRO) plan = 'PRO';
-
-            await prisma.user.update({
-                where: { id: userId },
-                data: { 
-                    plan,
-                    subscription: {
-                        upsert: {
-                            create: {
-                                stripeSubId,
-                                plan,
-                                status: 'ACTIVE',
-                                currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-                            },
-                            update: {
-                                stripeSubId,
-                                plan,
-                                status: 'ACTIVE',
-                                currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-                            }
-                        }
-                    }
-                }
-            });
+          const subscription = await stripe.subscriptions.retrieve(stripeSubId);
+          await syncUserPlan(
+            userId, 
+            stripeSubId, 
+            subscription.items.data[0].price.id, 
+            subscription.status, 
+            subscription.current_period_end
+          );
+          app.log.info(`Plan synced for user ${userId} on checkout completion.`);
         }
         break;
       }
@@ -74,28 +55,14 @@ export async function webhookRoutes(app: FastifyInstance) {
         });
 
         if (dbSub) {
-            let status: 'ACTIVE' | 'CANCELLED' | 'PAST_DUE' = 'ACTIVE';
-            if (subscription.status === 'canceled') status = 'CANCELLED';
-            if (subscription.status === 'past_due') status = 'PAST_DUE';
-
-            const priceId = subscription.items.data[0].price.id;
-            let plan: 'FREE' | 'STARTER' | 'PRO' = 'FREE';
-            if (priceId === env.STRIPE_PRICE_STARTER) plan = 'STARTER';
-            if (priceId === env.STRIPE_PRICE_PRO) plan = 'PRO';
-
-            await prisma.user.update({
-                where: { id: dbSub.userId },
-                data: { 
-                    plan: status === 'ACTIVE' ? plan : 'FREE',
-                    subscription: {
-                        update: {
-                            status,
-                            plan,
-                            currentPeriodEnd: new Date(subscription.current_period_end * 1000)
-                        }
-                    }
-                }
-            });
+          await syncUserPlan(
+            dbSub.userId, 
+            stripeSubId, 
+            subscription.items.data[0].price.id, 
+            subscription.status, 
+            subscription.current_period_end
+          );
+          app.log.info(`Plan updated for user ${dbSub.userId} via subscription event.`);
         }
         break;
       }

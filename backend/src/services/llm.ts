@@ -49,3 +49,17 @@ export async function getStreamingLLMResponse(
   
   return fullContent;
 }
+
+export async function getSimpleLLMResponse(
+  systemPrompt: string,
+  messages: any[]
+): Promise<string> {
+  const response = await anthropic.messages.create({
+    model: 'claude-3-5-sonnet-20240620',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: messages,
+  });
+
+  return response.content[0].type === 'text' ? response.content[0].text : '';
+}

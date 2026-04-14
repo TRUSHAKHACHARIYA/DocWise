@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { retrieveRelevantChunks } from '../../backend/src/services/retriever';
-import { buildPrompt, getSimpleLLMResponse } from '../../backend/src/services/llm';
+import { retrieveRelevantChunks } from '../src/services/retriever';
+import { buildPrompt, getSimpleLLMResponse } from '../src/services/llm';
 
 // Mocking session and user for eval purposes
 const MOCK_USER_ID = "eval-user";

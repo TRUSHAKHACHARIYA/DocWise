@@ -12,21 +12,34 @@ import {
   BrainCircuit
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import StatCard from "@/components/dashboard/StatCard";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useChat } from "@/hooks/useChat";
+import { useDocuments } from "@/hooks/useDocuments";
+import { useUsage } from "@/hooks/useUsage";
+import { toast } from "@/store/toastStore";
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { sessions, fetchSessions, isLoading: chatLoading } = useChat();
   const { documents, loadDocuments, isLoading: docsLoading } = useDocuments();
-  const { usage, isLoading: usageLoading } = useUsage();
+  const { usage, fetchUsage, isLoading: usageLoading } = useUsage();
 
   useEffect(() => {
     fetchSessions();
     loadDocuments();
-  }, []);
+    fetchUsage();
+
+    if (searchParams.get("billing_success")) {
+      toast.success("Upgrade Successful!", "Welcome to your new plan. Your limits have been updated.");
+    }
+  }, [searchParams]);
 
   const isLoading = chatLoading || docsLoading || usageLoading;
   const recentChats = sessions.slice(0, 3);

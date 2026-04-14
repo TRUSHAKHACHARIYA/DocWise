@@ -39,7 +39,7 @@ export const buildApp = (opts = {}) => {
   });
 
   // Global Error Handler for Zod and generic errors
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler((error: any, request, reply) => {
       if (error instanceof z.ZodError) {
           return reply.code(400).send({
               error: 'Validation Error',
