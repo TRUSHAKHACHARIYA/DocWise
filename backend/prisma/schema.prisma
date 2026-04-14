@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -50,8 +50,10 @@ model User {
   verifiedAt        DateTime?
   verificationToken String?   @unique
   verificationExpires DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  resetPasswordToken  String?   @unique
+  resetPasswordExpires DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   documents     Document[]
   chatSessions  ChatSession[]
@@ -103,7 +105,7 @@ model Message {
   id          String      @id @default(uuid())
   sessionId   String
   role        MessageRole
-  content     String      @db.Text
+  content     String
   sources     Json?       // [{chunkId, text, page, score, docName}]
   tokensUsed  Int         @default(0)
   createdAt   DateTime    @default(now())

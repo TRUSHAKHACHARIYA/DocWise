@@ -4,6 +4,8 @@ import { prisma } from '../utils/prisma';
 import { requireVerified } from '../middleware/auth';
 import { retrieveRelevantChunks } from '../services/retriever';
 import { buildPrompt, getStreamingLLMResponse } from '../services/llm';
+import { checkQuestionLimit } from '../middleware/usageLimits';
+import { incrementUsage } from '../services/usage';
 
 export async function chatRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireVerified);
@@ -104,7 +106,7 @@ export async function chatRoutes(app: FastifyInstance) {
   });
 
   // Send message and stream response (SSE)
-  app.post('/:sessionId/message', async (req, reply) => {
+  app.post('/:sessionId/message', { preHandler: [checkQuestionLimit] }, async (req, reply) => {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
     const { content } = z.object({ content: z.string() }).parse(req.body);
@@ -167,6 +169,11 @@ export async function chatRoutes(app: FastifyInstance) {
           sources: JSON.stringify(chunks)
         }
       });
+
+      // Increment question usage
+      await incrementUsage(userId, 'questionsUsed');
+
+      reply.raw.write('data: [DONE]\n\n');
     } catch (err) {
       app.log.error(err);
       if (!reply.raw.writableEnded) {

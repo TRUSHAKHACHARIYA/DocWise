@@ -8,6 +8,8 @@ import { extractText } from '../services/parser';
 import { chunkText } from '../services/chunker';
 import { embedChunks } from '../services/embedder';
 import { upsertVectors, deleteVectorsByDocumentId } from '../services/vectorStore';
+import { checkDocumentLimit } from '../middleware/usageLimits';
+import { incrementUsage } from '../services/usage';
 
 export async function documentRoutes(app: FastifyInstance) {
   app.register(multipart, {
@@ -17,8 +19,8 @@ export async function documentRoutes(app: FastifyInstance) {
   });
 
   app.addHook('preHandler', requireVerified);
-
-  app.post('/upload', async (req, reply) => {
+  
+  app.post('/upload', { preHandler: [checkDocumentLimit] }, async (req, reply) => {
     const data = await req.file();
     if (!data) {
       return reply.code(400).send({ error: 'No file uploaded' });
@@ -88,6 +90,9 @@ export async function documentRoutes(app: FastifyInstance) {
           data: { status: 'FAILED' }
         });
       }
+      
+      // Increment document usage
+      await incrementUsage(userId, 'docsUploaded');
 
       return reply.code(201).send({ document });
     } catch (error: any) {
