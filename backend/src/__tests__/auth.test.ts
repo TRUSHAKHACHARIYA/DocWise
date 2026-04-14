@@ -31,7 +31,7 @@ describe('Auth Routes Integration', () => {
             });
         
         expect(res.status).toBe(400);
-        expect(res.body.error).toBe('Validation Error');
+        expect(res.body.error).toBe('Validation failed');
     });
 
     it('should return 401 on login with wrong credentials', async () => {
@@ -42,6 +42,10 @@ describe('Auth Routes Integration', () => {
                 password: 'wrongpassword'
             });
         
+        if (res.status !== 401) {
+            console.error('Login failed with status:', res.status, 'body:', res.body);
+        }
+
         expect(res.status).toBe(401);
         expect(res.body.error).toBe('Invalid credentials');
     });
