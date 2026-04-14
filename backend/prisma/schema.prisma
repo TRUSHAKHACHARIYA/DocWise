@@ -1,13 +1,162 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { 
+  USER 
+  ADMIN 
+}
+
+enum Plan { 
+  FREE 
+  STARTER 
+  PRO 
+  ENTERPRISE 
+}
+
+enum DocStatus { 
+  PROCESSING 
+  READY 
+  FAILED 
+}
+
+enum SubStatus { 
+  ACTIVE 
+  CANCELLED 
+  PAST_DUE 
+  TRIALING 
+}
+
+enum MessageRole { 
+  USER 
+  ASSISTANT 
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  name              String
+  role              Role      @default(USER)
+  plan              Plan      @default(FREE)
+  stripeCustomerId  String?
+  verifiedAt        DateTime?
+  verificationToken String?   @unique
+  verificationExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  documents     Document[]
+  chatSessions  ChatSession[]
+  usageLogs     UsageLog[]
+  subscription  Subscription?
+  apiKeys       ApiKey[]
+}
+
+model Document {
+  id         String    @id @default(uuid())
+  userId     String
+  name       String
+  s3Key      String
+  sizeBytes  Int
+  mimeType   String
+  chunkCount Int       @default(0)
+  pageCount  Int       @default(0)
+  status     DocStatus @default(PROCESSING)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatSessions ChatSessionDoc[]
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents ChatSessionDoc[]
+  messages  Message[]
+}
+
+model ChatSessionDoc {
+  sessionId  String
+  documentId String
+
+  session  ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  document Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, documentId])
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  sessionId   String
+  role        MessageRole
+  content     String      @db.Text
+  sources     Json?       // [{chunkId, text, page, score, docName}]
+  tokensUsed  Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model UsageLog {
+  id              String   @id @default(uuid())
+  userId          String
+  month           String   // "2025-01"
+  questionsUsed   Int      @default(0)
+  tokensUsed      Int      @default(0)
+  docsUploaded    Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+}
+
+model Subscription {
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  stripeSubId       String    @unique
+  plan              Plan
+  status            SubStatus
+  currentPeriodEnd  DateTime
+  createdAt         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  userId     String
+  keyHash    String    @unique
+  name       String
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
 }
