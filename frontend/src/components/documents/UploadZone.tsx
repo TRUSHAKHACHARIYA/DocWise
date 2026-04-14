@@ -5,12 +5,14 @@ import { Upload, File, X, CheckCircle2, AlertCircle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { toast } from "@/store/toastStore";
 import { cn } from "@/lib/utils";
+import { useDocuments } from "@/hooks/useDocuments";
 
 interface UploadZoneProps {
   onUpload?: (files: File[]) => void;
 }
 
 export default function UploadZone({ onUpload }: UploadZoneProps) {
+  const { uploadDocument } = useDocuments();
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<{ file: File; progress: number; status: 'uploading' | 'complete' | 'error' }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +39,7 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
     }
   };
 
-  const processFiles = (newFiles: File[]) => {
+  const processFiles = async (newFiles: File[]) => {
     // Validate file types (PDF, DOCX, TXT)
     const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
     const validFiles = newFiles.filter(file => {
@@ -54,42 +56,31 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
 
     if (validFiles.length === 0) return;
 
-    // Simulate upload progress
-    const fileEntries = validFiles.map(file => ({
+    // Track new files in UI
+    const newEntries = validFiles.map(file => ({
       file,
       progress: 0,
       status: 'uploading' as const
     }));
 
-    setFiles(prev => [...fileEntries, ...prev]);
+    setFiles(prev => [...newEntries, ...prev]);
 
-    // Simulate progress updates
-    fileEntries.forEach((entry, index) => {
-      let currentProgress = 0;
-      const interval = setInterval(() => {
-        currentProgress += Math.random() * 30;
-        if (currentProgress >= 100) {
-          currentProgress = 100;
-          clearInterval(interval);
-          setFiles(current => {
-            const updated = [...current];
-            const target = updated.find(f => f.file === entry.file);
-            if (target) {
-              target.progress = 100;
-              target.status = 'complete';
-            }
-            return updated;
-          });
-        } else {
-          setFiles(current => {
-            const updated = [...current];
-            const target = updated.find(f => f.file === entry.file);
-            if (target) target.progress = currentProgress;
-            return updated;
-          });
-        }
-      }, 400);
-    });
+    // Upload each file
+    for (const file of validFiles) {
+      try {
+        // Simplified progress emulation because axios.post in hook doesn't expose it yet
+        // In a real scenario, we'd pass a callback to useDocuments
+        await uploadDocument(file);
+        
+        setFiles(current => 
+          current.map(f => f.file === file ? { ...f, progress: 100, status: 'complete' } : f)
+        );
+      } catch (err) {
+        setFiles(current => 
+          current.map(f => f.file === file ? { ...f, status: 'error' } : f)
+        );
+      }
+    }
 
     if (onUpload) onUpload(validFiles);
   };
