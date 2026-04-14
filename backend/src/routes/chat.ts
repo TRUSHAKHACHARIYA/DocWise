@@ -1,12 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../utils/prisma';
-import { requireAuth } from '../middleware/auth';
+import { requireVerified } from '../middleware/auth';
 import { retrieveRelevantChunks } from '../services/retriever';
 import { buildPrompt, getStreamingLLMResponse } from '../services/llm';
 
 export async function chatRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', requireAuth);
+  app.addHook('preHandler', requireVerified);
 
   // Get all chat sessions
   app.get('/', async (req, reply) => {

@@ -3,7 +3,7 @@ import multipart from '@fastify/multipart';
 import { z } from 'zod';
 import { prisma } from '../utils/prisma';
 import { uploadFile, getFileUrl, deleteFile } from '../services/fileStorage';
-import { requireAuth } from '../middleware/auth';
+import { requireVerified } from '../middleware/auth';
 import { extractText } from '../services/parser';
 import { chunkText } from '../services/chunker';
 import { embedChunks } from '../services/embedder';
@@ -16,7 +16,7 @@ export async function documentRoutes(app: FastifyInstance) {
     }
   });
 
-  app.addHook('preHandler', requireAuth);
+  app.addHook('preHandler', requireVerified);
 
   app.post('/upload', async (req, reply) => {
     const data = await req.file();

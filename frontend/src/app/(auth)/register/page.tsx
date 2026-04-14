@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
 
   const validate = () => {
@@ -35,13 +36,36 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(name, email, password);
-      router.push("/dashboard"); 
+      setIsSubmitted(true);
     } catch (error) {
-      toast.error("Registration failed", "Please try again later.");
+      // Error is handled in the store
     } finally {
       setLoading(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="w-full text-center py-8">
+        <div className="mx-auto w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mb-6">
+          <Mail className="h-8 w-8 text-brand-600" />
+        </div>
+        <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Check your email</h1>
+        <p className="text-slate-500 mb-8">
+          We've sent a verification link to <span className="font-semibold text-slate-900">{email}</span>. 
+          Please click the link to activate your account.
+        </p>
+        <div className="space-y-4">
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/login">Return to Login</Link>
+          </Button>
+          <p className="text-xs text-slate-400">
+            Didn't receive the email? Check your spam folder or contact support.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
