@@ -155,25 +155,10 @@ export async function chatRoutes(app: FastifyInstance) {
     reply.raw.write(`data: ${JSON.stringify({ sources: chunks })}\n\n`);
 
     try {
-      // Gather raw result internally to save to DB while streaming
-      let fullAssistantContent = '';
-      
-      const stream = await (new (require('@anthropic-ai/sdk').default)({ apiKey: process.env.ANTHROPIC_API_KEY })).messages.create({
-        model: 'claude-3-5-sonnet-20240620',
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: messages,
-        stream: true,
-      });
+      // Use the service to handle streaming and get the full response
+      const fullAssistantContent = await getStreamingLLMResponse(systemPrompt, messages, reply);
 
-      for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-          const text = chunk.delta.text;
-          fullAssistantContent += text;
-          reply.raw.write(`data: ${JSON.stringify({ text })}\n\n`);
-        }
-      }
-
+      // Save assistant response to DB
       await prisma.message.create({
         data: {
           sessionId,
@@ -182,13 +167,12 @@ export async function chatRoutes(app: FastifyInstance) {
           sources: JSON.stringify(chunks)
         }
       });
-
-      reply.raw.write('data: [DONE]\n\n');
-      reply.raw.end();
     } catch (err) {
       app.log.error(err);
-      reply.raw.write(`data: ${JSON.stringify({ error: 'Failed to generate response' })}\n\n`);
-      reply.raw.end();
+      if (!reply.raw.writableEnded) {
+        reply.raw.write(`data: ${JSON.stringify({ error: 'Failed to generate response' })}\n\n`);
+        reply.raw.end();
+      }
     }
   });
 }

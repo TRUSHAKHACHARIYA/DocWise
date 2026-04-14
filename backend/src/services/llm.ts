@@ -25,21 +25,27 @@ export async function getStreamingLLMResponse(
   systemPrompt: string,
   messages: any[],
   reply: FastifyReply
-) {
+): Promise<string> {
   const stream = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20240620', // or appropriate generic model name
+    model: 'claude-3-5-sonnet-20240620',
     max_tokens: 1024,
     system: systemPrompt,
     messages: messages,
     stream: true,
   });
 
+  let fullContent = '';
+
   for await (const chunk of stream) {
     if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-      reply.raw.write(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`);
+      const text = chunk.delta.text;
+      fullContent += text;
+      reply.raw.write(`data: ${JSON.stringify({ text })}\n\n`);
     }
   }
 
   reply.raw.write('data: [DONE]\n\n');
   reply.raw.end();
+  
+  return fullContent;
 }
