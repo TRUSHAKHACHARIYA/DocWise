@@ -1,126 +1,119 @@
-# DocWise — AI-Powered Document Q&A Platform
+# DocWise — AI-Powered Document Intelligence Platform
 
-> Upload any PDF or document. Ask questions in plain English. Get accurate, cited answers instantly.
+> **Transform your documents into interactive knowledge.** Upload PDFs, ask questions, and get precise, cited answers powered by RAG technology.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+DocWise is a premium SaaS platform built for researchers, legal teams, and businesses. It solves the "needle in the haystack" problem by allowing you to chat with your document library using advanced Retrieval-Augmented Generation (RAG).
 
 ---
 
-## What is DocWise?
+## ✨ Key Features
 
-DocWise is a multi-tenant SaaS platform that lets users upload PDF/DOCX documents and interact with them through a conversational AI chatbot. Built on **Retrieval-Augmented Generation (RAG)** architecture, every answer is grounded in your actual documents — not hallucinated.
+### 🧠 Intelligent RAG Pipeline
+-   **Context-Aware Chat**: Claude Sonnet 4 (claude-sonnet-4-20250514) integrated for high-quality, human-like reasoning.
+-   **Source Citations**: Every answer includes clickable excerpts from the original documents to prevent hallucinations.
+-   **Multi-Document Analysis**: Select multiple files in the sidebar to query across your entire knowledge base simultaneously.
+-   **Semantic Search**: Powered by Pinecone vector storage and OpenAI embeddings.
 
-**Target users:** Legal teams, HR departments, researchers, support teams, students — anyone who reads documents.
+### 💼 SaaS Infrastructure
+-   **Usage Enforcement**: Built-in monthly quotas for documents and questions based on user plans (**Free, Starter, Pro**).
+-   **Secure Authentication**: JWT-based auth with email verification and self-service **Password Recovery**.
+-   **Audit Logging**: Detailed tracking of security events (logins, uploads, deletions) for compliance.
+-   **Stripe Integration**: Automated billing and customer portal for subscription management.
 
----
-
-## Key Features
-
-| Feature | Description |
-|---|---|
-| Document upload | PDF, DOCX, TXT support with drag-and-drop |
-| AI chat | Ask questions, get cited answers with streaming |
-| Multi-doc QA | Query across multiple documents simultaneously |
-| Source citations | Every answer shows the exact chunk + page |
-| Chat history | Persistent conversation threads |
-| Multi-tenant | Complete data isolation per user |
-| Admin dashboard | User management, analytics, billing oversight |
-| API access | REST API for Pro/Enterprise users |
+### ⚡ Technical Excellence
+-   **Real-time Streaming**: Instant AI responses via Server-Sent Events (SSE).
+-   **Zero-Setup Dev**: Ships with **SQLite** for instant local development without complex database configuration.
+-   **Evaluation Suite**: In-built RAG evaluator to measure response accuracy against a "Golden Dataset".
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | Next.js 14, Tailwind CSS, Zustand |
-| Backend | Node.js, Fastify, Prisma |
-| LLM | Claude claude-sonnet-4-6 (Anthropic) |
-| Embeddings | text-embedding-3-small (OpenAI) |
-| Vector DB | Pinecone (namespaced per tenant) |
-| Database | PostgreSQL |
-| Cache | Redis (Upstash) |
-| File Storage | Cloudflare R2 / AWS S3 |
-| Auth | JWT + bcrypt |
-| Billing | Stripe |
-| Email | Resend |
-| Deploy | Railway / Render |
+| :--- | :--- |
+| **Frontend** | Next.js 15 (App Router), Tailwind CSS, Zustand |
+| **Backend** | Fastify, Node.js, Prisma ORM |
+| **AI/ML** | Claude Sonnet 4 (claude-sonnet-4-20250514), OpenAI Embeddings, Cohere Rerank v3 |
+| **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector) |
+| **Security** | JWT, Bcrypt, Audit Logs |
+| **Billing** | Stripe (Checkout & Billing Portal) |
+| **Email** | Nodemailer / Resend |
 
 ---
 
-## Quick Start (Local Development)
+## 🚀 Getting Started
 
+### 📦 Prerequisites
+- Node.js 20+
+- npm or pnpm
+
+### 🛠️ Installation
+
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/TRUSHAKHACHARIYA/DocWise.git
+   cd DocWise
+   
+   # Install Backend
+   cd backend && npm install
+   
+   # Install Frontend
+   cd ../frontend && npm install
+   ```
+
+2. **Environment Configuration**
+   Copy the example environment files and add your API keys.
+   ```bash
+   # In /backend
+   cp .env.example .env
+   
+   # In /frontend
+   cp .env.example .env.local
+   ```
+   *Required Keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `PINECONE_API_KEY`, `STRIPE_SECRET_KEY`.*
+
+3. **Database Setup**
+   ```bash
+   cd backend
+   npx prisma migrate dev --name init
+   ```
+
+4. **Launch**
+   ```bash
+   # Terminal 1 (Backend)
+   cd backend && npm run dev
+   
+   # Terminal 2 (Frontend)
+   cd frontend && npm run dev
+   ```
+
+Visit **http://localhost:3000** to start analyzing!
+
+---
+
+## 📊 Evaluation & Testing
+To ensure the AI responses are high-quality, run the evaluation suite:
 ```bash
-# 1. Clone
-git clone https://github.com/yourusername/docwise.git
-cd docwise
-
-# 2. Install dependencies
-cd backend && npm install
-cd ../frontend && npm install
-
-# 3. Set environment variables
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
-# Fill in your API keys (see ARCHITECTURE.md for details)
-
-# 4. Setup database
 cd backend
-npx prisma migrate dev
-npx prisma db seed
-
-# 5. Run both servers
-# Terminal 1:
-cd backend && npm run dev
-
-# Terminal 2:
-cd frontend && npm run dev
+npx ts-node evals/run_eval.ts
 ```
-
-Visit `http://localhost:3000` — backend runs on `http://localhost:4000`
+Results will be saved to `backend/evals/results/latest_run.json`.
 
 ---
 
-## Project Structure
-
-```
-docwise/
-├── frontend/          # Next.js 14 app
-├── backend/           # Fastify API server
-├── evals/             # Accuracy evaluation scripts
-├── docs/              # All documentation
-│   ├── ARCHITECTURE.md
-│   ├── CONTEXT.md
-│   ├── PROMPT.md
-│   ├── TASK.md
-│   └── NOTES.md
-└── .github/
-    └── workflows/     # CI/CD pipelines
+## 📁 Project Structure
+```text
+DocWise/
+├── frontend/          # Next.js Application
+├── backend/           # Fastify API Server
+│   ├── prisma/        # Database Schema & Migrations
+│   ├── src/services/  # RAG, Auth, Usage, & Billing Logic
+│   └── evals/         # RAG Quality Testing Pipeline
+├── docs/              # Architecture & Deployment Guides
+└── evals/             # Global Evaluation Datasets
 ```
 
 ---
 
-## Documentation
-
-| File | Purpose |
-|---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, infrastructure |
-| [CONTEXT.md](docs/CONTEXT.md) | Business logic, RAG pipeline explanation |
-| [PROMPT.md](docs/PROMPT.md) | AI prompt engineering guide |
-| [TASK.md](docs/TASK.md) | Development task list for AI coding assistants |
-| [NOTES.md](docs/NOTES.md) | Dev notes, decisions, gotchas |
-
----
-
-## Development Plan
-
-See [TASK.md](docs/TASK.md) for the full 30-day sprint plan.
-
----
-
-## License
-
-MIT — see [LICENSE](LICENSE)
+## 📜 License
+Licensed under the [MIT License](LICENSE).

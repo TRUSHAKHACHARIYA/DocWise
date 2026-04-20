@@ -1,0 +1,38 @@
+To preview all the pages on your local machine, ensure your frontend server is running (`npm run dev` in the `frontend` folder). 
+
+Here is the complete list of all frontend page URLs and their functions:
+
+### 🏠 Public Pages
+These are accessible to everyone immediately.
+| Page Name | URL |
+| :--- | :--- |
+| **Landing Page** | `http://localhost:3000/` |
+| **Login** | `http://localhost:3000/login` |
+| **Register** | `http://localhost:3000/register` |
+| **Forgot Password** | `http://localhost:3000/forgot-password` |
+| **Reset Password** | `http://localhost:3000/reset-password?token=YOUR_TOKEN` |
+
+### 📊 Dashboard & Features
+*Note: These require you to be **logged in**.*
+| Page Name | URL |
+| :--- | :--- |
+| **Main Dashboard** | `http://localhost:3000/dashboard` |
+| **Document Manager** | `http://localhost:3000/documents` |
+| **AI Chat Console** | `http://localhost:3000/chat` |
+| **Billing & Pricing** | `http://localhost:3000/billing` |
+| **Account Settings** | `http://localhost:3000/settings` |
+
+### 🛡️ Admin Panel
+*Note: This requires an **Admin Role**.*
+| Page Name | URL |
+| :--- | :--- |
+| **Admin Dashboard** | `http://localhost:3000/admin` |
+
+---
+
+### 💡 Quick Commands
+- **Start Backend**: `cd backend; npm run dev`
+- **Start Frontend**: `cd frontend; npm run dev`
+- **View DB Data**: `cd backend; npx prisma studio` (Opens on `http://localhost:5555`)
+
+**Is there a specific page you would like me to modify or improve the design for?**
