@@ -159,7 +159,12 @@ export async function chatRoutes(app: FastifyInstance) {
     reply.raw.setHeader('Connection', 'keep-alive');
     
     // Send sources first as metadata
-    reply.raw.write(`data: ${JSON.stringify({ sources: chunks })}\n\n`);
+    const formattedSources = chunks.map(chunk => ({
+      title: chunk.documentName,
+      excerpt: chunk.text,
+      page: chunk.page
+    }));
+    reply.raw.write(`data: ${JSON.stringify({ sources: formattedSources })}\n\n`);
 
     try {
       // Use the service to handle streaming and get the full response
