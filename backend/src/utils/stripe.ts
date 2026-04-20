@@ -2,5 +2,5 @@ import Stripe from 'stripe';
 import { env } from '../config/env';
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-02-24-preview', // Use a stable version, or matches latest
+  apiVersion: '2026-03-25.dahlia',
 });

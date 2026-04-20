@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
+    "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "vitest run"
+    "test": "vitest run --dir src",
+    "test:watch": "vitest",
+    "eval": "ts-node evals/run_eval.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

@@ -10,6 +10,7 @@ import { embedChunks } from '../services/embedder';
 import { upsertVectors, deleteVectorsByDocumentId } from '../services/vectorStore';
 import { checkDocumentLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
+import { looksSuspiciousTextPayload, validateUploadMimeType, validateUploadSignature } from '../utils/uploadSecurity';
 
 export async function documentRoutes(app: FastifyInstance) {
   app.register(multipart, {
@@ -29,6 +30,18 @@ export async function documentRoutes(app: FastifyInstance) {
     const userId = req.user!.id;
     const buffer = await data.toBuffer();
     const sizeBytes = buffer.length;
+
+    if (!validateUploadMimeType(data.mimetype)) {
+      return reply.code(400).send({ error: "Unsupported file type" });
+    }
+
+    if (!validateUploadSignature(buffer, data.mimetype)) {
+      return reply.code(400).send({ error: "File signature does not match declared MIME type" });
+    }
+
+    if (looksSuspiciousTextPayload(buffer, data.mimetype)) {
+      return reply.code(400).send({ error: "Potentially unsafe text payload detected" });
+    }
 
     try {
       // 1. Upload to S3/R2

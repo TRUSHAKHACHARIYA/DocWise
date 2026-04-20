@@ -136,7 +136,12 @@ export async function chatRoutes(app: FastifyInstance) {
     const documentIds = session.documents.map(d => d.documentId);
 
     // Retrieve chunks
-    const chunks = await retrieveRelevantChunks(userId, content, documentIds.length > 0 ? documentIds : undefined);
+    const chunks = await retrieveRelevantChunks(
+      userId,
+      content,
+      5,
+      documentIds.length > 0 ? documentIds : undefined
+    );
 
     // Setup history for Claude (only actual history, not this new message)
     const history = session.messages.map(msg => ({

@@ -31,8 +31,8 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/users', async (req, reply) => {
     const query = z.object({
       search: z.string().optional(),
-      page: z.string().transform(Number).optional().default('1'),
-      limit: z.string().transform(Number).optional().default('20'),
+      page: z.string().transform(Number).optional().default(1),
+      limit: z.string().transform(Number).optional().default(20),
     }).parse(req.query);
 
     const skip = (query.page - 1) * query.limit;

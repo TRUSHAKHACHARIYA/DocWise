@@ -29,10 +29,18 @@ export const env = {
   S3_BUCKET_NAME: required("S3_BUCKET_NAME"),
   S3_REGION: optional("S3_REGION", "auto"),
 
-  OPENAI_API_KEY: required("OPENAI_API_KEY"),
+  // Embedding Provider Configuration
+  EMBEDDING_PROVIDER: optional("EMBEDDING_PROVIDER", "openai"), // openai, anthropic, cohere
+  OPENAI_API_KEY: optional("OPENAI_API_KEY", ""),
+  OPENAI_EMBEDDING_MODEL: optional("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+  ANTHROPIC_API_KEY: optional("ANTHROPIC_API_KEY", ""),
+  ANTHROPIC_EMBEDDING_MODEL: optional("ANTHROPIC_EMBEDDING_MODEL", "claude-embedding-3"),
+  COHERE_API_KEY: optional("COHERE_API_KEY", ""),
+  COHERE_EMBEDDING_MODEL: optional("COHERE_EMBEDDING_MODEL", "embed-multilingual-v3.0"),
+  
+  // Vector Database
   PINECONE_API_KEY: required("PINECONE_API_KEY"),
   PINECONE_INDEX: required("PINECONE_INDEX"),
-  ANTHROPIC_API_KEY: required("ANTHROPIC_API_KEY"),
 
   RESEND_API_KEY: optional("RESEND_API_KEY", ""),
   EMAIL_FROM: optional("EMAIL_FROM", "noreply@docwise.app"),

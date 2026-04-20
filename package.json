@@ -7,7 +7,19 @@
   ],
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && npm run dev"
+    "dev:backend": "cd backend && npm run dev",
+    "typecheck": "npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
+    "test": "npm run test --workspace backend",
+    "lint": "npm run lint --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "docs:check": "node scripts/check-docs-sync.mjs",
+    "eval:gate": "node scripts/eval-gate.mjs",
+    "perf:budget": "node scripts/perf-budget-check.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "smoke:e2e": "node scripts/smoke-e2e.mjs",
+    "validate:backend": "npm run typecheck --workspace backend && npm run test --workspace backend",
+    "validate:frontend": "npm run lint --workspace frontend",
+    "validate": "npm run validate:backend && npm run validate:frontend && npm run docs:check && npm run release:check"
   },
   "dependencies": {
     "axios": "^1.15.0",

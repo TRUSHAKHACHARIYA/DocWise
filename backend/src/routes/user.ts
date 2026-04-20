@@ -3,6 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '../utils/prisma';
 import { requireAuth } from '../middleware/auth';
+import { getEffectiveLimits, isInTrial } from '../services/usage';
 
 export async function userRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth);
@@ -11,7 +12,13 @@ export async function userRoutes(app: FastifyInstance) {
   app.get('/me', async (req, reply) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        plan: true,
+        role: true,
+        trialEndsAt: true,
         subscription: true
       }
     });
@@ -24,15 +31,8 @@ export async function userRoutes(app: FastifyInstance) {
       where: { userId_month: { userId: user.id, month } }
     });
 
-    // Plan limits mapping
-    const limits = {
-        FREE: { questions: 20, docs: 5, storageMB: 50 },
-        STARTER: { questions: 200, docs: 20, storageMB: 100 },
-        PRO: { questions: 10000, docs: 1000, storageMB: 1000 },
-        ENTERPRISE: { questions: 999999, docs: 999999, storageMB: 999999 }
-    };
-
-    const currentLimit = limits[user.plan];
+    const inTrial = isInTrial(user);
+    const currentLimit = getEffectiveLimits(user);
 
     return reply.send({
       user: {
@@ -40,16 +40,18 @@ export async function userRoutes(app: FastifyInstance) {
           email: user.email,
           name: user.name,
           plan: user.plan,
-          role: user.role
+          role: user.role,
+          trialEndsAt: user.trialEndsAt,
+          inTrial
       },
       usage: {
           questionsUsed: usage?.questionsUsed || 0,
-          questionsLimit: currentLimit.questions,
+          questionsLimit: currentLimit.maxQuestions,
           docsUploaded: usage?.docsUploaded || 0,
-          docsLimit: currentLimit.docs,
+          docsLimit: currentLimit.maxDocs,
           storageUsedMB: 0, // Mock for now, would need a sum of document sizes
-          storageLimitMB: currentLimit.storageMB,
-          plan: user.plan
+          storageLimitMB: 100, // Default storage limit
+          plan: inTrial ? 'trial' : user.plan.toLowerCase()
       }
     });
   });
