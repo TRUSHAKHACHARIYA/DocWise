@@ -47,6 +47,7 @@ model User {
   role              Role      @default(USER)
   plan              Plan      @default(FREE)
   stripeCustomerId  String?
+  trialEndsAt       DateTime? // When free trial ends
   verifiedAt        DateTime?
   verificationToken String?   @unique
   verificationExpires DateTime?

@@ -5,6 +5,7 @@ import { hashPassword, comparePassword, generateTokens, verifyRefreshToken } fro
 import { v4 as uuidv4 } from 'uuid';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email';
 import { logAudit } from '../services/audit';
+import { getTrialEndDate } from '../services/usage';
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -67,7 +68,7 @@ export async function authRoutes(app: FastifyInstance) {
       try {
         await sendVerificationEmail(email, name, verificationToken);
       } catch (emailError) {
-        app.log.error('Failed to send verification email:', emailError);
+        app.log.error({ err: emailError }, 'Failed to send verification email');
       }
 
       await logAudit(user.id, 'USER_REGISTERED', 'User', user.id);
@@ -159,6 +160,7 @@ export async function authRoutes(app: FastifyInstance) {
           verifiedAt: new Date(),
           verificationToken: null,
           verificationExpires: null,
+          trialEndsAt: getTrialEndDate(), // Activate 7-day trial
         },
       });
 

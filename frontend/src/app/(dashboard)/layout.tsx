@@ -1,5 +1,8 @@
+import { ReactNode } from "react";
 import AuthGuard from "@/components/auth/AuthGuard";
 import VerificationBanner from "@/components/auth/VerificationBanner";
+import Sidebar from "@/components/dashboard/Sidebar";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

@@ -1,24 +1,15 @@
-import OpenAI from 'openai';
-import { env } from '../config/env';
+import { getDefaultEmbeddingProvider } from './embeddings/factory';
 
-const openai = new OpenAI({
-  apiKey: env.OPENAI_API_KEY,
-});
+// Get the configured embedding provider
+const embeddingProvider = getDefaultEmbeddingProvider();
 
 export async function embedChunks(chunks: string[]): Promise<number[][]> {
-  const result = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: chunks,
-  });
-
-  return result.data.map(d => d.embedding);
+  return await embeddingProvider.embedChunks(chunks);
 }
 
 export async function embedQuery(query: string): Promise<number[]> {
-  const result = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: query,
-  });
-
-  return result.data[0].embedding;
+  return await embeddingProvider.embedQuery(query);
 }
+
+// Export the provider for advanced use cases
+export { embeddingProvider };

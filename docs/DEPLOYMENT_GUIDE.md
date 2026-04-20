@@ -58,3 +58,11 @@ npx prisma migrate deploy
 
 ## 4. Monitoring (Sentry)
 Create a project on Sentry.io and add `SENTRY_DSN` to both environments for automatic error tracking.
+
+---
+
+## 5. Rollback Plan
+1. Keep the previous stable release artifact available in Railway and Vercel.
+2. If production health checks fail, rollback both backend and frontend to the previous release SHA.
+3. Re-run smoke checks (`/healthz`, login endpoint, and one document query flow).
+4. Capture incident notes and follow-up actions in `docs/NOTES.md`.

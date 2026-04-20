@@ -1,3 +1,5 @@
+import { FastifyReply, FastifyRequest } from "fastify";
+import { Plan, Role } from "@prisma/client";
 import { verifyAccessToken } from '../utils/auth';
 import { prisma } from '../utils/prisma';
 
@@ -11,10 +13,20 @@ export const requireAuth = async (req: FastifyRequest, reply: FastifyReply) => {
     const token = authHeader.split(' ')[1];
     const decoded = verifyAccessToken(token);
 
-    // Decorate request with user info
-    req.user = { 
-      id: decoded.userId,
-      role: decoded.role
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, role: true, plan: true, trialEndsAt: true },
+    });
+
+    if (!user) {
+      return reply.code(401).send({ error: "User no longer exists" });
+    }
+
+    req.user = {
+      id: user.id,
+      role: user.role as Role,
+      plan: user.plan as Plan,
+      trialEndsAt: user.trialEndsAt,
     };
   } catch (err) {
     return reply.code(401).send({ error: 'Invalid or expired token' });
