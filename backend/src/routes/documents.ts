@@ -5,11 +5,10 @@ import { prisma } from '../utils/prisma';
 import { uploadFile, getFileUrl, deleteFile } from '../services/fileStorage';
 import { requireVerified } from '../middleware/auth';
 import { extractText } from '../services/parser';
-import { chunkText } from '../services/chunker';
-import { embedChunks } from '../services/embedder';
-import { upsertVectors, deleteVectorsByDocumentId } from '../services/vectorStore';
+import { processTextIngestion } from '../services/ingestion';
 import { checkDocumentLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
+import { scrapeUrl } from '../services/scraper';
 import { looksSuspiciousTextPayload, validateUploadMimeType, validateUploadSignature } from '../utils/uploadSecurity';
 
 export async function documentRoutes(app: FastifyInstance) {
@@ -55,48 +54,14 @@ export async function documentRoutes(app: FastifyInstance) {
           s3Key: key,
           sizeBytes,
           mimeType: data.mimetype,
-          status: 'PROCESSING', // Will be picked up by worker or sync processing
+          status: 'PROCESSING',
         }
       });
 
-      // We run pipeline synchronously for MVP
+      // Run pipeline
       try {
         const { text, pageCount } = await extractText(buffer, data.mimetype, data.filename);
-        const chunks = chunkText(text);
-
-        if (chunks.length > 0) {
-          const chunkTexts = chunks.map(c => c.text);
-          const embeddings = await embedChunks(chunkTexts);
-
-          const vectors = chunks.map((chunk, idx) => ({
-            id: `${document.id}_chunk_${idx}`,
-            values: embeddings[idx],
-            metadata: {
-              documentId: document.id,
-              userId,
-              text: chunk.text,
-              startIndex: chunk.startIndex,
-            }
-          }));
-
-          // Namespace per tenant (userId)
-          await upsertVectors(userId, vectors);
-
-          // Update DB record
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { 
-              status: 'READY',
-              chunkCount: chunks.length,
-              pageCount: pageCount || 0
-            }
-          });
-        } else {
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: 'READY', chunkCount: 0 }
-          });
-        }
+        await processTextIngestion(userId, document.id, text, pageCount);
       } catch (ingestionError) {
         app.log.error(ingestionError);
         await prisma.document.update({
@@ -105,13 +70,50 @@ export async function documentRoutes(app: FastifyInstance) {
         });
       }
       
-      // Increment document usage
       await incrementUsage(userId, 'docsUploaded');
-
       return reply.code(201).send({ document });
     } catch (error: any) {
       app.log.error(error);
       return reply.code(500).send({ error: 'File upload failed' });
+    }
+  });
+
+  app.post('/ingest-url', { preHandler: [checkDocumentLimit] }, async (req, reply) => {
+    const { url } = z.object({ url: z.string().url() }).parse(req.body);
+    const userId = req.user!.id;
+
+    try {
+      // 1. Scrape content
+      const { title, text } = await scrapeUrl(url);
+
+      // 2. Create database record
+      const document = await prisma.document.create({
+        data: {
+          userId,
+          name: title,
+          s3Key: `web/${userId}/${Date.now()}-${title.substring(0, 20)}.txt`,
+          sizeBytes: Buffer.byteLength(text),
+          mimeType: 'text/html',
+          status: 'PROCESSING',
+        }
+      });
+
+      // Run pipeline
+      try {
+        await processTextIngestion(userId, document.id, text, 1);
+      } catch (ingestionError) {
+        app.log.error(ingestionError);
+        await prisma.document.update({
+          where: { id: document.id },
+          data: { status: 'FAILED' }
+        });
+      }
+
+      await incrementUsage(userId, 'docsUploaded');
+      return reply.code(201).send({ document });
+    } catch (error: any) {
+      app.log.error(error);
+      return reply.code(500).send({ error: 'URL ingestion failed' });
     }
   });
 
