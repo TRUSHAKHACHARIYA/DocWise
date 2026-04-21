@@ -49,7 +49,6 @@
   }
 
   @keyframes pulseSoft {
-
     0%,
     100% {
       opacity: 1;
@@ -58,6 +57,37 @@
     50% {
       opacity: 0.5;
     }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes bounceSubtle {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-delayed: float 8s ease-in-out infinite;
+  --animate-bounce-subtle: bounceSubtle 2s ease-in-out infinite;
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .rotate-x-1 {
+    transform: rotateX(1deg) rotateY(-1deg);
   }
 }
 
