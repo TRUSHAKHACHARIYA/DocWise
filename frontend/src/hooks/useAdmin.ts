@@ -21,8 +21,18 @@ export interface AdminUser {
   chatCount: number;
 }
 
+export interface GrowthData {
+  history: {
+    date: string;
+    users: number;
+    documents: number;
+    messages: number;
+  }[];
+}
+
 export function useAdmin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [growthData, setGrowthData] = useState<GrowthData | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +46,15 @@ export function useAdmin() {
       toast.error("Error", "Failed to load admin stats.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchGrowthData = async () => {
+    try {
+      const response = await api.get("/admin/analytics/growth");
+      setGrowthData(response.data);
+    } catch (err) {
+      console.error("Failed to load growth data", err);
     }
   };
 
@@ -74,10 +93,12 @@ export function useAdmin() {
 
   return {
     stats,
+    growthData,
     users,
     totalUsers,
     isLoading,
     fetchStats,
+    fetchGrowthData,
     fetchUsers,
     updateUser,
     deleteUser
