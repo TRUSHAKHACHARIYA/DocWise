@@ -59,17 +59,20 @@ export async function documentRoutes(app: FastifyInstance) {
         }
       });
 
-      // Run pipeline
-      try {
-        const { text, pageCount, pages } = await extractText(buffer, data.mimetype, data.filename);
-        await processTextIngestion(userId, document.id, text, pageCount, pages);
-      } catch (ingestionError) {
-        app.log.error(ingestionError);
-        await prisma.document.update({
-          where: { id: document.id },
-          data: { status: 'FAILED' }
-        });
-      }
+      // Run pipeline in background to avoid HTTP timeouts
+      // This is a simple "poor man's" queue - in production use BullMQ
+      (async () => {
+        try {
+          const { text, pageCount, pages } = await extractText(buffer, data.mimetype, data.filename);
+          await processTextIngestion(userId, document.id, text, pageCount, pages);
+        } catch (ingestionError) {
+          app.log.error(ingestionError, `Ingestion failed for doc ${document.id}`);
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: 'FAILED' }
+          }).catch(dbErr => app.log.error(dbErr, 'Failed to update document status to FAILED'));
+        }
+      })();
       
       await incrementUsage(userId, 'docsUploaded');
       return reply.code(201).send({ document });
@@ -99,16 +102,18 @@ export async function documentRoutes(app: FastifyInstance) {
         }
       });
 
-      // Run pipeline
-      try {
-        await processTextIngestion(userId, document.id, text, 1);
-      } catch (ingestionError) {
-        app.log.error(ingestionError);
-        await prisma.document.update({
-          where: { id: document.id },
-          data: { status: 'FAILED' }
-        });
-      }
+      // Run pipeline in background
+      (async () => {
+        try {
+          await processTextIngestion(userId, document.id, text, 1);
+        } catch (ingestionError) {
+          app.log.error(ingestionError, `URL Ingestion failed for doc ${document.id}`);
+          await prisma.document.update({
+            where: { id: document.id },
+            data: { status: 'FAILED' }
+          }).catch(dbErr => app.log.error(dbErr, 'Failed to update document status to FAILED (URL)'));
+        }
+      })();
 
       await incrementUsage(userId, 'docsUploaded');
       return reply.code(201).send({ document });

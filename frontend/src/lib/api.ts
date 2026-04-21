@@ -1,22 +1,22 @@
 import axios from "axios";
+import { useAuthStore } from "@/store/authStore";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") + "/api";
 
 // Create Axios instance
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true, // Required for cookies
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor — attach access token from localStorage
+// Request interceptor — attach access token from Zustand memory
 api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = useAuthStore.getState().accessToken;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -32,23 +32,22 @@ api.interceptors.response.use(
       original._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) throw new Error("No refresh token");
-
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-          refreshToken,
+        // Refresh token is in httpOnly cookie, backend will use it
+        const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
+          withCredentials: true
         });
 
         const { accessToken } = response.data;
-        localStorage.setItem("access_token", accessToken);
+        useAuthStore.getState().setAccessToken(accessToken);
+        
         original.headers.Authorization = `Bearer ${accessToken}`;
-
         return api(original);
-      } catch {
-        // Refresh failed — clear tokens
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        window.location.href = "/login";
+      } catch (refreshError) {
+        // Refresh failed — clear local auth state
+        useAuthStore.getState().logout();
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
       }
     }
 

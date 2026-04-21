@@ -86,7 +86,16 @@ export async function authRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post('/login', async (req, reply) => {
+  app.post('/login', {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 minute',
+        // In a real app, you might want to limit by email too, 
+        // but IP limit is a good start for brute force.
+      }
+    }
+  }, async (req, reply) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
       
@@ -102,6 +111,14 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = generateTokens(user.id, user.role);
 
+      reply.setCookie('refreshToken', tokens.refreshToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+
       return reply.send({
         user: { 
           id: user.id, 
@@ -110,7 +127,7 @@ export async function authRoutes(app: FastifyInstance) {
           plan: user.plan,
           verified: !!user.verifiedAt 
         },
-        tokens,
+        accessToken: tokens.accessToken,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -123,7 +140,11 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/refresh', async (req, reply) => {
     try {
-      const { refreshToken } = refreshSchema.parse(req.body);
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (!refreshToken) {
+        return reply.code(401).send({ error: 'Refresh token missing' });
+      }
       
       const decoded = verifyRefreshToken(refreshToken);
       const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
@@ -133,7 +154,16 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       const tokens = generateTokens(user.id, user.role);
-      return reply.send(tokens);
+
+      reply.setCookie('refreshToken', tokens.refreshToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60,
+      });
+
+      return reply.send({ accessToken: tokens.accessToken });
     } catch (error) {
       return reply.code(401).send({ error: 'Invalid or expired refresh token' });
     }
@@ -168,10 +198,18 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = generateTokens(user.id, user.role);
 
+      reply.setCookie('refreshToken', tokens.refreshToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60,
+      });
+
       return reply.send({
         message: 'Email verified successfully',
         user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
-        tokens,
+        accessToken: tokens.accessToken,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -220,7 +258,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.post('/logout', async (req, reply) => {
-    // In a future version with token blacklisting, we'd handle that here.
+    reply.clearCookie('refreshToken', { path: '/' });
     return reply.send({ message: 'Logged out successfully' });
   });
 

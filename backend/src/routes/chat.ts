@@ -109,7 +109,9 @@ export async function chatRoutes(app: FastifyInstance) {
   app.post('/:sessionId/message', { preHandler: [checkQuestionLimit] }, async (req, reply) => {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
-    const { content } = z.object({ content: z.string() }).parse(req.body);
+    const { content } = z.object({ 
+      content: z.string().min(1).max(4000) 
+    }).parse(req.body);
 
     const session = await prisma.chatSession.findFirst({
       where: { id: sessionId, userId },
@@ -183,8 +185,11 @@ export async function chatRoutes(app: FastifyInstance) {
 
       // Increment question usage
       await incrementUsage(userId, 'questionsUsed');
-
-      reply.raw.write('data: [DONE]\n\n');
+ 
+      if (!reply.raw.writableEnded) {
+        reply.raw.write('data: [DONE]\n\n');
+        reply.raw.end();
+      }
     } catch (err) {
       app.log.error(err);
       if (!reply.raw.writableEnded) {

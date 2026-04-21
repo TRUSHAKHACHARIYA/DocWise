@@ -7,6 +7,7 @@ import api from "@/lib/api";
 
 interface AuthStore {
   user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
@@ -16,23 +17,25 @@ interface AuthStore {
   resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
+  setAccessToken: (token: string | null) => void;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
       isLoading: false,
 
       login: async (email: string, password?: string) => {
         set({ isLoading: true });
         try {
-          const res = await api.post("/api/auth/login", { email, password });
-          const { user, tokens } = res.data;
+          const res = await api.post("/auth/login", { email, password });
+          const { user, accessToken } = res.data;
           
-          auth.setTokens(tokens.accessToken, tokens.refreshToken);
-          set({ user, isAuthenticated: true });
+          set({ user, accessToken, isAuthenticated: true });
           toast.success("Welcome back!", "You have successfully logged in.");
         } catch (error: any) {
           toast.error("Login failed", error.response?.data?.error || "Invalid credentials");
@@ -45,7 +48,7 @@ export const useAuthStore = create<AuthStore>()(
       register: async (name: string, email: string, password?: string) => {
         set({ isLoading: true });
         try {
-          const res = await api.post("/api/auth/register", { name, email, password });
+          const res = await api.post("/auth/register", { name, email, password });
           toast.success("Account created!", res.data.message || "Please check your email to verify your account.");
         } catch (error: any) {
           toast.error("Registration failed", error.response?.data?.error || "An error occurred");
@@ -58,11 +61,10 @@ export const useAuthStore = create<AuthStore>()(
       verifyEmail: async (token: string) => {
         set({ isLoading: true });
         try {
-          const res = await api.post("/api/auth/verify-email", { token });
-          const { user, tokens } = res.data;
+          const res = await api.post("/auth/verify-email", { token });
+          const { user, accessToken } = res.data;
           
-          auth.setTokens(tokens.accessToken, tokens.refreshToken);
-          set({ user, isAuthenticated: true });
+          set({ user, accessToken, isAuthenticated: true });
           toast.success("Email verified!", "Your account is now ready to use.");
         } catch (error: any) {
           toast.error("Verification failed", error.response?.data?.error || "Invalid or expired token");
@@ -75,7 +77,7 @@ export const useAuthStore = create<AuthStore>()(
       resendVerification: async (email: string) => {
         set({ isLoading: true });
         try {
-          const res = await api.post("/api/auth/resend-verification", { email });
+          const res = await api.post("/auth/resend-verification", { email });
           toast.success("Email sent", res.data.message || "Verification email has been resent.");
         } catch (error: any) {
           toast.error("Failed to resend email", error.response?.data?.error || "An error occurred");
@@ -86,16 +88,20 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        auth.clearTokens();
-        set({ user: null, isAuthenticated: false });
+        api.post("/auth/logout").catch(() => {}); // Fire and forget logout
+        set({ user: null, accessToken: null, isAuthenticated: false });
         toast.info("Logged out", "You have been signed out.");
       },
 
       setUser: (user: User) => set({ user, isAuthenticated: true }),
+      setAccessToken: (accessToken: string | null) => set({ accessToken }),
+      updateUser: (updates) => set((state) => ({ 
+        user: state.user ? { ...state.user, ...updates } : null 
+      })),
     }),
     {
       name: "docwise-auth",
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated }), // Don't persist user PII
     }
   )
 );

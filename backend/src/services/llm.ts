@@ -43,9 +43,6 @@ export async function getStreamingLLMResponse(
       reply.raw.write(`data: ${JSON.stringify({ text })}\n\n`);
     }
   }
-
-  reply.raw.write('data: [DONE]\n\n');
-  reply.raw.end();
   
   return fullContent;
 }

@@ -17,6 +17,7 @@ import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import underPressure from "@fastify/under-pressure";
+import cookie from "@fastify/cookie";
 import { z } from "zod";
 import { env } from "./config/env";
 import { prisma } from "./utils/prisma";
@@ -58,6 +59,11 @@ export const buildApp = (opts = {}) => {
   app.register(rateLimit, {
     max: 100,
     timeWindow: "15 minutes",
+  });
+
+  app.register(cookie, {
+    secret: env.JWT_SECRET, // using JWT_SECRET as cookie secret for simplicity
+    parseOptions: {}
   });
 
   app.register(underPressure, {

@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { 
   Search, 
@@ -10,7 +11,8 @@ import {
   XSquare,
   Trash2,
   Lock,
-  Zap
+  Zap,
+  Shield
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/utils";

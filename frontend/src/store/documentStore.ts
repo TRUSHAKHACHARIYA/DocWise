@@ -1,15 +1,15 @@
 import { create } from "zustand";
-import type { Document, DocStatus } from "@/types/document";
+import type { Document, DocStatus, UIDocument } from "@/types/document";
 import api from "@/lib/api";
 import { toast } from "./toastStore";
 
 interface DocumentStore {
-  documents: Document[];
+  documents: UIDocument[];
   isLoading: boolean;
   error: string | null;
 
   setDocuments: (docs: Document[]) => void;
-  addDocument: (doc: any) => void;
+  addDocument: (doc: Document) => void;
   removeDocument: (id: string) => void;
   updateDocumentStatus: (id: string, status: DocStatus) => void;
   setLoading: (loading: boolean) => void;

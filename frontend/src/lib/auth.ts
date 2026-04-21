@@ -1,33 +1,7 @@
-// Token management utilities
-
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
+// Token management utilities (Decoding/Validation only)
+// Tokens are stored in memory (Zustand) and httpOnly cookies
 
 export const auth = {
-  getAccessToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
-  },
-
-  getRefreshToken(): string | null {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
-  },
-
-  setTokens(accessToken: string, refreshToken: string): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  },
-
-  clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-  },
-
-  isAuthenticated(): boolean {
-    return !!this.getAccessToken();
-  },
-
   /**
    * Decode a JWT payload (client-side only — not for security, just for reading claims)
    */
@@ -42,10 +16,9 @@ export const auth = {
   },
 
   /**
-   * Check if the access token is expired
+   * Check if a token is expired
    */
-  isTokenExpired(): boolean {
-    const token = this.getAccessToken();
+  isTokenExpired(token: string | null): boolean {
     if (!token) return true;
     const payload = this.decodeToken(token);
     if (!payload || typeof payload.exp !== "number") return true;

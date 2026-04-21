@@ -20,7 +20,13 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
 } from 'recharts';
 
 const PLAN_COLORS: Record<string, string> = {

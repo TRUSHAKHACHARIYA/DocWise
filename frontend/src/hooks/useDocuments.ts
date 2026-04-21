@@ -20,7 +20,7 @@ export function useDocuments() {
   const loadDocuments = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await api.get("/api/documents");
+      const response = await api.get("/documents");
       setDocuments(response.data.documents);
     } catch (err) {
       setError("Failed to load documents.");
@@ -56,7 +56,7 @@ export function useDocuments() {
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await api.post("/api/documents/upload", formData, {
+      const response = await api.post("/documents/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -72,7 +72,7 @@ export function useDocuments() {
 
   const ingestUrl = async (url: string): Promise<void> => {
     try {
-      const response = await api.post("/api/documents/ingest-url", { url });
+      const response = await api.post("/documents/ingest-url", { url });
       addDocument(response.data.document);
       toast.success("URL added", "The website content is now processing.");
     } catch (error: any) {
@@ -83,7 +83,7 @@ export function useDocuments() {
 
   const deleteDocument = async (id: string): Promise<void> => {
     try {
-      await api.delete(`/api/documents/${id}`);
+      await api.delete(`/documents/${id}`);
       removeDocument(id);
       toast.success("Deleted", "Document removed successfully.");
     } catch (error: any) {
@@ -93,7 +93,7 @@ export function useDocuments() {
 
   const deleteBulk = async (ids: string[]): Promise<void> => {
     try {
-      await api.post("/api/documents/bulk-delete", { ids });
+      await api.post("/documents/bulk-delete", { ids });
       ids.forEach(id => removeDocument(id));
       toast.success("Batch Deleted", `${ids.length} documents removed successfully.`);
     } catch (error: any) {

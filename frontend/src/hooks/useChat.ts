@@ -3,6 +3,7 @@ import { useChatStore } from "@/store/chatStore";
 import { toast } from "@/store/toastStore";
 import type { Message, ChatSession } from "@/types/chat";
 import api from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") + "/api";
 
@@ -120,7 +121,7 @@ export function useChat() {
     addMessage(aiPlaceholder);
 
     abortControllerRef.current = new AbortController();
-    const token = localStorage.getItem("access_token");
+    const token = useAuthStore.getState().accessToken;
 
     try {
       const response = await fetch(`${API_URL}/chat/${activeSessionId}/message`, {

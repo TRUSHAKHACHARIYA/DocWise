@@ -16,6 +16,15 @@ export interface Document {
   updatedAt: string;
 }
 
+export interface UIDocument {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  status: DocStatus;
+  uploadedAt: string;
+}
+
 export interface DocumentUploadResponse {
   document: Document;
   uploadUrl?: string; // presigned URL for direct upload

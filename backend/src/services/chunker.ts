@@ -16,8 +16,8 @@ interface ChunkerOptions {
 }
 
 const DEFAULT_OPTIONS = {
-  maxChunkSize: 2000, // ~500 tokens
-  overlap: 200,       // ~50 tokens
+  maxChunkSize: 1500, // ~430 tokens (at 3.5 chars/token)
+  overlap: 200,       // ~57 tokens
   separators: ["\n\n", "\n", ". ", " ", ""],
 };
 
@@ -116,38 +116,42 @@ function slidingWindowChunk(text: string, size: number, overlap: number): Chunk[
   let start = 0;
 
   while (start < text.length) {
-    let end = start + size;
+    let end = Math.min(start + size, text.length);
     
+    // If not at the very end, try to find a natural break point (paragraph, sentence, etc)
     if (end < text.length) {
-      // Look for a break point within the last 20% of the chunk
-      const searchStart = end - Math.floor(size * 0.2);
+      // Look for a break point within the overlap zone
+      const minEnd = Math.max(start + (size - overlap), start + Math.floor(size * 0.5));
       const lastNewline = text.lastIndexOf("\n", end);
       const lastPeriod = text.lastIndexOf(". ", end);
       
-      if (lastNewline > searchStart) {
+      if (lastNewline > minEnd) {
         end = lastNewline + 1;
-      } else if (lastPeriod > searchStart) {
+      } else if (lastPeriod > minEnd) {
         end = lastPeriod + 2;
       } else {
         const lastSpace = text.lastIndexOf(" ", end);
-        if (lastSpace > searchStart) {
+        if (lastSpace > minEnd) {
           end = lastSpace + 1;
         }
       }
     }
 
     const content = text.substring(start, end).trim();
-    if (content.length > 10) { // Ignore tiny fragments
+    if (content.length > 5) {
       chunks.push({ text: content, startIndex: start });
     }
 
-    start = end - overlap;
+    // Move start forward, ensuring we don't get stuck in an infinite loop
+    // and maintain the requested overlap as a maximum.
+    const nextStart = end - overlap;
     
-    // Safety break
-    if (start >= text.length || end >= text.length && start >= end) break;
-    if (chunks.length > 0 && start <= chunks[chunks.length - 1].startIndex) {
-      start = end; // Force move forward
-    }
+    // Safety: always ensure we move forward by at least 1 character
+    // to avoid infinite loops, but try to maintain overlap.
+    const lastStart = chunks.length > 0 ? chunks[chunks.length - 1].startIndex : -1;
+    start = Math.max(nextStart, lastStart + 1);
+    
+    if (start >= text.length) break;
   }
 
   return chunks;

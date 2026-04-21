@@ -9,7 +9,7 @@ const MOCK_USER_ID = "eval-user";
 async function runEvaluation() {
   console.log("🚀 Starting RAG Pipeline Evaluation...");
   
-  const datasetPath = path.join(__dirname, '../datasets/golden_qa.json');
+  const datasetPath = path.join(__dirname, 'golden_qa.json');
   const dataset = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
   const results = [];
 
