@@ -80,6 +80,22 @@ export async function retrieveRelevantChunks(
     c.documentName = docMap.get(c.documentId) || 'Unknown Document';
   });
 
-  // 6. Rerank results with Cohere (Essential for Hybrid Search)
-  return await rerankChunks(question, initialChunks, topK);
+  // 6. Diversification & Pruning (Essential for Multi-Doc Chat)
+  let prunedChunks = initialChunks;
+  if (documentIds && documentIds.length > 2) {
+    // If many docs are selected, ensure we don't over-saturate with one doc
+    const perDocLimit = documentIds.length > 5 ? 2 : 3;
+    const docCounts: Record<string, number> = {};
+    
+    // Sort by score first to keep the best ones
+    prunedChunks = initialChunks
+      .sort((a, b) => b.score - a.score)
+      .filter(chunk => {
+        docCounts[chunk.documentId] = (docCounts[chunk.documentId] || 0) + 1;
+        return docCounts[chunk.documentId] <= perDocLimit;
+      });
+  }
+
+  // 7. Rerank results with Cohere (Essential for Hybrid Search)
+  return await rerankChunks(question, prunedChunks, topK);
 }

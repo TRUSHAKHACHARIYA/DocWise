@@ -14,6 +14,7 @@ import { billingRoutes } from "./routes/billing";
 import { webhookRoutes } from "./routes/webhooks";
 import { userRoutes } from "./routes/user";
 import { adminRoutes } from "./routes/admin";
+import { apiKeyRoutes } from "./routes/apiKeys";
 
 type HttpMetricEntry = {
   count: number;
@@ -94,6 +95,7 @@ export const buildApp = (opts = {}) => {
   app.register(webhookRoutes, { prefix: "/api/webhooks" });
   app.register(userRoutes, { prefix: "/api/user" });
   app.register(adminRoutes, { prefix: "/api/admin" });
+  app.register(apiKeyRoutes, { prefix: "/api/keys" });
 
   app.get("/", async () => {
     return { message: "DocWise API running" };
