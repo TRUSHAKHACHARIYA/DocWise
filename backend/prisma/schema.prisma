@@ -78,6 +78,22 @@ model Document {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   chatSessions ChatSessionDoc[]
+  chunks       Chunk[]
+}
+
+model Chunk {
+  id         String   @id @default(uuid())
+  documentId String
+  userId     String   // Denormalized for fast filtering by user
+  text       String
+  startIndex Int
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([userId])
 }
 
 model ChatSession {

@@ -9,7 +9,7 @@ export async function extractText(
   buffer: Buffer, 
   mimeType: string,
   fileName: string = 'document'
-): Promise<{ text: string, pageCount?: number }> {
+): Promise<{ text: string, pageCount?: number, pages?: string[] }> {
   try {
     if (mimeType === 'application/pdf') {
       return await extractTextFromPdf(buffer);
@@ -34,26 +34,27 @@ export async function extractText(
   }
 }
 
-async function extractTextFromPdf(buffer: Buffer): Promise<{ text: string, pageCount: number }> {
+async function extractTextFromPdf(buffer: Buffer): Promise<{ text: string, pageCount: number, pages: string[] }> {
   try {
-    // pdf-parse options
+    const pages: string[] = [];
+    
+    // Custom pagerender to collect text by individual pages
     const options = {
-      // Custom pagerender to catch specific details if needed
       pagerender: (pageData: any) => {
         return pageData.getTextContent().then((textContent: any) => {
-          return textContent.items.map((item: any) => item.str).join(' ');
+          const pageText = textContent.items.map((item: any) => item.str).join(' ');
+          pages.push(pageText);
+          return pageText;
         });
       }
     };
 
-    const data = await pdfParse(buffer);
-    
-    // Fallback if custom pagerender fails or returns empty
-    const text = data.text && data.text.trim().length > 0 ? data.text : "No extractable text found in this PDF.";
+    const data = await pdfParse(buffer, options);
     
     return { 
-      text, 
-      pageCount: data.numpages || 1 
+      text: data.text || pages.join('\n\n'), 
+      pageCount: data.numpages || pages.length || 1,
+      pages
     };
   } catch (error: any) {
     throw new Error(`PDF parsing failed: ${error.message}`);

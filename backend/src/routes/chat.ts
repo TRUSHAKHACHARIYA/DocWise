@@ -162,7 +162,8 @@ export async function chatRoutes(app: FastifyInstance) {
     const formattedSources = chunks.map(chunk => ({
       title: chunk.documentName,
       excerpt: chunk.text,
-      page: chunk.page
+      page: chunk.page,
+      documentId: chunk.documentId
     }));
     reply.raw.write(`data: ${JSON.stringify({ sources: formattedSources })}\n\n`);
 

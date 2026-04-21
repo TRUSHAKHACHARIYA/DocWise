@@ -60,8 +60,8 @@ export async function documentRoutes(app: FastifyInstance) {
 
       // Run pipeline
       try {
-        const { text, pageCount } = await extractText(buffer, data.mimetype, data.filename);
-        await processTextIngestion(userId, document.id, text, pageCount);
+        const { text, pageCount, pages } = await extractText(buffer, data.mimetype, data.filename);
+        await processTextIngestion(userId, document.id, text, pageCount, pages);
       } catch (ingestionError) {
         app.log.error(ingestionError);
         await prisma.document.update({
@@ -153,6 +153,27 @@ export async function documentRoutes(app: FastifyInstance) {
     } catch (error) {
       app.log.error(error);
       return reply.code(500).send({ error: 'Failed to delete document' });
+    }
+  });
+
+  app.get('/:id/view', async (req, reply) => {
+    const userId = req.user!.id;
+    const { id } = req.params as { id: string };
+
+    const document = await prisma.document.findFirst({
+      where: { id, userId }
+    });
+
+    if (!document) {
+      return reply.code(404).send({ error: 'Document not found' });
+    }
+
+    try {
+      const url = await getFileUrl(document.s3Key);
+      return reply.send({ url });
+    } catch (error) {
+      app.log.error(error);
+      return reply.code(500).send({ error: 'Failed to generate viewing URL' });
     }
   });
 }

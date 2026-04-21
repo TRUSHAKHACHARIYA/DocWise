@@ -2,20 +2,21 @@
 
 import { Sparkles, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SourceCard from "./SourceCard";
+import SourceCard, { Source } from "./SourceCard";
 
 interface Message {
   role: "user" | "ai";
   content: string;
-  sources?: { title: string; excerpt: string; page?: number }[];
+  sources?: Source[];
   isStreaming?: boolean;
 }
 
 interface MessageBubbleProps {
   message: Message;
+  onSourceClick?: (source: Source) => void;
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   return (
@@ -70,7 +71,11 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             {message.sources && message.sources.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3">
                 {message.sources.map((source, idx) => (
-                  <SourceCard key={idx} source={source} />
+                  <SourceCard 
+                    key={idx} 
+                    source={source} 
+                    onOpen={onSourceClick}
+                  />
                 ))}
               </div>
             )}
