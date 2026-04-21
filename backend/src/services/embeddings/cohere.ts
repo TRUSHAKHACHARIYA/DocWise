@@ -2,11 +2,11 @@ import { Cohere } from 'cohere-ai';
 import { EmbeddingProvider } from './index';
 
 export class CohereEmbeddingProvider implements EmbeddingProvider {
-  private client: Cohere;
+  private client: any;
   private model: string;
 
   constructor(apiKey: string, model: string = 'embed-multilingual-v3.0') {
-    this.client = new Cohere({ apiKey });
+    this.client = new (Cohere as any)({ apiKey });
     this.model = model;
   }
 

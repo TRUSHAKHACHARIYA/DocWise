@@ -193,4 +193,38 @@ export async function chatRoutes(app: FastifyInstance) {
       }
     }
   });
+
+  // NEW: Message Feedback (Thumbs Up/Down)
+  app.post('/:sessionId/messages/:messageId/feedback', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId, messageId } = req.params as { sessionId: string; messageId: string };
+    const { isPositive, comment } = z.object({
+      isPositive: z.boolean(),
+      comment: z.string().optional()
+    }).parse(req.body);
+
+    const message = await prisma.message.findFirst({
+      where: { 
+        id: messageId, 
+        sessionId,
+        session: { userId } 
+      }
+    });
+
+    if (!message) {
+      return reply.code(404).send({ error: 'Message not found' });
+    }
+
+    const feedback = await prisma.messageFeedback.upsert({
+      where: { messageId },
+      update: { isPositive, comment },
+      create: {
+        messageId,
+        isPositive,
+        comment
+      }
+    });
+
+    return reply.send({ success: true, feedback });
+  });
 }

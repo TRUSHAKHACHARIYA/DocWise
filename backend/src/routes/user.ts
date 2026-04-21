@@ -102,4 +102,14 @@ export async function userRoutes(app: FastifyInstance) {
       });
       return reply.send({ keys });
   });
+
+  // Get user activity logs
+  app.get('/activity', async (req, reply) => {
+    const logs = await prisma.auditLog.findMany({
+      where: { actorId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
+    return reply.send({ logs });
+  });
 }

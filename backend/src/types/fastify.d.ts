@@ -7,6 +7,7 @@ declare module 'fastify' {
       id: string;
       role: Role;
       plan: Plan;
+      trialEndsAt?: Date | null;
     };
   }
 }

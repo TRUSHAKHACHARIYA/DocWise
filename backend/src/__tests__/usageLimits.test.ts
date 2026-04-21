@@ -10,6 +10,19 @@ vi.mock("../services/usage", () => ({
     ENTERPRISE: { maxDocs: 999999, maxQuestions: 999999 },
   },
   getUsage: vi.fn(),
+  getEffectiveLimits: vi.fn((user: any) => {
+    if (user.plan === "STARTER") {
+      return { maxDocs: 20, maxQuestions: 200 };
+    }
+    if (user.plan === "PRO") {
+      return { maxDocs: 100, maxQuestions: 1000 };
+    }
+    if (user.plan === "ENTERPRISE") {
+      return { maxDocs: 999999, maxQuestions: 999999 };
+    }
+    return { maxDocs: 3, maxQuestions: 20 };
+  }),
+  isInTrial: vi.fn(() => false),
 }));
 
 function createReply() {

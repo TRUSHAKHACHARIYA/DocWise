@@ -9,6 +9,7 @@ import { processTextIngestion } from '../services/ingestion';
 import { checkDocumentLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
 import { scrapeUrl } from '../services/scraper';
+import { deleteVectorsByDocumentId } from '../services/vectorStore';
 import { looksSuspiciousTextPayload, validateUploadMimeType, validateUploadSignature } from '../utils/uploadSecurity';
 
 export async function documentRoutes(app: FastifyInstance) {

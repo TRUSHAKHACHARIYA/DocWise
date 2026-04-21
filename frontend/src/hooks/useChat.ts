@@ -193,6 +193,16 @@ export function useChat() {
     setStreaming(false);
   };
 
+  const submitMessageFeedback = async (messageId: string, isPositive: boolean, comment?: string) => {
+    if (!activeSessionId) return;
+    try {
+      await api.post(`/chat/${activeSessionId}/messages/${messageId}/feedback`, { isPositive, comment });
+      toast.success(isPositive ? "Helpful" : "Feedback recorded", "Thank you for helping improve DocWise.");
+    } catch (err) {
+      console.error("Failed to submit feedback", err);
+    }
+  };
+
   return {
     sessions,
     activeSessionId,
@@ -205,6 +215,7 @@ export function useChat() {
     deleteSession,
     updateSessionDocuments,
     sendMessage,
+    submitMessageFeedback,
     cancelStream,
     setActiveSession,
     clearMessages,
