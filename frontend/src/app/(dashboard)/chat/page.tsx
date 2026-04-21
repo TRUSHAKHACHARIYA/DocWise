@@ -17,9 +17,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDocuments } from "@/hooks/useDocuments";
 import ChatInput from "@/components/chat/ChatInput";
 import MessageBubble from "@/components/chat/MessageBubble";
+import PDFViewer from "@/components/chat/PDFViewer";
+import { Source } from "@/components/chat/SourceCard";
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const [activePdf, setActivePdf] = useState<Source | null>(null);
   const { 
     sessions, 
     activeSessionId, 
@@ -67,8 +70,23 @@ export default function ChatPage() {
     });
   };
 
+  const handleSourceClick = (source: Source) => {
+    setActivePdf(source);
+  };
+
   return (
     <div className="flex h-[calc(100vh-120px)] gap-6 relative">
+      {/* PDF Viewer Overlay */}
+      {activePdf && activePdf.documentId && (
+        <PDFViewer 
+          documentId={activePdf.documentId}
+          documentName={activePdf.title}
+          initialPage={activePdf.page}
+          initialSearch={activePdf.excerpt}
+          onClose={() => setActivePdf(null)}
+        />
+      )}
+
       {/* Sidebar: Chat Sessions */}
       <div className={cn(
         "w-80 flex flex-col bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-300 z-20",
@@ -153,6 +171,7 @@ export default function ChatPage() {
                     sources: m.sources as any,
                     isStreaming: isStreaming && m.id === messages[messages.length - 1].id && m.role === 'ASSISTANT'
                   }} 
+                  onSourceClick={handleSourceClick}
                 />
               ))}
             </div>
