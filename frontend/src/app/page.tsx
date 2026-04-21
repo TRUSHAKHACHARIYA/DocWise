@@ -2,6 +2,7 @@ import Link from "next/link"
 import { FileText, Zap, Shield, BarChart3, ArrowRight, Check } from "lucide-react"
 import Button from "@/components/ui/Button"
 import Badge from "@/components/ui/Badge"
+import HeroVisual from "@/components/dashboard/HeroVisual"
 
 const features = [
   { icon: FileText, title: "Any document type", desc: "PDF, DOCX, TXT — drag, drop, done." },
@@ -62,15 +63,8 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        {/* Hero image placeholder */}
-        <div className="mt-16 rounded-2xl border border-slate-200 bg-surface-secondary shadow-card overflow-hidden">
-          <div className="h-80 flex items-center justify-center text-slate-400">
-            <div className="text-center">
-              <FileText size={48} className="mx-auto mb-4 text-slate-300" />
-              <p className="text-sm">App screenshot goes here</p>
-            </div>
-          </div>
-        </div>
+        {/* Premium Hero Visual */}
+        <HeroVisual />
       </section>
 
       {/* Features */}
