@@ -1,10 +1,13 @@
 "use client";
 
 import { Sparkles, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import SourceCard, { Source } from "./SourceCard";
+import { useChat } from "@/hooks/useChat";
 
 interface Message {
+  id: string;
   role: "user" | "ai";
   content: string;
   sources?: Source[];
@@ -18,6 +21,14 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const { submitMessageFeedback } = useChat();
+  const [rating, setRating] = useState<'positive' | 'negative' | null>(null);
+
+  const handleFeedback = (isPositive: boolean) => {
+    if (rating) return;
+    setRating(isPositive ? 'positive' : 'negative');
+    submitMessageFeedback(message.id, isPositive);
+  };
 
   return (
     <div className={cn(
@@ -56,14 +67,36 @@ export default function MessageBubble({ message, onSourceClick }: MessageBubbleP
           <div className="mt-4 w-full space-y-4">
             {/* Feedback / Copy Actions */}
             <div className="flex items-center gap-3 ml-2">
-              <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+              <button 
+                onClick={() => navigator.clipboard.writeText(message.content)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                title="Copy to clipboard"
+              >
                 <Copy size={16} />
               </button>
-              <button className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                <ThumbsUp size={16} />
+              <button 
+                onClick={() => handleFeedback(true)}
+                disabled={rating !== null}
+                className={cn(
+                  "p-1.5 rounded-lg transition-all",
+                  rating === 'positive' 
+                    ? "bg-emerald-100 text-emerald-600" 
+                    : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                )}
+              >
+                <ThumbsUp size={16} fill={rating === 'positive' ? "currentColor" : "none"} />
               </button>
-              <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <ThumbsDown size={16} />
+              <button 
+                onClick={() => handleFeedback(false)}
+                disabled={rating !== null}
+                className={cn(
+                  "p-1.5 rounded-lg transition-all",
+                  rating === 'negative' 
+                    ? "bg-rose-100 text-rose-600" 
+                    : "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                )}
+              >
+                <ThumbsDown size={16} fill={rating === 'negative' ? "currentColor" : "none"} />
               </button>
             </div>
 
