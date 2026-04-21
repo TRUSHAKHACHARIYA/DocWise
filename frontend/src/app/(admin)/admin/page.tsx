@@ -17,16 +17,18 @@ import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer
 } from 'recharts';
+
+const PLAN_COLORS: Record<string, string> = {
+  FREE: '#94a3b8',
+  STARTER: '#818cf8',
+  PRO: '#6366f1',
+  ENTERPRISE: '#312e81'
+};
 
 export default function AdminOverviewPage() {
   const { 
@@ -53,10 +55,15 @@ export default function AdminOverviewPage() {
     formattedDate: new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   })) || [];
 
+  const pieData = stats?.planDistribution.map(p => ({
+    name: p.plan,
+    value: p.count
+  })) || [];
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 animate-in fade-in duration-700">
       {/* Admin Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Users" 
           value={isLoading ? "..." : stats?.userCount?.toLocaleString() || "0"} 
@@ -84,17 +91,13 @@ export default function AdminOverviewPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
         {/* Growth Analytics Chart */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight leading-none mb-2">Growth Analytics</h3>
               <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest italic">Platform activity for the last 30 days</p>
-            </div>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-[10px] font-black uppercase bg-zinc-900 text-white rounded-lg transition-transform active:scale-95">Daily</button>
-              <button className="px-3 py-1 text-[10px] font-black uppercase bg-zinc-100 text-zinc-500 rounded-lg hover:bg-zinc-200 transition-all">Monthly</button>
             </div>
           </div>
           
@@ -157,62 +160,89 @@ export default function AdminOverviewPage() {
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
-                <div className="w-12 h-12 border-4 border-zinc-100 border-t-brand-500 rounded-full animate-spin" />
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Compiling Analytics...</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest animate-pulse">Syncing Cloud Metrics...</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Recent User Signups */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight">Recent Signups</h3>
-            <Link href="/admin/users" className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors">
-              <ArrowRight size={18} className="text-zinc-600" />
-            </Link>
+        {/* Plan Distribution & Signups */}
+        <div className="space-y-10">
+          {/* Plan Distribution */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight leading-none mb-2">Plan Mix</h3>
+            <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 h-64 flex items-center justify-center shadow-sm">
+                {pieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PLAN_COLORS[entry.name] || '#eee'} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.05)', fontSize: '10px', fontWeight: '800' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : <div className="text-[10px] font-black text-zinc-300 uppercase tracking-widest italic">Calculating market share...</div>}
+                
+                <div className="flex flex-col gap-3 ml-4">
+                   {pieData.map(p => (
+                     <div key={p.name} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLAN_COLORS[p.name] }} />
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tighter truncate w-16">{p.name}</span>
+                        <span className="text-[10px] font-black text-zinc-900 ml-auto">{p.value}</span>
+                     </div>
+                   ))}
+                </div>
+            </div>
           </div>
 
-          <div className="bg-white border border-zinc-200 rounded-[2.5rem] overflow-hidden divide-y divide-zinc-100 shadow-sm">
-            {recentSignups.map((signup) => (
-              <div key={signup.id} className="p-5 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold border border-zinc-200 group-hover:scale-110 transition-transform">
-                    {signup.name?.charAt(0) || "U"}
+          {/* Recent Signups */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-black text-zinc-900 uppercase tracking-tight leading-none mb-2">Recent Signups</h3>
+              <Link href="/admin/users" className="p-2 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition-colors">
+                <ArrowRight size={18} className="text-zinc-600" />
+              </Link>
+            </div>
+
+            <div className="bg-white border border-zinc-200 rounded-[2.5rem] overflow-hidden divide-y divide-zinc-100 shadow-sm">
+              {recentSignups.map((signup) => (
+                <div key={signup.id} className="p-5 flex items-center justify-between hover:bg-zinc-50 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900 font-bold border border-zinc-200 group-hover:scale-110 transition-transform">
+                      {signup.name?.charAt(0) || "U"}
+                    </div>
+                    <div className="min-w-0">
+                      <h5 className="text-sm font-black text-zinc-900 truncate">{signup.name}</h5>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">{signup.email}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h5 className="text-sm font-black text-zinc-900 truncate">{signup.name}</h5>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate">{signup.email}</p>
+                  <div className="text-right shrink-0">
+                    <span className={cn(
+                      "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                      signup.plan === 'ENTERPRISE' ? "bg-purple-100 text-purple-700" : signup.plan === 'PRO' ? "bg-brand-100 text-brand-700" : "bg-zinc-100 text-zinc-500"
+                    )}>
+                      {signup.plan}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className={cn(
-                    "text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                    signup.plan === 'ENTERPRISE' ? "bg-purple-100 text-purple-700" : signup.plan === 'PRO' ? "bg-brand-100 text-brand-700" : "bg-zinc-100 text-zinc-500"
-                  )}>
-                    {signup.plan}
-                  </span>
-                  <p className="text-[10px] font-bold text-zinc-400 mt-1 uppercase">
-                    {new Date(signup.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {recentSignups.length === 0 && !isLoading && (
-              <div className="p-10 text-center text-zinc-400 font-bold text-xs uppercase tracking-widest italic">No recent activity.</div>
-            )}
-            {isLoading && (
-              <div className="p-10 text-center text-zinc-400 animate-pulse flex flex-col items-center gap-2">
-                 <div className="w-4 h-4 bg-zinc-200 rounded-full" />
-                 <span className="text-[10px] font-black uppercase tracking-tighter">Syncing...</span>
-              </div>
-            )}
-            <Link 
-              href="/admin/users" 
-              className="p-5 bg-zinc-50/50 hover:bg-zinc-100 text-center text-[10px] font-black uppercase text-zinc-400 tracking-widest hover:text-zinc-900 transition-all block border-t border-zinc-100"
-            >
-              View Directory
-            </Link>
+              ))}
+              <Link 
+                href="/admin/users" 
+                className="p-5 bg-zinc-50/50 hover:bg-zinc-100 text-center text-[10px] font-black uppercase text-zinc-400 tracking-widest hover:text-zinc-900 transition-all block border-t border-zinc-100"
+              >
+                Full Directory
+              </Link>
+            </div>
           </div>
         </div>
       </div>
