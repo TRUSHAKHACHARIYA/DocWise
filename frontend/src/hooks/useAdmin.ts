@@ -8,6 +8,7 @@ export interface AdminStats {
   chatCount: number;
   messageCount: number;
   activeUsers: number;
+  planDistribution: { plan: string; count: number }[];
 }
 
 export interface AdminUser {

@@ -18,12 +18,22 @@ export async function adminRoutes(app: FastifyInstance) {
         where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } }
     });
 
+    // Get plan distribution
+    const planDistribution = await prisma.user.groupBy({
+        by: ['plan'],
+        _count: { plan: true }
+    });
+
     return reply.send({
       userCount,
       docCount,
       chatCount,
       messageCount,
-      activeUsers
+      activeUsers,
+      planDistribution: planDistribution.map(p => ({
+          plan: p.plan,
+          count: p._count.plan
+      }))
     });
   });
 
