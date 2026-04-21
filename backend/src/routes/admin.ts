@@ -107,14 +107,60 @@ export async function adminRoutes(app: FastifyInstance) {
 
   // Analytics - Usage over time
   app.get('/analytics/usage', async (req, reply) => {
-      const month = new Date().toISOString().slice(0, 7);
-      const usage = await prisma.usageLog.groupBy({
-          by: ['month'],
-          _sum: {
-              questionsUsed: true,
-              docsUploaded: true
-          }
+      const usage = await prisma.usageLog.findMany({
+          orderBy: { month: 'asc' },
+          take: 12
       });
       return reply.send({ usage });
+  });
+
+  // NEW: Growth Analytics (Daily stats for last 30 days)
+  app.get('/analytics/growth', async (req, reply) => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Fetch individual records since we need to group by day
+    const users = await prisma.user.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true }
+    });
+
+    const docs = await prisma.document.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true }
+    });
+
+    const messages = await prisma.message.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true }
+    });
+
+    // Helper to group by date string YYYY-MM-DD
+    const groupByDay = (data: any[]) => {
+      const groups: Record<string, number> = {};
+      data.forEach(item => {
+        const day = item.createdAt.toISOString().split('T')[0];
+        groups[day] = (groups[day] || 0) + 1;
+      });
+      return groups;
+    };
+
+    const userGrowth = groupByDay(users);
+    const docGrowth = groupByDay(docs);
+    const messageGrowth = groupByDay(messages);
+
+    // Generate last 30 days array to ensure no gaps
+    const history = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+      const day = d.toISOString().split('T')[0];
+      history.push({
+        date: day,
+        users: userGrowth[day] || 0,
+        documents: docGrowth[day] || 0,
+        messages: messageGrowth[day] || 0
+      });
+    }
+
+    return reply.send({ history });
   });
 }
