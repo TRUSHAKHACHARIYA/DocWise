@@ -11,7 +11,9 @@ import {
   Info,
   Calendar,
   User,
-  Activity
+  Activity,
+  Globe,
+  Monitor
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Badge from "@/components/ui/Badge";
@@ -106,6 +108,18 @@ export default function AuditLogsPage() {
                        <p className="text-[11px] font-medium text-zinc-500 truncate italic">
                          {JSON.stringify(log.metadata)}
                        </p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-zinc-500">
+                        <Globe size={10} />
+                        <span className="text-[10px] font-mono">{log.ipAddress || "Unknown"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-zinc-400">
+                        <Monitor size={10} />
+                        <span className="text-[9px] truncate max-w-[100px]">{log.userAgent || "Unknown"}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap">

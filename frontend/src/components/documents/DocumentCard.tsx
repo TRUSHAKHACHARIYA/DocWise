@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, MoreVertical, Trash2, Download, Eye, ExternalLink } from "lucide-react";
+import { FileText, MoreVertical, Trash2, Download, Eye, ExternalLink, Check } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 
@@ -16,15 +16,32 @@ interface Document {
 interface DocumentCardProps {
   document: Document;
   onDelete: (id: string) => void;
+  isSelected?: boolean;
+  onSelect?: (id: string) => void;
 }
 
-export default function DocumentCard({ document, onDelete }: DocumentCardProps) {
+export default function DocumentCard({ document, onDelete, isSelected, onSelect }: DocumentCardProps) {
   const isReady = document.status === 'READY';
   const isProcessing = document.status === 'PROCESSING';
   const isFailed = document.status === 'FAILED';
 
   return (
-    <div className="group bg-white border border-slate-200 rounded-3xl p-5 hover:border-brand-300 hover:shadow-xl hover:shadow-brand-500/5 transition-all duration-300 flex flex-col gap-5">
+    <div className={cn(
+      "group bg-white border rounded-3xl p-5 hover:border-brand-300 hover:shadow-xl hover:shadow-brand-500/5 transition-all duration-300 flex flex-col gap-5 relative",
+      isSelected ? "border-brand-500 shadow-lg shadow-brand-500/5 bg-brand-50/10" : "border-slate-200"
+    )}>
+      {/* Selection Checkbox */}
+      {onSelect && (
+        <div 
+          onClick={() => onSelect(document.id)}
+          className={cn(
+            "absolute -top-2 -left-2 w-6 h-6 rounded-lg border-2 z-10 flex items-center justify-center cursor-pointer transition-all shadow-sm",
+            isSelected ? "bg-brand-600 border-brand-600 text-white" : "bg-white border-slate-200 text-transparent hover:border-brand-400"
+          )}
+        >
+          <Check size={14} strokeWidth={4} />
+        </div>
+      )}
       <div className="flex items-start justify-between">
         <div className={cn(
           "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0",

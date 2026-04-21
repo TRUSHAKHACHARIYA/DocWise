@@ -176,4 +176,36 @@ export async function documentRoutes(app: FastifyInstance) {
       return reply.code(500).send({ error: 'Failed to generate viewing URL' });
     }
   });
+
+  // NEW: Bulk delete docs
+  app.post('/bulk-delete', async (req, reply) => {
+    const userId = req.user!.id;
+    const { ids } = z.object({
+      ids: z.array(z.string()).min(1)
+    }).parse(req.body);
+
+    try {
+      const documents = await prisma.document.findMany({
+        where: { id: { in: ids }, userId }
+      });
+
+      // Cleanup files and vectors in parallel
+      await Promise.all(documents.map(async (doc) => {
+        await deleteFile(doc.s3Key);
+        await deleteVectorsByDocumentId(userId, doc.id);
+      }));
+
+      const result = await prisma.document.deleteMany({
+        where: { id: { in: ids }, userId }
+      });
+
+      return reply.send({ 
+        message: `${result.count} documents deleted successfully`,
+        count: result.count
+      });
+    } catch (error) {
+      app.log.error(error);
+      return reply.code(500).send({ error: 'Failed to perform bulk deletion' });
+    }
+  });
 }
