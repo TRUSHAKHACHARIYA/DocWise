@@ -70,6 +70,17 @@ export function useDocuments() {
     }
   };
 
+  const ingestUrl = async (url: string): Promise<void> => {
+    try {
+      const response = await api.post("/api/documents/ingest-url", { url });
+      addDocument(response.data.document);
+      toast.success("URL added", "The website content is now processing.");
+    } catch (error: any) {
+      toast.error("Ingestion failed", error.response?.data?.error || "Could not ingest URL content.");
+      throw error;
+    }
+  };
+
   const deleteDocument = async (id: string): Promise<void> => {
     try {
       await api.delete(`/api/documents/${id}`);
@@ -86,6 +97,7 @@ export function useDocuments() {
     error,
     loadDocuments,
     uploadDocument,
+    ingestUrl,
     deleteDocument,
   };
 }
