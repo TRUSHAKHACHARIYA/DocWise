@@ -163,4 +163,44 @@ export async function adminRoutes(app: FastifyInstance) {
 
     return reply.send({ history });
   });
+
+  // NEW: Audit Logs - Browse system activity
+  app.get('/logs', async (req, reply) => {
+    const query = z.object({
+      search: z.string().optional(),
+      page: z.string().transform(Number).optional().default(1),
+      limit: z.string().transform(Number).optional().default(50),
+    }).parse(req.query);
+
+    const skip = (query.page - 1) * query.limit;
+
+    const logs = await prisma.auditLog.findMany({
+      where: query.search ? {
+        OR: [
+          { action: { contains: query.search, mode: 'insensitive' } },
+          { actorId: { contains: query.search, mode: 'insensitive' } },
+          { targetType: { contains: query.search, mode: 'insensitive' } },
+        ]
+      } : {},
+      skip,
+      take: query.limit,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const total = await prisma.auditLog.count({
+      where: query.search ? {
+        OR: [
+          { action: { contains: query.search, mode: 'insensitive' } },
+          { actorId: { contains: query.search, mode: 'insensitive' } },
+          { targetType: { contains: query.search, mode: 'insensitive' } },
+        ]
+      } : {}
+    });
+
+    return reply.send({
+      logs,
+      total,
+      pages: Math.ceil(total / query.limit)
+    });
+  });
 }

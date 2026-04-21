@@ -9,7 +9,8 @@ import {
   LogOut, 
   ShieldCheck,
   LayoutDashboard,
-  Bell
+  Bell,
+  Terminal
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 const adminNavItems = [
   { name: "Overview", href: "/admin", icon: BarChart3 },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Security Logs", href: "/admin/logs", icon: Terminal },
   { name: "Analytics", href: "/admin/analytics", icon: LayoutDashboard },
   { name: "System Settings", href: "/admin/settings", icon: Settings },
 ];
