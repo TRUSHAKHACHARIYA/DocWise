@@ -1,4 +1,17 @@
-import Fastify from "fastify";
+import Fastify, { FastifyRequest as FR } from "fastify";
+import { Plan, Role } from "@prisma/client";
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: {
+      id: string;
+      role: Role;
+      plan: Plan;
+      trialEndsAt?: Date | null;
+    };
+  }
+}
+
 import { randomUUID } from "crypto";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";

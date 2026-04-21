@@ -89,7 +89,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/login', async (req, reply) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
-
+      
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
         return reply.code(401).send({ error: 'Invalid credentials' });

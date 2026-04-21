@@ -18,7 +18,7 @@ export function useUsage() {
   const [usage, setUsage] = useState<UsageStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadUsage = async () => {
+  const fetchUsage = async () => {
     setIsLoading(true);
     try {
       const response = await api.get("/user/me");
@@ -31,7 +31,7 @@ export function useUsage() {
   };
 
   useEffect(() => {
-    loadUsage();
+    fetchUsage();
   }, []);
 
   const questionPercentage = usage && usage.questionsLimit > 0
@@ -52,6 +52,6 @@ export function useUsage() {
     storagePercentage,
     isNearLimit,
     isAtLimit,
-    loadUsage
+    fetchUsage
   };
 }

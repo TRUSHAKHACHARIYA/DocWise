@@ -3,6 +3,7 @@ import { FileText, Zap, Shield, BarChart3, ArrowRight, Check } from "lucide-reac
 import Button from "@/components/ui/Button"
 import Badge from "@/components/ui/Badge"
 import HeroVisual from "@/components/dashboard/HeroVisual"
+import { cn } from "@/lib/utils"
 
 const features = [
   { icon: FileText, title: "Any document type", desc: "PDF, DOCX, TXT — drag, drop, done." },
