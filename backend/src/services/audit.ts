@@ -5,7 +5,9 @@ export const logAudit = async (
   action: string,
   targetType?: string,
   targetId?: string,
-  metadata?: any
+  metadata?: any,
+  ipAddress?: string,
+  userAgent?: string
 ) => {
   try {
     await prisma.auditLog.create({
@@ -14,11 +16,12 @@ export const logAudit = async (
         action,
         targetType,
         targetId,
-        metadata: metadata ? JSON.stringify(metadata) : undefined,
+        metadata: metadata || {},
+        ipAddress,
+        userAgent
       },
     });
   } catch (error) {
-    // We don't want to crash the request if audit logging fails, just log it
     console.error('Audit log failed:', error);
   }
 };

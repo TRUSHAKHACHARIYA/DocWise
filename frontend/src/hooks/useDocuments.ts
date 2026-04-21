@@ -91,6 +91,16 @@ export function useDocuments() {
     }
   };
 
+  const deleteBulk = async (ids: string[]): Promise<void> => {
+    try {
+      await api.post("/api/documents/bulk-delete", { ids });
+      ids.forEach(id => removeDocument(id));
+      toast.success("Batch Deleted", `${ids.length} documents removed successfully.`);
+    } catch (error: any) {
+      toast.error("Bulk delete failed", error.response?.data?.error || "Could not clear documents.");
+    }
+  };
+
   return {
     documents,
     isLoading,
@@ -99,5 +109,6 @@ export function useDocuments() {
     uploadDocument,
     ingestUrl,
     deleteDocument,
+    deleteBulk,
   };
 }

@@ -96,6 +96,7 @@ export const buildApp = (opts = {}) => {
   app.register(userRoutes, { prefix: "/api/user" });
   app.register(adminRoutes, { prefix: "/api/admin" });
   app.register(apiKeyRoutes, { prefix: "/api/keys" });
+  app.register(require('./routes/feedback').feedbackRoutes, { prefix: "/api/feedback" });
 
   app.get("/", async () => {
     return { message: "DocWise API running" };
