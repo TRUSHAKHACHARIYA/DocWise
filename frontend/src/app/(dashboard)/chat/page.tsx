@@ -7,7 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   BrainCircuit,
-  FileText
+  FileText,
+  Download
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
@@ -40,6 +41,30 @@ export default function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleExport = () => {
+    if (!messages.length) return;
+    
+    // Simple Markdown generation
+    const content = messages.map(m => {
+      const role = m.role === 'USER' ? '👤 YOU' : '🤖 DOCWISE';
+      const timestamp = new Date(m.createdAt).toLocaleString();
+      return `### ${role} (${timestamp})\n${m.content}\n\n---\n`;
+    }).join('\n');
+
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `docwise-chat-${activeSessionId}-${new Date().toISOString().slice(0,10)}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Chat Exported", "Your conversation has been saved as a Markdown file.");
+  };
+
+  const isExportEligible = user?.plan !== 'FREE' || user?.role === 'ADMIN';
 
   useEffect(() => {
     fetchSessions();
@@ -145,18 +170,32 @@ export default function ChatPage() {
         ) : (
           <>
             {/* Header info about documents */}
-            <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="px-8 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-950">
+              <div className="flex items-center gap-4">
                 <div className="flex -space-x-2">
                    {selectedDocIds.slice(0, 3).map(id => (
-                     <div key={id} className="w-6 h-6 rounded-full bg-brand-100 border-2 border-white flex items-center justify-center">
-                        <FileText size={10} className="text-brand-600" />
+                     <div key={id} className="w-7 h-7 rounded-full bg-brand-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-950 flex items-center justify-center shadow-sm">
+                        <FileText size={12} className="text-brand-600 dark:text-brand-400" />
                      </div>
                    ))}
                 </div>
                 <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                   {selectedDocIds.length} Document(s) active
                 </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={handleExport}
+                   disabled={messages.length === 0 || !isExportEligible}
+                   className="gap-2 text-[10px] uppercase font-black tracking-widest rounded-xl border-slate-200 dark:border-zinc-800"
+                 >
+                   <Download size={14} />
+                   Export Chat
+                   {!isExportEligible && <span className="ml-1 text-[8px] opacity-50 px-1 bg-amber-100 text-amber-700 rounded-sm">PRO</span>}
+                 </Button>
               </div>
             </div>
 

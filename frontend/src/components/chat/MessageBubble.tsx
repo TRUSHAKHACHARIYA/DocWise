@@ -27,8 +27,8 @@ export default function MessageBubble({ message, onSourceClick }: MessageBubbleP
       {/* Avatar */}
       <div className={cn(
         "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
-        isUser 
-          ? "bg-slate-900 text-white" 
+        isUser
+          ? "bg-slate-900 text-white"
           : "bg-gradient-to-br from-brand-600 to-indigo-500 text-white"
       )}>
         {isUser ? <User size={20} /> : <Sparkles size={20} />}
@@ -41,8 +41,8 @@ export default function MessageBubble({ message, onSourceClick }: MessageBubbleP
       )}>
         <div className={cn(
           "px-5 py-4 rounded-3xl text-sm leading-relaxed",
-          isUser 
-            ? "bg-brand-600 text-white rounded-tr-none shadow-lg shadow-brand-500/10" 
+          isUser
+            ? "bg-brand-600 text-white rounded-tr-none shadow-lg shadow-brand-500/10"
             : "bg-white border border-slate-200 text-slate-900 rounded-tl-none shadow-sm"
         )}>
           {message.content}
@@ -71,9 +71,9 @@ export default function MessageBubble({ message, onSourceClick }: MessageBubbleP
             {message.sources && message.sources.length > 0 && (
               <div className="flex flex-wrap gap-3 mt-3">
                 {message.sources.map((source, idx) => (
-                  <SourceCard 
-                    key={idx} 
-                    source={source} 
+                  <SourceCard
+                    key={idx}
+                    source={source}
                     onOpen={onSourceClick}
                   />
                 ))}

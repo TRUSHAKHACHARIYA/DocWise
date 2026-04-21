@@ -28,6 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,11 +38,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
-        <ToastContainer />
+      <body className="min-h-full flex flex-col bg-white dark:bg-zinc-950 transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <ToastContainer />
+        </ThemeProvider>
       </body>
     </html>
   );
