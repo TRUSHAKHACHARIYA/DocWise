@@ -30,11 +30,25 @@ export interface GrowthData {
   }[];
 }
 
+export interface AuditLog {
+  id: string;
+  actorId: string | null;
+  action: string;
+  targetId: string | null;
+  targetType: string | null;
+  metadata: any;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
 export function useAdmin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [growthData, setGrowthData] = useState<GrowthData | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalLogs, setTotalLogs] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchStats = async () => {
@@ -71,6 +85,19 @@ export function useAdmin() {
     }
   };
 
+  const fetchLogs = async (search = "", page = 1) => {
+    setIsLoading(true);
+    try {
+      const response = await api.get(`/admin/logs?search=${search}&page=${page}`);
+      setLogs(response.data.logs);
+      setTotalLogs(response.data.total);
+    } catch (err) {
+      toast.error("Error", "Failed to load audit logs.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateUser = async (id: string, data: Partial<AdminUser>) => {
     try {
       await api.patch(`/admin/users/${id}`, data);
@@ -95,11 +122,14 @@ export function useAdmin() {
     stats,
     growthData,
     users,
+    logs,
     totalUsers,
+    totalLogs,
     isLoading,
     fetchStats,
     fetchGrowthData,
     fetchUsers,
+    fetchLogs,
     updateUser,
     deleteUser
   };
