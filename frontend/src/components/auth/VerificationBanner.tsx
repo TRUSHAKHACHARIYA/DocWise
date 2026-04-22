@@ -10,7 +10,7 @@ export default function VerificationBanner() {
   const [sent, setSent] = useState(false);
 
   // If user is not loaded or already verified, don't show the banner
-  if (!user || user.verified) {
+  if (!user || !!user.verifiedAt) {
     return null;
   }
 

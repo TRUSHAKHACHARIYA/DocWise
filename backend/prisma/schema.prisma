@@ -46,7 +46,7 @@ model User {
   name              String
   role              Role      @default(USER)
   plan              Plan      @default(FREE)
-  stripeCustomerId  String?
+  billingCustomerId String?
   trialEndsAt       DateTime? // When free trial ends
   verifiedAt        DateTime?
   verificationToken String?   @unique
@@ -148,7 +148,7 @@ model UsageLog {
 model Subscription {
   id                String    @id @default(uuid())
   userId            String    @unique
-  stripeSubId       String    @unique
+  gatewaySubId      String    @unique
   plan              Plan
   status            SubStatus
   currentPeriodEnd  DateTime

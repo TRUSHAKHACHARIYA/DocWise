@@ -6,7 +6,8 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "vitest run --dir src",
+    "test": "npm run build && node scripts/smoke-tests.mjs",
+    "test:vitest": "vitest run --dir src --pool=threads --maxWorkers=1",
     "test:watch": "vitest",
     "eval": "ts-node evals/run_eval.ts"
   },
@@ -59,7 +60,6 @@
     "openai": "^6.34.0",
     "pdf-parse": "^2.4.5",
     "prisma": "^6.19.3",
-    "stripe": "^22.0.1",
     "uuid": "^13.0.0",
     "zod": "^4.3.6"
   }

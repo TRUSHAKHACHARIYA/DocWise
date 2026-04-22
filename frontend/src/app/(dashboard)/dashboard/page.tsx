@@ -183,7 +183,7 @@ export default function DashboardPage() {
                       <h5 className="text-sm font-bold text-slate-900 truncate">
                         {doc.name}
                       </h5>
-                      <p className="text-[10px] text-slate-500 font-bold">{(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB</p>
+                      <p className="text-[10px] text-slate-500 font-bold">{doc.size}</p>
                     </div>
                   </div>
                   <span className={cn(

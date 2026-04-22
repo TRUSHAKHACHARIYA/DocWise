@@ -74,7 +74,7 @@
 ### Rate Limiting
 - Per-user limit: 100 requests per 15 minutes (Redis sliding window)
 - Per-IP limit: 20 requests per minute (for unauth endpoints)
-- Stripe webhook must be EXCLUDED from rate limiting
+- NMI webhook must be EXCLUDED from rate limiting
 
 ---
 
@@ -119,7 +119,7 @@ const results = await index.query({
 - NEVER store raw API keys in DB — store hash
 - Validate file MIME type server-side (don't trust Content-Type header)
 - Use `path.basename()` to sanitize filenames before S3 upload
-- Stripe webhook: ALWAYS verify signature before processing
+- NMI webhook: ALWAYS verify signature before processing
 - Admin routes: check role in middleware, not in route handlers
 
 ---
@@ -152,3 +152,4 @@ Target: >85% accuracy on golden dataset before launch.
 | **Total** | | **~$145/mo** |
 
 At $19/mo × 100 paid users = $1,900/mo revenue → healthy margins.
+

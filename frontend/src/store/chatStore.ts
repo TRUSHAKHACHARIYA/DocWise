@@ -5,6 +5,7 @@ interface ChatStore {
   sessions: ChatSession[];
   activeSessionId: string | null;
   messages: Message[];
+  isLoading: boolean;
   isStreaming: boolean;
   error: string | null;
 
@@ -18,6 +19,7 @@ interface ChatStore {
   appendStreamingToken: (token: string) => void;
   setStreaming: (streaming: boolean) => void;
   setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }
 
@@ -25,6 +27,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   sessions: [],
   activeSessionId: null,
   messages: [],
+  isLoading: false,
   isStreaming: false,
   error: null,
 
@@ -64,6 +67,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   setStreaming: (isStreaming) => set({ isStreaming }),
 
   setError: (error) => set({ error }),
+  setLoading: (isLoading) => set({ isLoading }),
 
   clearMessages: () => set({ messages: [] }),
 }));

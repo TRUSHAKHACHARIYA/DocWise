@@ -29,7 +29,7 @@
               │  OpenAI Embed    │
               │  Anthropic LLM   │
               │  Cohere Rerank   │
-              │  Stripe Billing  │
+              │  NMI Billing  │
               │  Resend Email    │
               └─────────────────┘
 ```
@@ -154,7 +154,7 @@ docwise/
 │       │   ├── chat.ts                 # /chat/*
 │       │   ├── admin.ts                # /admin/*
 │       │   ├── billing.ts              # /billing/*
-│       │   └── webhooks.ts             # /webhooks/stripe
+│       │   └── webhooks.ts             # /webhooks/nmi
 │       │
 │       ├── services/
 │       │   ├── parser.ts               # PDF/DOCX → raw text
@@ -234,7 +234,7 @@ model User {
   name             String
   role             Role      @default(USER)
   plan             Plan      @default(FREE)
-  stripeCustomerId String?
+  NMICustomerId String?
   verifiedAt       DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -313,7 +313,7 @@ model UsageLog {
 model Subscription {
   id                String    @id @default(uuid())
   userId            String    @unique
-  stripeSubId       String    @unique
+  NMISubId       String    @unique
   plan              Plan
   status            SubStatus
   currentPeriodEnd  DateTime
@@ -395,10 +395,10 @@ POST /admin/announcements      Send announcement
 
 ### Billing
 ```
-POST /billing/create-checkout    Stripe checkout session
-POST /billing/portal             Stripe billing portal
+POST /billing/create-checkout    NMI Tokenized Checkout session
+POST /billing/portal             NMI billing portal
 GET  /billing/plans              Get available plans
-POST /webhooks/stripe            Stripe webhook handler
+POST /webhooks/nmi            NMI webhook handler
 ```
 
 ---
@@ -443,8 +443,8 @@ R2_PUBLIC_URL=https://files.yourdomain.com
 REDIS_URL=redis://localhost:6379
 
 # Billing
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+NMI_PRIVATE_API_KEY=sk_test_...
+NMI_WEBHOOK_SECRET=whsec_...
 
 # Email
 RESEND_API_KEY=re_...
@@ -466,3 +466,5 @@ GitHub Actions:
 - `ci.yml` — lint + unit tests + integration tests on every PR
 - `deploy-staging.yml` — deploy to Railway staging on merge to `dev`
 - `deploy-prod.yml` — deploy to Railway production on merge to `main`
+
+

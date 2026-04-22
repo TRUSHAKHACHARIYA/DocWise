@@ -19,3 +19,4 @@
 - Trigger platform rollback to previous healthy release.
 - Run smoke checks on rolled-back version.
 - Record incident summary and root cause in `docs/NOTES.md`.
+

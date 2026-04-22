@@ -19,7 +19,7 @@ const app = buildApp({
 
 const start = async () => {
     try {
-        // initWorker(); // Start BullMQ worker (Disabled for local dev without Redis)
+        initWorker();
         await app.listen({ port: env.PORT, host: '0.0.0.0' });
         console.log(`🚀 Server running on port ${env.PORT}`);
     } catch (err) {

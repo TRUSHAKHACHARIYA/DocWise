@@ -22,7 +22,7 @@ This document outlines the steps to move DocWise from local development to a pro
    - OpenAI (Embeddings)
    - Anthropic (Claude 3.5 Sonnet)
    - Pinecone (Vector Index)
-   - Stripe (Live Mode Prices)
+   - NMI (Live Mode Prices)
    - Resend (Email Sending Domain)
 
 ### Phase 2: Database Migration
@@ -46,15 +46,17 @@ This document outlines the steps to move DocWise from local development to a pro
 ### Phase 5: Domain & SSL
 1. Configure custom domains (e.g., `app.docwise.ai`).
 2. Set up SSL certificates (automated via Vercel/Railway).
-3. Update Stripe Webhook URLs in the Stripe Dashboard to point to your production backend.
+3. Update NMI Webhook URLs in the NMI Dashboard to point to your production backend.
 
 ---
 
 ## 🛡️ Pre-Launch Checklist
 - [ ] Run `npm run build` in both folders to ensure zero compilation errors.
 - [ ] Run the RAG Evaluation script with real keys to verify answer quality.
-- [ ] Perform a test transaction in Stripe (Test Mode) using the live backend URL.
+- [ ] Perform a test transaction in NMI (Test Mode) using the live backend URL.
 - [ ] Verify that document uploads are being stored in the production S3 bucket.
 
 > [!IMPORTANT]
 > Change your `JWT_SECRET` and `DATABASE_URL` immediately if they were ever committed to a public repository!
+
+

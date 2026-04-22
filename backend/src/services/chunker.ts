@@ -116,6 +116,7 @@ function slidingWindowChunk(text: string, size: number, overlap: number): Chunk[
   let start = 0;
 
   while (start < text.length) {
+    const previousStart = start;
     let end = Math.min(start + size, text.length);
     
     // If not at the very end, try to find a natural break point (paragraph, sentence, etc)
@@ -142,14 +143,18 @@ function slidingWindowChunk(text: string, size: number, overlap: number): Chunk[
       chunks.push({ text: content, startIndex: start });
     }
 
+    // Reached the end of text, stop to avoid tail-loop churn.
+    if (end >= text.length) {
+      break;
+    }
+
     // Move start forward, ensuring we don't get stuck in an infinite loop
     // and maintain the requested overlap as a maximum.
-    const nextStart = end - overlap;
-    
-    // Safety: always ensure we move forward by at least 1 character
-    // to avoid infinite loops, but try to maintain overlap.
-    const lastStart = chunks.length > 0 ? chunks[chunks.length - 1].startIndex : -1;
-    start = Math.max(nextStart, lastStart + 1);
+    let nextStart = end - overlap;
+    if (nextStart <= previousStart) {
+      nextStart = previousStart + 1;
+    }
+    start = nextStart;
     
     if (start >= text.length) break;
   }

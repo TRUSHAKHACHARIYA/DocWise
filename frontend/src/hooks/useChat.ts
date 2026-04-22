@@ -3,7 +3,6 @@ import { useChatStore } from "@/store/chatStore";
 import { toast } from "@/store/toastStore";
 import type { Message, ChatSession } from "@/types/chat";
 import api from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") + "/api";
 
@@ -12,6 +11,7 @@ export function useChat() {
     sessions,
     activeSessionId,
     messages,
+    isLoading,
     isStreaming,
     error,
     setSessions,
@@ -23,6 +23,7 @@ export function useChat() {
     appendStreamingToken,
     setStreaming,
     setError,
+    setLoading,
     clearMessages,
   } = useChatStore();
 
@@ -30,11 +31,14 @@ export function useChat() {
 
   // Fetch all sessions from backend
   const fetchSessions = async () => {
+    setLoading(true);
     try {
       const response = await api.get("/chat");
       setSessions(response.data.sessions);
     } catch (err) {
       toast.error("Error", "Failed to load chat history.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -218,7 +222,9 @@ export function useChat() {
   return {
     sessions,
     activeSessionId,
+    setActiveSessionId: setActiveSession,
     messages,
+    isLoading,
     isStreaming,
     error,
     fetchSessions,

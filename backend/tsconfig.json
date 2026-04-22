@@ -6,6 +6,8 @@
     "outDir": "./dist",
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "vitest/globals"],
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,

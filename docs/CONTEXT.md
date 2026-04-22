@@ -222,3 +222,4 @@ if (usage.questions_used >= PLAN_LIMITS[user.plan].questions) {
 - Usage logs: kept 13 months for billing accuracy
 - Original files (R2): deleted when user deletes document
 - Vectors (Pinecone): deleted when user deletes document (`deleteMany` by docId metadata filter)
+

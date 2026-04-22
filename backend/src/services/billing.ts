@@ -2,11 +2,17 @@ import { prisma } from '../utils/prisma';
 import { env } from '../config/env';
 import { Plan } from '@prisma/client';
 
-export const syncUserPlan = async (userId: string, stripeSubId: string, priceId: string, status: string, periodEnd: number) => {
+export const syncUserPlan = async (
+  userId: string,
+  gatewaySubId: string,
+  planId: string,
+  status: string,
+  periodEnd: number
+) => {
   let plan: Plan = 'FREE';
   
-  if (priceId === env.STRIPE_PRICE_STARTER) plan = 'STARTER';
-  else if (priceId === env.STRIPE_PRICE_PRO) plan = 'PRO';
+  if (planId === env.NMI_PLAN_STARTER || planId === 'STARTER') plan = 'STARTER';
+  else if (planId === env.NMI_PLAN_PRO || planId === 'PRO') plan = 'PRO';
   
   // If subscription is not active or trialing, downgrade to FREE
   const isPaidPlan = (status === 'active' || status === 'trialing');
@@ -19,12 +25,13 @@ export const syncUserPlan = async (userId: string, stripeSubId: string, priceId:
       subscription: {
         upsert: {
           create: {
-            stripeSubId,
+            gatewaySubId,
             plan: finalPlan,
             status: isPaidPlan ? 'ACTIVE' : 'CANCELLED',
             currentPeriodEnd: new Date(periodEnd * 1000),
           },
           update: {
+            gatewaySubId,
             plan: finalPlan,
             status: isPaidPlan ? 'ACTIVE' : 'CANCELLED',
             currentPeriodEnd: new Date(periodEnd * 1000),

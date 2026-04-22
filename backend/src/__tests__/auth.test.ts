@@ -12,7 +12,7 @@ describe('Auth Routes Integration', () => {
 
     afterAll(async () => {
         await app.close();
-        // In a real test environment, we'd clear the test DB here
+        await prisma.$disconnect();
     });
 
     it('should return 200 on root health check', async () => {

@@ -15,6 +15,7 @@ export const env = {
   NODE_ENV: optional("NODE_ENV", "development"),
   PORT: parseInt(optional("PORT", "4000"), 10),
   FRONTEND_URL: optional("FRONTEND_URL", "http://localhost:3000"),
+  BACKEND_PUBLIC_URL: optional("BACKEND_PUBLIC_URL", "http://localhost:4000"),
 
   DATABASE_URL: required("DATABASE_URL"),
 
@@ -45,10 +46,12 @@ export const env = {
   RESEND_API_KEY: optional("RESEND_API_KEY", ""),
   EMAIL_FROM: optional("EMAIL_FROM", "noreply@docwise.app"),
 
-  STRIPE_SECRET_KEY: optional("STRIPE_SECRET_KEY", ""),
-  STRIPE_WEBHOOK_SECRET: optional("STRIPE_WEBHOOK_SECRET", ""),
-  STRIPE_PRICE_STARTER: optional("STRIPE_PRICE_STARTER", ""),
-  STRIPE_PRICE_PRO: optional("STRIPE_PRICE_PRO", ""),
+  NMI_PRIVATE_API_KEY: optional("NMI_PRIVATE_API_KEY", ""),
+  NMI_API_BASE_URL: optional("NMI_API_BASE_URL", "https://secure.nmi.com/api/v5"),
+  NMI_PLAN_STARTER: optional("NMI_PLAN_STARTER", "STARTER"),
+  NMI_PLAN_PRO: optional("NMI_PLAN_PRO", "PRO"),
+  NMI_WEBHOOK_SECRET: optional("NMI_WEBHOOK_SECRET", ""),
+  NMI_WEBHOOK_EVENTS: optional("NMI_WEBHOOK_EVENTS", "subscription.created,subscription.updated,subscription.cancelled"),
 
   REDIS_URL: optional("REDIS_URL", "redis://localhost:6379"),
   SENTRY_DSN: optional("SENTRY_DSN", ""),

@@ -23,7 +23,7 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 -   **Secure Authentication**: Hardened JWT-based auth with HttpOnly cookies for refresh tokens and in-memory access token storage.
 -   **Background Processing**: Industrial-grade document ingestion powered by **BullMQ** and **Redis** to handle large PDFs without timeouts.
 -   **Audit Logging**: Detailed tracking of security events (logins, uploads, deletions) for compliance.
--   **Stripe Integration**: Automated billing and customer portal for subscription management.
+-   **NMI Integration**: Automated billing and customer portal for subscription management.
 -   **Multi-tenant Architecture**: Isolated user spaces with role-based access control (User/Admin).
 
 ### ⚡ Technical Excellence
@@ -45,7 +45,7 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 | **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector), Redis (Queue & RL) |
 | **Security** | JWT (HttpOnly Cookies), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
 | **Storage** | AWS S3 / R2 for file storage |
-| **Billing** | Stripe (Checkout & Billing Portal) |
+| **Billing** | NMI (Checkout & Billing Portal) |
 | **Email** | Nodemailer / Resend |
 | **Testing** | Vitest, Golden QA Dataset, Pipeline E2E |
 | **Monitoring** | Sentry (Frontend & Backend), Custom Audit System |
@@ -103,11 +103,11 @@ PINECONE_API_KEY="your-pinecone-api-key"
 PINECONE_ENVIRONMENT="us-east-1-aws"
 PINECONE_INDEX="docwise-dev"
 
-# Stripe (for payments)
-STRIPE_SECRET_KEY="sk_test_your-stripe-secret-key"
-STRIPE_WEBHOOK_SECRET="whsec_your-webhook-secret"
-STRIPE_PRICE_STARTER="price_your-starter-price-id"
-STRIPE_PRICE_PRO="price_your-pro-price-id"
+# NMI (for payments)
+NMI_PRIVATE_API_KEY="sk_test_your-NMI-secret-key"
+NMI_WEBHOOK_SECRET="whsec_your-webhook-secret"
+NMI_PLAN_STARTER="price_your-starter-price-id"
+NMI_PLAN_PRO="price_your-pro-price-id"
 
 # Email (optional)
 SMTP_HOST="smtp.gmail.com"
@@ -133,8 +133,8 @@ SENTRY_DSN="your-sentry-dsn"
 # API Configuration
 NEXT_PUBLIC_API_URL="http://localhost:4000/api"
 
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_your-stripe-publishable-key"
+# NMI
+NEXT_PUBLIC_NMI_COLLECT_JS_KEY="pk_test_your-NMI-publishable-key"
 
 # Sentry (optional, for error tracking)
 NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn"
@@ -285,7 +285,7 @@ graph TB
 
     %% Payment & Billing
     subgraph "💳 Payment & Billing"
-        STRIPE[Stripe Integration]
+        NMI[NMI Integration]
         WEBHOOKS[Webhook Processing]
         INVOICES[Invoice Generation]
         CUSTOMER_PORTAL[Customer Portal]
@@ -353,11 +353,11 @@ graph TB
     USER_MGMT --> EMAIL
 
     %% Payment Connections
-    BILLING --> STRIPE
-    STRIPE --> WEBHOOKS
-    STRIPE --> INVOICES
-    STRIPE --> CUSTOMER_PORTAL
-    SUBS --> STRIPE
+    BILLING --> NMI
+    NMI --> WEBHOOKS
+    NMI --> INVOICES
+    NMI --> CUSTOMER_PORTAL
+    SUBS --> NMI
 
     %% Security Connections
     AUTH --> JWT_AUTH
@@ -399,7 +399,7 @@ graph TB
     class DOC_MGMT,RAG_CHAT,MULTI_DOC,SEMANTIC,REAL_TIME,CITATIONS coreFeatures
     class PDF_PARSE,DOCX_PARSE,EMBEDDINGS,VEC_STORE,RERANK,CLAUDE aiProcessing
     class USER_MGMT,SUBS,USAGE_TRACK,AUDIT,RATE_LIMIT,EMAIL saasInfra
-    class STRIPE,WEBHOOKS,INVOICES,CUSTOMER_PORTAL payment
+    class NMI,WEBHOOKS,INVOICES,CUSTOMER_PORTAL payment
     class JWT_AUTH,RBAC,DATA_ENCRYPT,SECURITY_LOGS,COMPLIANCE security
     class POSTGRES,SQLITE,S3_STORAGE,REDIS,FILE_MGMT storage
     class PERFORMANCE,ERROR_TRACKING,USER_ANALYTICS,SYSTEM_HEALTH,ALERTS monitoring
@@ -411,8 +411,8 @@ graph TB
 | **📄 Document Processing** | PDF Parser, Word Parser, File Storage | Upload any document, automatic text extraction | PDF-parse, Mammoth.js, AWS S3/R2 |
 | **🤖 AI-Powered Chat** | RAG Pipeline, Claude LLM, Citations | Get accurate answers with sources | OpenAI Embeddings, Pinecone, Cohere Rerank |
 | **🔍 Smart Search** | Semantic Search, Vector DB, Multi-doc analysis | Find information across all documents | Pinecone Vector Search, Similarity Matching |
-| **👥 User Management** | Authentication, Roles, Subscription plans | Secure access with tiered features | JWT, bcrypt, Stripe Integration |
-| **💳 Billing System** | Payment processing, Usage tracking, Webhooks | Automated billing with usage limits | Stripe Checkout, Customer Portal |
+| **👥 User Management** | Authentication, Roles, Subscription plans | Secure access with tiered features | JWT, bcrypt, NMI Integration |
+| **💳 Billing System** | Payment processing, Usage tracking, Webhooks | Automated billing with usage limits | NMI Tokenized Checkout, Customer Portal |
 | **📊 Analytics & Monitoring** | Performance metrics, Error tracking, Health checks | System reliability and insights | Custom monitoring, Sentry integration |
 | **🔒 Security & Compliance** | Audit logs, Data encryption, Access control | Enterprise-grade security | JWT Auth, Role-based access, Audit trails |
 
@@ -509,7 +509,7 @@ sequenceDiagram
               │  OpenAI Embed    │
               │  Anthropic LLM   │
               │  Cohere Rerank   │
-              │  Stripe Billing  │
+              │  NMI Billing  │
               │  Resend Email    │
               └─────────────────┘
 ```
@@ -559,7 +559,7 @@ The application uses Prisma ORM with the following key models:
 - **User**: Authentication, roles, subscription plans
 - **Document**: File metadata, processing status
 - **Message**: Chat history with citations
-- **Subscription**: Stripe integration for billing
+- **Subscription**: NMI integration for billing
 - **AuditLog**: Security and compliance tracking
 
 ---
@@ -579,7 +579,7 @@ For detailed production deployment instructions, see [`docs/DEPLOYMENT_GUIDE.md`
 #### Environment Variables for Production
 Key production environment variables include:
 - `DATABASE_URL`: PostgreSQL connection string
-- `STRIPE_SECRET_KEY`: Live Stripe API key
+- `NMI_PRIVATE_API_KEY`: Live NMI API key
 - `PINECONE_API_KEY`: Production Pinecone credentials
 - `JWT_*_SECRET`: Secure token secrets
 
@@ -592,7 +592,7 @@ Key production environment variables include:
 - **Documents**: `/api/documents/*` - Upload, list, delete documents
 - **Chat**: `/api/chat/*` - Query documents with RAG
 - **Admin**: `/api/admin/*` - User management, analytics
-- **Webhooks**: `/api/webhooks/*` - Stripe integration
+- **Webhooks**: `/api/webhooks/*` - NMI integration
 
 ### Authentication
 - JWT-based authentication with access/refresh tokens
@@ -665,7 +665,7 @@ Licensed under the [MIT License](LICENSE).
 - **Anthropic** for Claude AI capabilities
 - **OpenAI** for embedding models
 - **Pinecone** for vector database infrastructure
-- **Stripe** for payment processing
+- **NMI** for payment processing
 - **Vercel** for frontend hosting platform
 
 ---
@@ -679,3 +679,5 @@ Licensed under the [MIT License](LICENSE).
 ---
 
 *Built with ❤️ for the document intelligence community*
+
+

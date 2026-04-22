@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/store/toastStore";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { register } = useAuth();
   
   const [name, setName] = useState("");
@@ -56,9 +53,11 @@ export default function RegisterPage() {
           Please click the link to activate your account.
         </p>
         <div className="space-y-4">
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/login">Return to Login</Link>
-          </Button>
+          <Link href="/login" className="block">
+            <Button variant="outline" className="w-full">
+              Return to Login
+            </Button>
+          </Link>
           <p className="text-xs text-slate-400">
             Didn't receive the email? Check your spam folder or contact support.
           </p>

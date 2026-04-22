@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, Plus, LayoutGrid, List, FileText } from "lucide-react";
+import { Search, Filter, Plus, LayoutGrid, List, FileText, Trash2 } from "lucide-react";
 import UploadZone from "@/components/documents/UploadZone";
 import DocumentCard from "@/components/documents/DocumentCard";
 import Button from "@/components/ui/Button";

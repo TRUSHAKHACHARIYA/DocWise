@@ -347,16 +347,16 @@ Week 4 (Days 22–30): Billing + Testing + Polish + Deploy
 
 ## WEEK 4 — Billing + Testing + Polish + Deploy
 
-### Day 22 — Stripe Billing
+### Day 22 — NMI Billing
 
 **Tasks:**
-- [ ] Set up Stripe account + products/prices
+- [ ] Set up NMI account + products/prices
 - [ ] Build `POST /billing/create-checkout` route
-- [ ] Build `POST /webhooks/stripe` to handle subscription events
+- [ ] Build `POST /webhooks/nmi` to handle subscription events
 - [ ] Update user plan in DB on subscription change
 - [ ] Build billing portal redirect
 
-**GitHub commit:** `feat: Stripe subscription billing`
+**GitHub commit:** `feat: NMI subscription billing`
 
 ---
 
@@ -512,3 +512,4 @@ deploy:   deployment config
 perf:     performance improvement
 security: security hardening
 ```
+

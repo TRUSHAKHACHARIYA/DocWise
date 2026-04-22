@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { Lock, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Lock, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "@/store/toastStore";
 
@@ -33,7 +33,7 @@ function ResetPasswordForm() {
 
     setLoading(true);
     try {
-      await api.post("/api/auth/reset-password", { token, password });
+      await api.post("/auth/reset-password", { token, password });
       setSuccess(true);
       toast.success("Success", "Password has been reset successfully.");
     } catch (error) {

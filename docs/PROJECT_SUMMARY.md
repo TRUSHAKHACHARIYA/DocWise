@@ -29,7 +29,7 @@ Who can benefit from DocWise?
 - **Verifiable Transparency**: Clickable citations link every AI claim directly to a source document.
 - **High Performance**: Real-time streaming via SSE provides an instant, "thinking" chat experience.
 - **Secure by Design**: In-memory token management and HttpOnly cookies protect against XSS/CSRF.
-- **Multi-tenant SaaS**: Built-in Stripe billing and plan-based usage limits for commercial scalability.
+- **Multi-tenant SaaS**: Built-in NMI billing and plan-based usage limits for commercial scalability.
 
 ### Disadvantages / Considerations
 - **API Dependency**: Requires active subscriptions to OpenAI, Anthropic, and Pinecone.
@@ -187,3 +187,4 @@ A: Scanned PDFs (images) currently require the upcoming OCR update. Standard tex
 ---
 
 *Documentation maintained by the DocWise Core Team.*
+

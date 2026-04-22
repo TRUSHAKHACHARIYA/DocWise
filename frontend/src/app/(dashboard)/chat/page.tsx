@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocuments } from "@/hooks/useDocuments";
+import { toast } from "@/store/toastStore";
 import ChatInput from "@/components/chat/ChatInput";
 import MessageBubble from "@/components/chat/MessageBubble";
 import PDFViewer from "@/components/chat/PDFViewer";
@@ -308,6 +309,7 @@ export default function ChatPage() {
                 <MessageBubble 
                   key={m.id} 
                   message={{
+                    id: m.id,
                     role: m.role === 'USER' ? 'user' : 'ai',
                     content: m.content,
                     sources: m.sources as any,
@@ -362,7 +364,7 @@ export default function ChatPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase text-slate-500">
-                  {(doc.sizeBytes / 1024 / 1024).toFixed(1)} MB
+                  {doc.size}
                 </span>
                 <span className={cn(
                   "text-[9px] font-bold uppercase",
