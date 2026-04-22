@@ -74,6 +74,7 @@ export const buildApp = (opts = {}) => {
 
   app.register(cors, {
     origin: env.FRONTEND_URL,
+    credentials: true,
   });
 
   app.addHook("onRequest", async (request, reply) => {
