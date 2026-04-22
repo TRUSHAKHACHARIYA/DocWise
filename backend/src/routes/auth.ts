@@ -89,10 +89,9 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/login', {
     config: {
       rateLimit: {
-        max: 5,
-        timeWindow: '1 minute',
-        // In a real app, you might want to limit by email too, 
-        // but IP limit is a good start for brute force.
+        max: 10,
+        timeWindow: '15 minutes',
+        keyGenerator: (req: any) => req.body?.email || req.ip
       }
     }
   }, async (req, reply) => {
@@ -111,20 +110,12 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = generateTokens(user.id, user.role);
 
-      reply.setCookie('refreshToken', tokens.refreshToken, {
-        path: '/',
+      reply.setCookie('refresh_token', tokens.refreshToken, {
+        path: '/api/auth/refresh',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60, // 7 days
-      });
-
-      reply.setCookie('accessToken', tokens.accessToken, {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60, // 15 minutes
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return reply.send({
@@ -148,7 +139,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/refresh', async (req, reply) => {
     try {
-      const refreshToken = req.cookies.refreshToken;
+      const refreshToken = req.cookies.refresh_token;
       
       if (!refreshToken) {
         return reply.code(401).send({ error: 'Refresh token missing' });
@@ -163,20 +154,12 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = generateTokens(user.id, user.role);
 
-      reply.setCookie('refreshToken', tokens.refreshToken, {
-        path: '/',
+      reply.setCookie('refresh_token', tokens.refreshToken, {
+        path: '/api/auth/refresh',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60,
-      });
-
-      reply.setCookie('accessToken', tokens.accessToken, {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return reply.send({ accessToken: tokens.accessToken });
@@ -214,20 +197,12 @@ export async function authRoutes(app: FastifyInstance) {
 
       const tokens = generateTokens(user.id, user.role);
 
-      reply.setCookie('refreshToken', tokens.refreshToken, {
-        path: '/',
+      reply.setCookie('refresh_token', tokens.refreshToken, {
+        path: '/api/auth/refresh',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60,
-      });
-
-      reply.setCookie('accessToken', tokens.accessToken, {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 15 * 60,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return reply.send({
@@ -282,8 +257,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.post('/logout', async (req, reply) => {
-    reply.clearCookie('refreshToken', { path: '/' });
-    reply.clearCookie('accessToken', { path: '/' });
+    reply.clearCookie('refresh_token', { path: '/api/auth/refresh' });
     return reply.send({ message: 'Logged out successfully' });
   });
 

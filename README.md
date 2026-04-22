@@ -20,7 +20,8 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 
 ### 💼 SaaS Infrastructure
 -   **Usage Enforcement**: Built-in monthly quotas for documents and questions based on user plans (**Free, Starter, Pro, Enterprise**).
--   **Secure Authentication**: JWT-based auth with email verification and self-service **Password Recovery**.
+-   **Secure Authentication**: Hardened JWT-based auth with HttpOnly cookies for refresh tokens and in-memory access token storage.
+-   **Background Processing**: Industrial-grade document ingestion powered by **BullMQ** and **Redis** to handle large PDFs without timeouts.
 -   **Audit Logging**: Detailed tracking of security events (logins, uploads, deletions) for compliance.
 -   **Stripe Integration**: Automated billing and customer portal for subscription management.
 -   **Multi-tenant Architecture**: Isolated user spaces with role-based access control (User/Admin).
@@ -40,14 +41,14 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS, Zustand, Axios |
 | **Backend** | Fastify, Node.js 20+, TypeScript 6.0, Prisma ORM |
-| **AI/ML** | Claude Sonnet 4 (claude-sonnet-4-20250514), OpenAI Embeddings, Cohere Rerank v3 |
-| **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector), Redis (Cache) |
-| **Security** | JWT, Bcrypt, Helmet, Rate Limiting, Audit Logs |
+| **AI/ML** | Claude 3.5 Sonnet v2, OpenAI Embeddings, Cohere Rerank v3 |
+| **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector), Redis (Queue & RL) |
+| **Security** | JWT (HttpOnly Cookies), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
 | **Storage** | AWS S3 / R2 for file storage |
 | **Billing** | Stripe (Checkout & Billing Portal) |
 | **Email** | Nodemailer / Resend |
-| **Testing** | Vitest, Supertest, E2E Scripts |
-| **Monitoring** | Sentry (Frontend), Custom Audit System |
+| **Testing** | Vitest, Golden QA Dataset, Pipeline E2E |
+| **Monitoring** | Sentry (Frontend & Backend), Custom Audit System |
 
 ---
 
@@ -120,8 +121,11 @@ AWS_SECRET_ACCESS_KEY="your-secret-key"
 AWS_REGION="us-east-1"
 S3_BUCKET_NAME="docwise-files"
 
-# Redis (optional, for caching)
+# Redis (Required for Rate Limiting & Background Jobs)
 REDIS_URL="redis://localhost:6379"
+
+# Sentry (Optional, for error tracking)
+SENTRY_DSN="your-sentry-dsn"
 ```
 
 **Frontend Environment (`frontend/.env.local`)**
