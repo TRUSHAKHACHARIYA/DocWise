@@ -119,6 +119,14 @@ export async function authRoutes(app: FastifyInstance) {
         maxAge: 7 * 24 * 60 * 60, // 7 days
       });
 
+      reply.setCookie('accessToken', tokens.accessToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60, // 15 minutes
+      });
+
       return reply.send({
         user: { 
           id: user.id, 
@@ -163,6 +171,14 @@ export async function authRoutes(app: FastifyInstance) {
         maxAge: 7 * 24 * 60 * 60,
       });
 
+      reply.setCookie('accessToken', tokens.accessToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60,
+      });
+
       return reply.send({ accessToken: tokens.accessToken });
     } catch (error) {
       return reply.code(401).send({ error: 'Invalid or expired refresh token' });
@@ -204,6 +220,14 @@ export async function authRoutes(app: FastifyInstance) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60,
+      });
+
+      reply.setCookie('accessToken', tokens.accessToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60,
       });
 
       return reply.send({
@@ -259,6 +283,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/logout', async (req, reply) => {
     reply.clearCookie('refreshToken', { path: '/' });
+    reply.clearCookie('accessToken', { path: '/' });
     return reply.send({ message: 'Logged out successfully' });
   });
 

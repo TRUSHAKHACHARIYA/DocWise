@@ -1,5 +1,6 @@
 import { buildApp } from "./app";
 import { env } from "./config/env";
+import { initWorker } from "./services/queue";
 
 const app = buildApp({
     logger: true,
@@ -8,6 +9,7 @@ const app = buildApp({
 
 const start = async () => {
     try {
+        initWorker(); // Start BullMQ worker
         await app.listen({ port: env.PORT, host: '0.0.0.0' });
         console.log(`🚀 Server running on port ${env.PORT}`);
     } catch (err) {

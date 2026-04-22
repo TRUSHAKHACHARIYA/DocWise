@@ -119,19 +119,19 @@ export function useChat() {
       sources: []
     };
     addMessage(aiPlaceholder);
-
+    
     abortControllerRef.current = new AbortController();
-    const token = useAuthStore.getState().accessToken;
 
     try {
       const response = await fetch(`${API_URL}/chat/${activeSessionId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          // No manual Authorization header needed, using httpOnly cookies
         },
         body: JSON.stringify({ content }),
-        signal: abortControllerRef.current.signal
+        signal: abortControllerRef.current.signal,
+        credentials: 'include' // Important for cookies
       });
 
       if (!response.ok) throw new Error("Failed to send message");

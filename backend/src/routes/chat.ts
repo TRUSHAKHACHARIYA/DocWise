@@ -6,6 +6,11 @@ import { retrieveRelevantChunks } from '../services/retriever';
 import { buildPrompt, getStreamingLLMResponse } from '../services/llm';
 import { checkQuestionLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
 
 export async function chatRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireVerified);
@@ -109,9 +114,11 @@ export async function chatRoutes(app: FastifyInstance) {
   app.post('/:sessionId/message', { preHandler: [checkQuestionLimit] }, async (req, reply) => {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
-    const { content } = z.object({ 
+    const { content: rawContent } = z.object({ 
       content: z.string().min(1).max(4000) 
     }).parse(req.body);
+
+    const content = DOMPurify.sanitize(rawContent);
 
     const session = await prisma.chatSession.findFirst({
       where: { id: sessionId, userId },

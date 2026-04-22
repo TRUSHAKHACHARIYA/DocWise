@@ -19,7 +19,7 @@ export default function FeedbackWidget() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/api/feedback", { content, type });
+      await api.post("/feedback", { content, type });
       toast.success("Thank You!", "Your feedback has been sent to our team.");
       setContent("");
       setIsOpen(false);

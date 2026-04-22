@@ -18,6 +18,7 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import underPressure from "@fastify/under-pressure";
 import cookie from "@fastify/cookie";
+import csrf from "@fastify/csrf-protection";
 import { z } from "zod";
 import { env } from "./config/env";
 import { prisma } from "./utils/prisma";
@@ -62,8 +63,13 @@ export const buildApp = (opts = {}) => {
   });
 
   app.register(cookie, {
-    secret: env.JWT_SECRET, // using JWT_SECRET as cookie secret for simplicity
+    secret: env.JWT_ACCESS_SECRET,
     parseOptions: {}
+  });
+
+  app.register(csrf, {
+    cookieOpts: { signed: true, path: '/' },
+    getToken: (req) => req.headers['x-csrf-token'] as string
   });
 
   app.register(underPressure, {
