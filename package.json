@@ -6,6 +6,7 @@
     "backend"
   ],
   "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
     "typecheck": "npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
@@ -27,6 +28,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2"
+    "@types/node": "^25.5.2",
+    "concurrently": "^9.2.1"
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, File, X, CheckCircle2, AlertCircle, Globe, Link2, ArrowRight } from "lucide-react";
+import { Upload, File as FileIcon, X, CheckCircle2, AlertCircle, Globe, Link2, ArrowRight } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { toast } from "@/store/toastStore";
 import { cn } from "@/lib/utils";
@@ -238,7 +238,7 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
                 "w-10 h-10 rounded-xl flex items-center justify-center",
                 item.status === 'complete' ? "bg-emerald-50 text-emerald-600" : "bg-brand-50 text-brand-600"
               )}>
-                {item.file instanceof File ? <File size={20} /> : <Globe size={20} />}
+                {item.file instanceof File ? <FileIcon size={20} /> : <Globe size={20} />}
               </div>
               
               <div className="flex-1 min-w-0">
