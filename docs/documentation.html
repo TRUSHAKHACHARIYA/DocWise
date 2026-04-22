@@ -299,12 +299,14 @@
                 <a href="#" class="nav-logo">DocWise</a>
                 <div class="nav-links">
                     <a href="#introduction">Intro</a>
-                    <a href="#audience">Audience</a>
-                    <a href="#analysis">Analysis</a>
                     <a href="#architecture">Architecture</a>
                     <a href="#workflows">Workflows</a>
+                    <a href="#security">Security</a>
+                    <a href="#api">API</a>
+                    <a href="#setup">Setup</a>
                     <a href="#example">Example</a>
                     <a href="#roadmap">Roadmap</a>
+                    <a href="#glossary">Glossary</a>
                     <a href="#faq">FAQ</a>
                 </div>
             </div>
@@ -423,7 +425,7 @@
                     <h3>Intelligence</h3>
                     <p style="margin-bottom: 1rem; color: var(--text-dim);">The "Brain" of DocWise</p>
                     <span class="tech-tag">Claude 3.5 Sonnet v2</span>
-                    <span class="tech-tag">OpenAI Embeddings</span>
+                    <span class="tech-tag">text-embedding-3-small</span>
                     <span class="tech-tag">Cohere Rerank v3</span>
                     <span class="tech-tag">Pinecone DB</span>
                 </div>
@@ -445,7 +447,7 @@
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <h4>Vectorization</h4>
-                        <p>Text is chunked into <strong>1000-token segments</strong> with a <strong>200-token context overlap</strong> and sent to <span class="badge">OpenAI Ada-002</span>.</p>
+                        <p>Text is chunked into <strong>~500-token segments</strong> with a <strong>~50-token context overlap</strong> and sent to <span class="badge">text-embedding-3-small</span>.</p>
                     </div>
                 </div>
                 <div class="workflow-step">
@@ -487,11 +489,11 @@
                 <div class="grid">
                     <div>
                         <h4>Failure Recovery</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-dim);">Automatic retries for LLM timeouts and graceful degradation to cached responses if the Vector DB is temporarily unreachable.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Automatic retries for LLM timeouts and graceful degradation to user-friendly error states if downstream services fail.</p>
                     </div>
                     <div>
                         <h4>Rate Limiting</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-dim);">Tier-based rate limiting via <span class="badge">Upstash Redis</span> to ensure platform stability under high load.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Smart in-memory rate limiting via <span class="badge">@fastify/rate-limit</span> to prevent API abuse and ensure fair resource distribution.</p>
                     </div>
                 </div>
             </div>
@@ -522,6 +524,61 @@
             </div>
         </section>
 
+        <section id="security">
+            <h2><a href="#security" class="anchor-link">#</a>🔒 Security & Protection</h2>
+            <div class="card">
+                <div class="grid">
+                    <div>
+                        <h4>Token Management</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Access tokens are managed in memory (Zustand) while refresh tokens use secure, <strong>httpOnly</strong> cookies to mitigate XSS and CSRF risks.</p>
+                    </div>
+                    <div>
+                        <h4>JWT Rotation</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Short-lived access tokens (15m) and automatic refresh rotation (7d) ensure minimal window of exposure for sessions.</p>
+                    </div>
+                    <div>
+                        <h4>Upload Defense</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Deep MIME type inspection and magic-byte signature validation prevent malicious file spoofing during ingestion.</p>
+                    </div>
+                    <div>
+                        <h4>CORS Policy</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Strict origin-based filtering and credential-locked endpoints ensure only authorized domains can interact with the API.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="api">
+            <h2><a href="#api" class="anchor-link">#</a>🔌 API Reference</h2>
+            <div class="card">
+                <p style="margin-bottom: 1.5rem;">DocWise provides a developer-first API for custom integrations. Manage your keys in the <strong>Settings > Developer</strong> dashboard.</p>
+                <div class="grid">
+                    <div style="background: rgba(15, 23, 42, 0.4); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--glass-border);">
+                        <span class="badge">POST</span> <code style="color: var(--accent);">/api/documents/upload</code>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-dim);">Upload and index a document via multipart/form-data.</p>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.4); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--glass-border);">
+                        <span class="badge">POST</span> <code style="color: var(--accent);">/api/chat/:sessionId/message</code>
+                        <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-dim);">Stream a RAG-powered response via SSE.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup">
+            <h2><a href="#setup" class="anchor-link">#</a>🚀 Local Setup</h2>
+            <div class="card">
+                <div style="background: #0f172a; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--glass-border); font-family: monospace; font-size: 0.9rem;">
+                    <p style="color: #6366f1;"># 1. Install dependencies</p>
+                    <p>npm install</p>
+                    <p style="color: #6366f1; margin-top: 1rem;"># 2. Setup environment</p>
+                    <p>cp .env.example .env</p>
+                    <p style="color: #6366f1; margin-top: 1rem;"># 3. Spin up services</p>
+                    <p>npm run dev</p>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-dim);">Requires Node.js 20+, PostgreSQL, and active API keys for OpenAI/Anthropic/Pinecone.</p>
+            </div>
+        </section>
         <section id="example">
             <h2><a href="#example" class="anchor-link">#</a>💡 RAG Interaction Example</h2>
             <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-color: var(--primary);">
@@ -551,6 +608,7 @@
             <div class="card">
                 <ul class="roadmap-list">
                     <li><span class="badge" style="background: #10b981; color: white;">In Progress</span> <strong>BullMQ Integration:</strong> Moving to Redis queues for industrial-scale background tasks. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q2 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Redis Caching:</strong> Adding a caching layer for vector retrieval results to reduce latency. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
                     <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Hybrid Search:</strong> Combining BM25 keyword search with Semantic Vector search. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
                     <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Multi-Modal Parse:</strong> Using Claude's vision for understanding charts/tables in PDFs. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q4 2026)</span></li>
                     <li><span class="badge" style="background: #94a3b8; color: white;">Future</span> <strong>Social Auth:</strong> Native Google and GitHub OAuth integration.</li>
@@ -603,7 +661,7 @@
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <p><strong>What is the max document size?</strong></p>
-                    <p style="color: var(--text-dim); font-size: 0.9rem;">The current limit is 50MB per file or 500 pages. This ensures optimal processing speed.</p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">The current limit is <strong>10MB per file</strong>. This ensures optimal processing speed and reliability.</p>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <p><strong>How does pricing work?</strong></p>
