@@ -384,6 +384,7 @@
                             API[API Gateway]
                             Auth[Auth Service]
                             DocS[Document Service]
+                            Queue[BullMQ / Redis]
                             ChatS[RAG Pipeline]
                         end
 
@@ -391,11 +392,13 @@
                             DB[(Prisma DB)]
                             VDB[(Pinecone Vector)]
                             LLM[Claude 3.5 Sonnet v2]
+                            S3[AWS S3/R2]
                         end
 
                         UI <--> API
                         API <--> Auth & DocS & ChatS
-                        DocS <--> DB & VDB
+                        DocS <--> Queue
+                        Queue <--> S3 & VDB
                         ChatS <--> VDB & LLM
                 </div>
             </div>
@@ -440,7 +443,7 @@
                     <div class="step-number">1</div>
                     <div class="step-content">
                         <h4>Processing</h4>
-                        <p>Documents are uploaded to <span class="badge">AWS S3</span> and parsed via specialized engines for PDF and Word formats.</p>
+                        <p>Documents are uploaded to <span class="badge">AWS S3</span>. To ensure reliability, the heavy ingestion work is offloaded to <span class="badge">BullMQ</span> background workers powered by <span class="badge">Redis</span>.</p>
                     </div>
                 </div>
                 <div class="workflow-step">
@@ -493,7 +496,7 @@
                     </div>
                     <div>
                         <h4>Rate Limiting</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-dim);">Smart in-memory rate limiting via <span class="badge">@fastify/rate-limit</span> to prevent API abuse and ensure fair resource distribution.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Persistent rate limiting via <span class="badge">Redis</span> ensures that API abuse protection survives server restarts and distributes correctly across horizontal scaling.</p>
                     </div>
                 </div>
             </div>
@@ -530,7 +533,7 @@
                 <div class="grid">
                     <div>
                         <h4>Token Management</h4>
-                        <p style="font-size: 0.9rem; color: var(--text-dim);">Access tokens are managed in memory (Zustand) while refresh tokens use secure, <strong>httpOnly</strong> cookies to mitigate XSS and CSRF risks.</p>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Access tokens are managed in memory (Zustand) and never persisted, while refresh tokens use secure, <strong>httpOnly</strong> cookies with a restricted path (<span class="badge">/api/auth/refresh</span>).</p>
                     </div>
                     <div>
                         <h4>JWT Rotation</h4>
@@ -607,10 +610,10 @@
             <h2><a href="#roadmap" class="anchor-link">#</a>📅 Roadmap</h2>
             <div class="card">
                 <ul class="roadmap-list">
-                    <li><span class="badge" style="background: #10b981; color: white;">In Progress</span> <strong>BullMQ Integration:</strong> Moving to Redis queues for industrial-scale background tasks. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q2 2026)</span></li>
-                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Redis Caching:</strong> Adding a caching layer for vector retrieval results to reduce latency. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
-                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Hybrid Search:</strong> Combining BM25 keyword search with Semantic Vector search. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
-                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Multi-Modal Parse:</strong> Using Claude's vision for understanding charts/tables in PDFs. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q4 2026)</span></li>
+                    <li><span class="badge" style="background: #10b981; color: white;">Completed</span> <strong>BullMQ Integration:</strong> Redis-powered queues for industrial-scale background tasks. <span style="color: var(--text-dim); font-size: 0.8rem;">(April 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Hybrid Search:</strong> Combining BM25 keyword search with Semantic Vector search using PostgreSQL. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Claude Vision Fallback:</strong> OCR-free understanding of charts/tables in image-based PDFs. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q4 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Persistent Caching:</strong> Adding Redis cache for frequent retrieval results. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q4 2026)</span></li>
                     <li><span class="badge" style="background: #94a3b8; color: white;">Future</span> <strong>Social Auth:</strong> Native Google and GitHub OAuth integration.</li>
                 </ul>
             </div>
