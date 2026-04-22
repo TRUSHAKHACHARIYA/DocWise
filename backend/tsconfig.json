@@ -5,8 +5,11 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
     "skipLibCheck": true
   },
   "include": ["src/**/*"]

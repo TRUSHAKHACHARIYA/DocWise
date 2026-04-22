@@ -1,5 +1,4 @@
-import "fastify";
-import type { Plan, Role } from "@prisma/client";
+import { Plan, Role } from "@prisma/client";
 
 declare module 'fastify' {
   interface FastifyRequest {

@@ -1,4 +1,17 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
+import { Plan, Role } from "@prisma/client";
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: {
+      id: string;
+      role: Role;
+      plan: Plan;
+      trialEndsAt?: Date | null;
+    };
+  }
+}
+
 import multipart from '@fastify/multipart';
 import { z } from 'zod';
 import { prisma } from '../utils/prisma';

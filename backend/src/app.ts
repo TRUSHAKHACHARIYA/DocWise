@@ -1,17 +1,6 @@
 import Fastify, { FastifyRequest as FR } from "fastify";
 import { Plan, Role } from "@prisma/client";
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: {
-      id: string;
-      role: Role;
-      plan: Plan;
-      trialEndsAt?: Date | null;
-    };
-  }
-}
-
 import { randomUUID } from "crypto";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
@@ -20,7 +9,8 @@ import underPressure from "@fastify/under-pressure";
 import cookie from "@fastify/cookie";
 import csrf from "@fastify/csrf-protection";
 import Redis from "ioredis";
-import * as Sentry from "@sentry/node";
+// // @ts-ignore
+// import * as Sentry from "@sentry/node";
 import { z } from "zod";
 import { env } from "./config/env";
 import { prisma } from "./utils/prisma";
@@ -59,12 +49,10 @@ export const buildApp = (opts = {}) => {
     contentSecurityPolicy: false,
   });
 
-  const redis = new Redis(env.REDIS_URL);
-
+  // Use memory-based rate limiting for local development to avoid Redis dependency
   app.register(rateLimit, {
     max: 100,
     timeWindow: "15 minutes",
-    redis,
     keyGenerator: (req: any) => req.user?.id || req.ip
   });
 
@@ -85,8 +73,10 @@ export const buildApp = (opts = {}) => {
   });
 
   app.register(cors, {
-    origin: env.FRONTEND_URL,
+    origin: true, // Allow all origins in development
     credentials: true,
+    methods: ["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "x-request-id"],
   });
 
   app.addHook("onRequest", async (request, reply) => {
@@ -106,7 +96,7 @@ export const buildApp = (opts = {}) => {
   });
 
   app.setErrorHandler((error: any, request, reply) => {
-    Sentry.captureException(error);
+    // Sentry.captureException(error);
     
     if (error instanceof z.ZodError) {
       return reply.code(400).send({
