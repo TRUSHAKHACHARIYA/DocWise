@@ -115,7 +115,7 @@ export async function chatRoutes(app: FastifyInstance) {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
     const { content: rawContent } = z.object({ 
-      content: z.string().min(1).max(4000) 
+      content: z.string().min(1).max(4000).trim() 
     }).parse(req.body);
 
     const content = DOMPurify.sanitize(rawContent);

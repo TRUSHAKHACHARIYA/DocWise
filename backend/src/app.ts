@@ -19,6 +19,8 @@ import rateLimit from "@fastify/rate-limit";
 import underPressure from "@fastify/under-pressure";
 import cookie from "@fastify/cookie";
 import csrf from "@fastify/csrf-protection";
+import Redis from "ioredis";
+import * as Sentry from "@sentry/node";
 import { z } from "zod";
 import { env } from "./config/env";
 import { prisma } from "./utils/prisma";
@@ -57,9 +59,13 @@ export const buildApp = (opts = {}) => {
     contentSecurityPolicy: false,
   });
 
+  const redis = new Redis(env.REDIS_URL);
+
   app.register(rateLimit, {
     max: 100,
     timeWindow: "15 minutes",
+    redis,
+    keyGenerator: (req: any) => req.user?.id || req.ip
   });
 
   app.register(cookie, {
@@ -100,6 +106,8 @@ export const buildApp = (opts = {}) => {
   });
 
   app.setErrorHandler((error: any, request, reply) => {
+    Sentry.captureException(error);
+    
     if (error instanceof z.ZodError) {
       return reply.code(400).send({
         error: "Validation Error",

@@ -49,4 +49,7 @@ export const env = {
   STRIPE_WEBHOOK_SECRET: optional("STRIPE_WEBHOOK_SECRET", ""),
   STRIPE_PRICE_STARTER: optional("STRIPE_PRICE_STARTER", ""),
   STRIPE_PRICE_PRO: optional("STRIPE_PRICE_PRO", ""),
+
+  REDIS_URL: optional("REDIS_URL", "redis://localhost:6379"),
+  SENTRY_DSN: optional("SENTRY_DSN", ""),
 };

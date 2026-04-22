@@ -38,6 +38,7 @@
     "@fastify/under-pressure": "^9.0.3",
     "@pinecone-database/pinecone": "^7.1.0",
     "@prisma/client": "^6.19.3",
+    "@sentry/node": "^10.48.0",
     "@types/dompurify": "^3.0.5",
     "@types/jsdom": "^28.0.1",
     "axios": "^1.15.1",
