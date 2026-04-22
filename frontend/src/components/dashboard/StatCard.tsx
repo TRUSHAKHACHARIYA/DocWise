@@ -45,8 +45,8 @@ export default function StatCard({
     <div className={cn("card-hover p-6 flex flex-col gap-4", className)}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-          <p className="text-3xl font-extrabold text-slate-900 tracking-tight">{value}</p>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
+          <p className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{value}</p>
         </div>
         <div className={cn(
           "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg",
@@ -57,16 +57,16 @@ export default function StatCard({
       </div>
       
       {(description || trend) && (
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
           {trend && (
             <span className={cn(
               "text-xs font-bold px-1.5 py-0.5 rounded-md",
-              trend.isUp ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+              trend.isUp ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
             )}>
               {trend.isUp ? "+" : "-"}{trend.value}
             </span>
           )}
-          {description && <p className="text-xs text-slate-500 font-medium">{description}</p>}
+          {description && <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{description}</p>}
         </div>
       )}
     </div>

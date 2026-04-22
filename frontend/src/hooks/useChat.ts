@@ -63,6 +63,17 @@ export function useChat() {
     }
   };
 
+  // Rename a session
+  const renameSession = async (sessionId: string, title: string) => {
+    try {
+      const response = await api.patch(`/chat/${sessionId}`, { title });
+      setSessions(sessions.map(s => s.id === sessionId ? response.data.session : s));
+      toast.success("Success", "Chat renamed.");
+    } catch (err) {
+      toast.error("Error", "Failed to rename chat.");
+    }
+  };
+
   // Delete a session
   const deleteSession = async (sessionId: string) => {
     try {
@@ -214,6 +225,7 @@ export function useChat() {
     fetchSessionMessages,
     createSession,
     deleteSession,
+    renameSession,
     updateSessionDocuments,
     sendMessage,
     submitMessageFeedback,

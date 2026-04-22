@@ -36,10 +36,10 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
   };
 
   return (
-    <div className="relative bg-white border border-slate-200 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] p-2 pr-4 transition-all focus-within:ring-2 focus-within:ring-brand-500/10 focus-within:border-brand-500/30">
+    <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-none p-2 pr-4 transition-all focus-within:ring-2 focus-within:ring-brand-500/10 focus-within:border-brand-500/30">
       <div className="flex items-end gap-2">
         {/* Attachment Button */}
-        <button className="p-3 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-2xl transition-all h-[48px]">
+        <button className="p-3 text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-2xl transition-all h-[48px]">
           <Paperclip size={20} />
         </button>
 
@@ -50,13 +50,13 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask anything about your documents..."
-          className="flex-1 bg-transparent border-none outline-none text-sm py-3 px-2 resize-none max-h-[200px] text-slate-900 placeholder:text-slate-400 leading-relaxed"
+          className="flex-1 bg-transparent border-none outline-none text-sm py-3 px-2 resize-none max-h-[200px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed"
           disabled={isLoading}
         />
 
         {/* Quick Suggestion Button (Optional AI Magic) */}
         {!text && (
-          <button className="p-3 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-2xl transition-all h-[48px]">
+          <button className="p-3 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-2xl transition-all h-[48px]">
             <Sparkles size={20} />
           </button>
         )}
@@ -69,7 +69,7 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
             "p-3 rounded-2xl transition-all flex items-center justify-center h-[48px] w-[48px]",
             text.trim() && !isLoading
               ? "bg-brand-600 text-white shadow-lg shadow-brand-500/20 hover:scale-105 active:scale-95" 
-              : "bg-slate-100 text-slate-300 pointer-events-none"
+              : "bg-slate-100 dark:bg-slate-700 text-slate-300 dark:text-slate-500 pointer-events-none"
           )}
         >
           {isLoading ? (

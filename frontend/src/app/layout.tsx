@@ -48,7 +48,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="DocWise" />
       </head>
-      <body className="min-h-full flex flex-col bg-white dark:bg-zinc-950 transition-colors duration-300">
+      <body className="min-h-full flex flex-col bg-white dark:bg-slate-950 transition-colors duration-300">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

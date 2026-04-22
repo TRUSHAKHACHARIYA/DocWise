@@ -252,4 +252,44 @@ export async function chatRoutes(app: FastifyInstance) {
 
     return reply.send({ success: true, feedback });
   });
+
+  // Rename session
+  app.patch('/:sessionId', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId } = req.params as { sessionId: string };
+    const { title } = z.object({
+      title: z.string().min(1).max(100).trim()
+    }).parse(req.body);
+
+    const session = await prisma.chatSession.findFirst({
+      where: { id: sessionId, userId }
+    });
+
+    if (!session) return reply.code(404).send({ error: 'Session not found' });
+
+    const updatedSession = await prisma.chatSession.update({
+      where: { id: sessionId },
+      data: { title }
+    });
+
+    return reply.send({ session: updatedSession });
+  });
+
+  // Delete session
+  app.delete('/:sessionId', async (req, reply) => {
+    const userId = req.user!.id;
+    const { sessionId } = req.params as { sessionId: string };
+
+    const session = await prisma.chatSession.findFirst({
+      where: { id: sessionId, userId }
+    });
+
+    if (!session) return reply.code(404).send({ error: 'Session not found' });
+
+    await prisma.chatSession.delete({
+      where: { id: sessionId }
+    });
+
+    return reply.send({ success: true });
+  });
 }

@@ -115,12 +115,22 @@
     box-shadow: var(--shadow-card);
   }
 
+  .dark .card {
+    background-color: #1e293b;
+    border-color: #334155;
+  }
+
   .card-hover {
     background-color: #ffffff;
     border-radius: var(--border-radius-lg);
     border: 1px solid #e2e8f0;
     box-shadow: var(--shadow-card);
     transition: box-shadow 0.2s;
+  }
+
+  .dark .card-hover {
+    background-color: #1e293b;
+    border-color: #334155;
   }
 
   .card-hover:hover {
@@ -139,8 +149,18 @@
     outline: none;
   }
 
+  .dark .input-base {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+
   .input-base::placeholder {
     color: #94a3b8;
+  }
+
+  .dark .input-base::placeholder {
+    color: #64748b;
   }
 
   .input-base:focus {
