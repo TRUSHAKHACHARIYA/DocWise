@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocWise | Technical Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #38bdf8;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+        }
+
+        .page-wrapper {
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 6rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        section {
+            margin-bottom: 5rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .card h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .tech-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 9999px;
+            color: var(--accent);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+
+        .mermaid {
+            background: rgba(30, 41, 59, 0.4);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin: 2rem 0;
+            border: 1px solid var(--glass-border);
+        }
+
+        .anchor-link {
+            text-decoration: none;
+            color: var(--primary);
+            opacity: 0.3;
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+            font-weight: 400;
+            transition: opacity 0.2s;
+        }
+
+        h2:hover .anchor-link {
+            opacity: 1;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .step-content h4 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 0;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge {
+            background: rgba(236, 72, 153, 0.1);
+            color: var(--secondary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .footer-version {
+            margin-top: 0.5rem;
+            font-family: monospace;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <nav class="sticky-nav">
+            <div class="nav-content">
+                <a href="#" class="nav-logo">DocWise</a>
+                <div class="nav-links">
+                    <a href="#introduction">Intro</a>
+                    <a href="#audience">Audience</a>
+                    <a href="#analysis">Analysis</a>
+                    <a href="#architecture">Architecture</a>
+                    <a href="#workflows">Workflows</a>
+                    <a href="#example">Example</a>
+                    <a href="#roadmap">Roadmap</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+        <header>
+            <h1>DocWise Docs</h1>
+            <p class="subtitle">Transform static documents into interactive knowledge bases with enterprise-grade RAG.</p>
+        </header>
+
+        <section id="introduction">
+            <h2><a href="#introduction" class="anchor-link">#</a>📑 Introduction</h2>
+            <div class="card">
+                <p>DocWise is a premium AI-Powered Document Intelligence Platform. It leverages complex <strong>Retrieval-Augmented Generation (RAG)</strong> to deliver high-precision answers with direct citations, ensuring transparency and eliminating AI hallucinations.</p>
+            </div>
+        </section>
+
+        <section id="audience">
+            <h2><a href="#audience" class="anchor-link">#</a>👥 Who is DocWise for?</h2>
+            <div class="grid">
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚖️</div>
+                    <h4>Legal Professionals</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-dim);">Query contracts and discovery docs with citations.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔬</div>
+                    <h4>Researchers</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-dim);">Analyze academic papers and cross-reference findings.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏢</div>
+                    <h4>Corporate Teams</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-dim);">Access SOPs and policies instantly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="analysis">
+            <h2><a href="#analysis" class="anchor-link">#</a>✅ Pros & ⚠️ Cons</h2>
+            <div class="grid">
+                <div class="card" style="border-left: 4px solid #10b981;">
+                    <h3 style="color: #10b981;">Advantages</h3>
+                    <ul style="margin-top: 1rem;">
+                        <li><strong>Dynamic Reranking:</strong> Highest accuracy context retrieval.</li>
+                        <li><strong>Real-time SSE:</strong> Instant streaming chat experience.</li>
+                        <li><strong>Hardened Security:</strong> In-memory token management.</li>
+                        <li><strong>SaaS Ready:</strong> Integrated Stripe and multi-tenancy.</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-left: 4px solid #f59e0b;">
+                    <h3 style="color: #f59e0b;">Considerations</h3>
+                    <ul style="margin-top: 1rem;">
+                        <li><strong>API Dependency:</strong> Requires ongoing LLM provider costs.</li>
+                        <li><strong>Complex Layouts:</strong> Needs OCR for heavily scanned docs.</li>
+                        <li><strong>Cold Processing:</strong> Large docs take 1-2 mins to index.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2><a href="#architecture" class="anchor-link">#</a>🏗️ System Architecture</h2>
+            <div class="card">
+                <p>Built with a monorepo focus, DocWise separates concerns between the interactive client, the orchestration API, and elite AI models.</p>
+                <div class="mermaid">
+                    graph TB
+                        subgraph "Frontend (Next.js 15)"
+                            UI[React UI Components]
+                            Store[Zustand State]
+                            Hooks[Custom Hooks]
+                        end
+
+                        subgraph "Backend (Fastify)"
+                            API[API Gateway]
+                            Auth[Auth Service]
+                            DocS[Document Service]
+                            ChatS[RAG Pipeline]
+                        end
+
+                        subgraph "Storage & AI"
+                            DB[(Prisma DB)]
+                            VDB[(Pinecone Vector)]
+                            LLM[Claude 3.5 Sonnet v2]
+                        end
+
+                        UI <--> API
+                        API <--> Auth & DocS & ChatS
+                        DocS <--> DB & VDB
+                        ChatS <--> VDB & LLM
+                </div>
+            </div>
+        </section>
+
+        <section id="tech-stack">
+            <h2><a href="#tech-stack" class="anchor-link">#</a>🛠️ Technology Stack</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Frontend</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">Next.js 15, React 19</p>
+                    <span class="tech-tag">Zustand</span>
+                    <span class="tech-tag">Tailwind 4</span>
+                    <span class="tech-tag">Axios</span>
+                    <span class="tech-tag">Recharts</span>
+                    <span class="tech-tag">Lucide</span>
+                </div>
+                <div class="card">
+                    <h3>Backend</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">Fastify & Node.js 20+</p>
+                    <span class="tech-tag">Prisma ORM</span>
+                    <span class="tech-tag">JWT</span>
+                    <span class="tech-tag">Zod Validation</span>
+                    <span class="tech-tag">Pino Logging</span>
+                </div>
+                <div class="card">
+                    <h3>Intelligence</h3>
+                    <p style="margin-bottom: 1rem; color: var(--text-dim);">The "Brain" of DocWise</p>
+                    <span class="tech-tag">Claude 3.5 Sonnet v2</span>
+                    <span class="tech-tag">OpenAI Embeddings</span>
+                    <span class="tech-tag">Cohere Rerank v3</span>
+                    <span class="tech-tag">Pinecone DB</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="workflows">
+            <h2><a href="#workflows" class="anchor-link">#</a>🧠 Core Workflows</h2>
+            <div class="card">
+                <h3>1. Ingestion Pipeline</h3>
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Processing</h4>
+                        <p>Documents are uploaded to <span class="badge">AWS S3</span> and parsed via specialized engines for PDF and Word formats.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Vectorization</h4>
+                        <p>Text is chunked into <strong>1000-token segments</strong> with a <strong>200-token context overlap</strong> and sent to <span class="badge">OpenAI Ada-002</span>.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Indexing</h4>
+                        <p>Vectors are indexed in <span class="badge">Pinecone</span> alongside metadata for rapid semantic retrieval.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>2. RAG Chat Workflow</h3>
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Semantic Search</h4>
+                        <p>User queries trigger a vector search to find the most relevant document excerpts.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Context Reranking</h4>
+                        <p><span class="badge">Cohere Rerank v3</span> filters the results to keep only the absolute best context for the LLM.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Response Generation</h4>
+                        <p><span class="badge">Claude 3.5 Sonnet v2</span> synthesizes the answer, citing sources in real-time via SSE streaming.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>3. Resilience & Error Handling</h3>
+                <div class="grid">
+                    <div>
+                        <h4>Failure Recovery</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Automatic retries for LLM timeouts and graceful degradation to cached responses if the Vector DB is temporarily unreachable.</p>
+                    </div>
+                    <div>
+                        <h4>Rate Limiting</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Tier-based rate limiting via <span class="badge">Upstash Redis</span> to ensure platform stability under high load.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>4. Real-time Sequence</h3>
+                <p style="margin-bottom: 2rem; color: var(--text-dim);">How data flows instantly from the AI to your browser.</p>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant U as User
+                        participant F as Browser
+                        participant B as Fastify API
+                        participant AI as Claude LLM
+                        
+                        U->>F: Asks Question
+                        F->>B: POST /api/chat (SSE Request)
+                        B->>B: Vector Search & Reranking
+                        B-->>F: HTTP 200 OK (EventStream Started)
+                        B->>AI: Send Prompt + Context
+                        loop Streaming Tokens
+                            AI->>B: Next Token Data
+                            B->>F: SSE event: "message"
+                            F->>U: UI Update (Word by Word)
+                        end
+                        B->>F: SSE event: "done"
+                        F->>F: Close Stream
+                </div>
+            </div>
+        </section>
+
+        <section id="example">
+            <h2><a href="#example" class="anchor-link">#</a>💡 RAG Interaction Example</h2>
+            <div class="card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border-color: var(--primary);">
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div>
+                        <span class="badge" style="background: var(--primary); color: white;">User Input</span>
+                        <p style="font-size: 1.25rem; font-weight: 600; margin-top: 0.5rem;">"What is the policy for remote work stipends?"</p>
+                    </div>
+                    
+                    <div style="padding-left: 2rem; border-left: 2px solid var(--primary);">
+                        <span class="badge">DocWise Retrieval</span>
+                        <p style="color: var(--text-dim); margin-top: 0.5rem;">System identified 3 relevant chunks from <strong>Handbook.pdf</strong> (Pages 14, 28, and 42).</p>
+                    </div>
+
+                    <div>
+                        <span class="badge" style="background: var(--secondary); color: white;">AI Response</span>
+                        <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 1rem; margin-top: 0.5rem; border: 1px solid var(--glass-border);">
+                            "Remote workers are eligible for a <strong style='color: var(--accent)'>$500 annual stipend</strong> for equipment <span class='badge' style='font-size: 0.7rem;'>Source: p. 14</span>. Additionally, the company provides a monthly $50 reimbursement for high-speed internet <span class='badge' style='font-size: 0.7rem;'>Source: p. 28</span>."
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap">
+            <h2><a href="#roadmap" class="anchor-link">#</a>📅 Roadmap</h2>
+            <div class="card">
+                <ul class="roadmap-list">
+                    <li><span class="badge" style="background: #10b981; color: white;">In Progress</span> <strong>BullMQ Integration:</strong> Moving to Redis queues for industrial-scale background tasks. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q2 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Hybrid Search:</strong> Combining BM25 keyword search with Semantic Vector search. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q3 2026)</span></li>
+                    <li><span class="badge" style="background: var(--primary); color: white;">Planned</span> <strong>Multi-Modal Parse:</strong> Using Claude's vision for understanding charts/tables in PDFs. <span style="color: var(--text-dim); font-size: 0.8rem;">(Q4 2026)</span></li>
+                    <li><span class="badge" style="background: #94a3b8; color: white;">Future</span> <strong>Social Auth:</strong> Native Google and GitHub OAuth integration.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="glossary">
+            <h2><a href="#glossary" class="anchor-link">#</a>📖 Glossary</h2>
+            <div class="card">
+                <div class="grid">
+                    <div>
+                        <h4>RAG</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Retrieval-Augmented Generation. Giving AI its own "memory" of your docs.</p>
+                    </div>
+                    <div>
+                        <h4>Vector DB</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Storing text as coordinates for high-speed similarity search.</p>
+                    </div>
+                    <div>
+                        <h4>SSE</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Server-Sent Events. Used for streaming AI responses word-by-word.</p>
+                    </div>
+                    <div>
+                        <h4>Reranking</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Refining search results to ensure the most relevant context is prioritized.</p>
+                    </div>
+                    <div>
+                        <h4>Embeddings</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Numerical representations of text that capture semantic meaning.</p>
+                    </div>
+                    <div>
+                        <h4>Chunking</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">Breaking down large documents into smaller, digestible segments for the AI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq">
+            <h2><a href="#faq" class="anchor-link">#</a>❓ FAQ</h2>
+            <div class="card">
+                <div style="margin-bottom: 1.5rem;">
+                    <p><strong>Is my data private?</strong></p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">Yes. We use enterprise API endpoints that do not use your data for model training.</p>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <p><strong>Can I query multiple documents?</strong></p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">Absolutely. DocWise supports horizontal search across any number of selected documents.</p>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <p><strong>What is the max document size?</strong></p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">The current limit is 50MB per file or 500 pages. This ensures optimal processing speed.</p>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <p><strong>How does pricing work?</strong></p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">We offer a credit-based system. Credits are consumed based on document pages indexed and LLM tokens generated.</p>
+                </div>
+                <div>
+                    <p><strong>How is Stripe billing structured?</strong></p>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">Monthly subscriptions provide a recurring credit allowance, with options for one-time credit top-ups.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Documentation maintained by the DocWise Core Team &bull; v1.2.0</p>
+            <p class="footer-version">Last updated: April 2026</p>
+        </footer>
+    </div>
+</div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            securityLevel: 'loose',
+            themeVariables: {
+                darkMode: true,
+                background: '#1e293b',
+                primaryColor: '#6366f1',
+                secondaryColor: '#ec4899',
+                tertiaryColor: '#38bdf8',
+                lineColor: '#94a3b8'
+            }
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
