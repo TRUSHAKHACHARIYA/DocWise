@@ -5,12 +5,19 @@ import { prisma } from '../utils/prisma';
 
 export const requireAuth = async (req: FastifyRequest, reply: FastifyReply) => {
   try {
+    let token = '';
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return reply.code(401).send({ error: 'Missing or invalid authorization header' });
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.cookies.accessToken) {
+      token = req.cookies.accessToken;
     }
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      return reply.code(401).send({ error: 'Authentication required' });
+    }
+
     const decoded = verifyAccessToken(token);
 
     const user = await prisma.user.findUnique({

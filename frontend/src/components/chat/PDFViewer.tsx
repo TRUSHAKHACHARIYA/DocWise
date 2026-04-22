@@ -31,7 +31,7 @@ export default function PDFViewer({
   useEffect(() => {
     const fetchUrl = async () => {
       try {
-        const response = await api.get(`/api/documents/${documentId}/view`);
+        const response = await api.get(`/documents/${documentId}/view`);
         setUrl(response.data.url);
       } catch (err) {
         console.error("Failed to load PDF URL", err);
