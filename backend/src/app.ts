@@ -72,8 +72,24 @@ export const buildApp = (opts = {}) => {
     exposeStatusRoute: true,
   });
 
+  const allowedOrigins = env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : [env.FRONTEND_URL];
+
   app.register(cors, {
-    origin: true, // Allow all origins in development
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (env.NODE_ENV !== "production" && origin.startsWith("http://localhost:")) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} is not allowed by CORS`), false);
+    },
     credentials: true,
     methods: ["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "x-csrf-token", "x-request-id"],

@@ -95,9 +95,9 @@ export default function DocumentsPage() {
       {/* Toolbar */}
       <div className="flex flex-col gap-4">
         {selectedIds.length > 0 && (
-          <div className="flex items-center justify-between bg-brand-50 dark:bg-zinc-900 border border-brand-100 dark:border-brand-500/20 p-4 rounded-2xl animate-slide-up">
+          <div className="animate-slide-up flex items-center justify-between rounded-2xl border border-[rgba(194,91,58,0.16)] bg-[var(--cream)] p-4">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-black text-brand-600 dark:text-brand-400 uppercase tracking-widest bg-white dark:bg-zinc-800 px-3 py-1 rounded-lg border border-brand-100 dark:border-brand-500/20 shadow-sm">
+              <span className="rounded-lg border border-[rgba(194,91,58,0.16)] bg-[var(--warm-white)] px-3 py-1 text-sm font-black uppercase tracking-widest text-[var(--rust-dark)] shadow-sm">
                 {selectedIds.length} Selected
               </span>
               <button 
@@ -119,25 +119,25 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors duration-300">
+        <div className="flex flex-col items-center gap-4 rounded-2xl border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] p-3 shadow-sm transition-colors duration-300 sm:flex-row">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]" size={18} />
             <input 
               type="text"
               placeholder="Search your documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-zinc-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 outline-none transition-all font-bold text-slate-900 dark:text-white"
+              className="w-full rounded-xl border border-[rgba(194,91,58,0.12)] bg-[var(--cream)] px-4 py-2 pl-10 text-sm font-bold text-[var(--ink)] outline-none transition-all focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex border border-slate-200 dark:border-zinc-800 rounded-xl p-1 bg-slate-50 dark:bg-zinc-800">
+            <div className="flex rounded-xl border border-[rgba(26,24,20,0.10)] bg-[var(--cream)] p-1">
               <button 
                 onClick={() => setViewMode('grid')}
                 className={cn(
                   "p-1.5 rounded-lg transition-all",
-                  viewMode === 'grid' ? "bg-white dark:bg-zinc-700 text-brand-600 dark:text-brand-400 shadow-sm" : "text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300"
+                  viewMode === 'grid' ? "bg-[var(--warm-white)] text-[var(--rust-dark)] shadow-sm" : "text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
                 )}
               >
                 <LayoutGrid size={18} />
@@ -146,14 +146,14 @@ export default function DocumentsPage() {
                 onClick={() => setViewMode('list')}
                 className={cn(
                   "p-1.5 rounded-lg transition-all",
-                  viewMode === 'list' ? "bg-white dark:bg-zinc-700 text-brand-600 dark:text-brand-400 shadow-sm" : "text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300"
+                  viewMode === 'list' ? "bg-[var(--warm-white)] text-[var(--rust-dark)] shadow-sm" : "text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
                 )}
               >
                 <List size={18} />
               </button>
             </div>
             
-            <button className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all ml-auto sm:ml-0">
+            <button className="ml-auto flex items-center gap-2 rounded-xl border border-[rgba(26,24,20,0.10)] px-4 py-2 text-sm font-bold text-[var(--ink-muted)] transition-all hover:bg-[var(--cream)] sm:ml-0">
               <Filter size={16} />
               Filter
             </button>

@@ -155,12 +155,12 @@ export default function ChatPage() {
 
       {/* Sidebar: Chat Sessions */}
       <div className={cn(
-        "w-80 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-300 z-20",
+        "w-80 flex flex-col bg-[var(--warm-white)] border border-[rgba(26,24,20,0.10)] rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-300 z-20",
         !isSidebarOpen && "w-0 border-none opacity-0 -translate-x-full"
       )}>
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-lg">Conversations</h3>
-          <Button onClick={handleNewSession} size="sm" className="w-8 h-8 p-0 rounded-xl bg-slate-900 dark:bg-brand-600 border-none">
+        <div className="flex items-center justify-between border-b border-[rgba(26,24,20,0.08)] p-6">
+          <h3 className="text-lg font-black uppercase tracking-tighter text-[var(--ink)]">Conversations</h3>
+          <Button onClick={handleNewSession} size="sm" className="h-8 w-8 rounded-xl border-none bg-[var(--rust)] p-0 shadow-lg shadow-[rgba(194,91,58,0.18)]">
             <Plus size={16} />
           </Button>
         </div>
@@ -171,7 +171,7 @@ export default function ChatPage() {
           ) : sessions.map((session) => (
             <div key={session.id} className="relative group/item">
               {renamingSessionId === session.id ? (
-                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 border-brand-500">
+                <div className="rounded-2xl border-2 border-[var(--rust)] bg-[var(--cream)] p-3">
                   <input
                     autoFocus
                     value={newTitle}
@@ -180,29 +180,29 @@ export default function ChatPage() {
                       if (e.key === "Enter") handleRename(session.id);
                       if (e.key === "Escape") setRenamingSessionId(null);
                     }}
-                    className="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-900 dark:text-white"
+                    className="w-full bg-transparent border-none text-sm font-bold text-[var(--ink)] outline-none"
                   />
                   <div className="flex justify-end gap-2 mt-2">
-                    <button onClick={() => setRenamingSessionId(null)} className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">Cancel</button>
+                    <button onClick={() => setRenamingSessionId(null)} className="text-[10px] font-black uppercase text-[var(--ink-faint)] transition-colors hover:text-[var(--ink-muted)]">Cancel</button>
                     <button onClick={() => handleRename(session.id)} className="text-[10px] font-black uppercase text-brand-600">Save</button>
                   </div>
                 </div>
               ) : (
                 <div
                   className={cn(
-                    "w-full text-left p-4 rounded-2xl transition-all relative overflow-hidden flex items-center gap-3 cursor-pointer",
+                    "relative flex w-full cursor-pointer items-center gap-3 rounded-2xl p-4 text-left transition-all overflow-visible",
                     activeSessionId === session.id 
-                      ? "bg-slate-900 dark:bg-brand-600 text-white shadow-lg shadow-slate-200 dark:shadow-brand-950/20" 
-                      : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold"
+                      ? "bg-[var(--rust)] text-white shadow-lg shadow-[rgba(194,91,58,0.22)]" 
+                      : "font-bold text-[var(--ink-muted)] hover:bg-[var(--cream)]"
                   )}
                   onClick={() => setActiveSessionId(session.id)}
                 >
-                  <MessageSquare size={18} className={activeSessionId === session.id ? "text-brand-400 dark:text-brand-200" : "text-slate-400"} />
+                  <MessageSquare size={18} className={activeSessionId === session.id ? "text-[#ffe1d4]" : "text-[var(--ink-faint)]"} />
                   <div className="flex-1 min-w-0">
                     <div className="truncate text-sm">{session.title}</div>
                     <div className={cn(
                       "text-[9px] font-medium opacity-60 mt-0.5",
-                      activeSessionId === session.id ? "text-slate-300" : "text-slate-400"
+                      activeSessionId === session.id ? "text-[#f5d7cb]" : "text-[var(--ink-faint)]"
                     )}>
                       {new Date(session.updatedAt || session.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                     </div>
@@ -213,9 +213,11 @@ export default function ChatPage() {
                       e.stopPropagation();
                       setActiveMenuId(activeMenuId === session.id ? null : session.id);
                     }}
+                    aria-label={`Open options for ${session.title}`}
+                    title="Conversation options"
                     className={cn(
-                      "p-1 rounded-lg hover:bg-white/10 transition-colors",
-                      activeSessionId === session.id ? "text-white" : "text-slate-400"
+                      "rounded-lg p-1.5 transition-colors",
+                      activeSessionId === session.id ? "text-white hover:bg-white/10" : "text-[var(--ink-faint)] hover:bg-[rgba(26,24,20,0.06)]"
                     )}
                   >
                     <MoreVertical size={16} />
@@ -225,19 +227,19 @@ export default function ChatPage() {
                   {activeMenuId === session.id && (
                     <div 
                       ref={menuRef}
-                      className="absolute right-4 top-12 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 py-1 overflow-hidden"
+                      className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-40 overflow-hidden rounded-2xl border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] p-1 shadow-xl"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button 
                         onClick={() => startRenaming(session)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-[var(--ink-muted)] transition-colors hover:bg-[var(--cream)]"
                       >
                         <Pencil size={14} />
                         Rename
                       </button>
                       <button 
                         onClick={() => handleDelete(session.id)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
                       >
                         <Trash2 size={14} />
                         Delete
@@ -257,29 +259,29 @@ export default function ChatPage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-hidden shadow-sm relative transition-colors">
+      <div className="relative flex flex-1 flex-col overflow-hidden rounded-[2.5rem] border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] shadow-sm transition-colors">
         {!activeSessionId ? (
           <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-slate-300 dark:text-slate-600 mb-6 animate-bounce">
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-[var(--cream)] text-[var(--ink-faint)] animate-bounce">
               <BrainCircuit size={40} />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">Ready to analyze?</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-8 uppercase text-[10px] tracking-widest leading-relaxed">
+            <h3 className="mb-2 text-2xl font-black uppercase tracking-tight text-[var(--ink)]">Ready to analyze?</h3>
+            <p className="mb-8 max-w-xs text-[10px] font-medium uppercase leading-relaxed tracking-widest text-[var(--ink-muted)]">
               Select a previous conversation or start a new one to unlock the power of your documents.
             </p>
-            <Button onClick={handleNewSession} size="lg" className="rounded-2xl shadow-xl shadow-slate-100 dark:shadow-brand-950/20">
+            <Button onClick={handleNewSession} size="lg" className="rounded-2xl shadow-xl shadow-[rgba(194,91,58,0.16)]">
               New Conversation
             </Button>
           </div>
         ) : (
           <>
             {/* Header info about documents */}
-            <div className="px-8 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
+            <div className="flex items-center justify-between border-b border-[rgba(26,24,20,0.08)] bg-[var(--warm-white)] px-8 py-4">
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-2">
                    {selectedDocIds.slice(0, 3).map(id => (
-                     <div key={id} className="w-7 h-7 rounded-full bg-brand-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-950 flex items-center justify-center shadow-sm">
-                        <FileText size={12} className="text-brand-600 dark:text-brand-400" />
+                     <div key={id} className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[var(--warm-white)] bg-[var(--rust-light)] shadow-sm">
+                        <FileText size={12} className="text-[var(--rust-dark)]" />
                      </div>
                    ))}
                 </div>
@@ -294,7 +296,7 @@ export default function ChatPage() {
                    size="sm" 
                    onClick={handleExport}
                    disabled={messages.length === 0 || !isExportEligible}
-                   className="gap-2 text-[10px] uppercase font-black tracking-widest rounded-xl border-slate-200 dark:border-zinc-800"
+                   className="gap-2 rounded-xl border-[rgba(26,24,20,0.10)] text-[10px] font-black uppercase tracking-widest"
                  >
                    <Download size={14} />
                    Export Chat
@@ -304,7 +306,7 @@ export default function ChatPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/30 dark:bg-slate-950/20" ref={scrollRef}>
+            <div className="custom-scrollbar flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,250,242,0.92),rgba(250,241,230,0.78))] p-8" ref={scrollRef}>
               {messages.map((m) => (
                 <MessageBubble 
                   key={m.id} 
@@ -321,7 +323,7 @@ export default function ChatPage() {
             </div>
 
             {/* Chat Input */}
-            <div className="p-6 bg-gradient-to-t from-white dark:from-slate-900 via-white dark:via-slate-900 to-transparent">
+            <div className="bg-gradient-to-t from-[var(--warm-white)] via-[var(--warm-white)] to-transparent p-6">
               <ChatInput 
                 onSend={sendMessage} 
                 isLoading={isStreaming} 
@@ -332,8 +334,8 @@ export default function ChatPage() {
       </div>
 
       {/* Right Sidebar: Knowledge Base / Context Selector */}
-      <div className="w-72 hidden xl:flex flex-col bg-slate-900 rounded-[2.5rem] p-6 text-white overflow-hidden shadow-2xl transition-all">
-        <h4 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+      <div className="hidden w-72 flex-col overflow-hidden rounded-[2.5rem] border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff6ed_0%,#f7e6d7_100%)] p-6 text-[var(--ink)] shadow-2xl shadow-[rgba(194,91,58,0.12)] transition-all xl:flex">
+        <h4 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-[var(--ink-muted)]">
           <FileText size={16} />
           Context Selection
         </h4>
@@ -345,14 +347,14 @@ export default function ChatPage() {
               className={cn(
                 "p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden",
                 selectedDocIds.includes(doc.id)
-                  ? "bg-brand-600 border-brand-500 shadow-lg shadow-brand-500/20"
-                  : "bg-white/5 border-white/5 hover:bg-white/10"
+                  ? "border-[var(--rust)] bg-[var(--rust)] shadow-lg shadow-[rgba(194,91,58,0.18)]"
+                  : "border-[rgba(26,24,20,0.08)] bg-[rgba(255,255,255,0.72)] hover:bg-white"
               )}
             >
               <div className="flex items-start justify-between mb-2">
                 <p className={cn(
                   "text-xs font-bold truncate pr-6",
-                  selectedDocIds.includes(doc.id) ? "text-white" : "text-slate-200"
+                  selectedDocIds.includes(doc.id) ? "text-white" : "text-[var(--ink)]"
                 )}>
                   {doc.name}
                 </p>
@@ -363,12 +365,12 @@ export default function ChatPage() {
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-slate-500">
+                <span className="text-[10px] font-black uppercase text-[var(--ink-faint)]">
                   {doc.size}
                 </span>
                 <span className={cn(
                   "text-[9px] font-bold uppercase",
-                  selectedDocIds.includes(doc.id) ? "text-brand-200" : "text-slate-600"
+                  selectedDocIds.includes(doc.id) ? "text-[#ffe1d4]" : "text-[var(--ink-muted)]"
                 )}>
                   {selectedDocIds.includes(doc.id) ? "Selected" : "Exclude"}
                 </span>

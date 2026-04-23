@@ -215,14 +215,14 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="bg-brand-600 rounded-3xl p-6 shadow-xl shadow-brand-500/20 text-white flex flex-col justify-between">
+        <div className="flex flex-col justify-between rounded-3xl border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff7ef_0%,#f7e7d8_100%)] p-6 text-[var(--ink)] shadow-xl shadow-[rgba(194,91,58,0.12)]">
           <div className="flex justify-between items-start">
-            <p className="text-xs font-bold uppercase tracking-widest opacity-80">Current Plan</p>
-            <Zap size={20} className="fill-white" />
+            <p className="text-xs font-bold uppercase tracking-widest text-[var(--ink-muted)]">Current Plan</p>
+            <Zap size={20} className="fill-[var(--rust)] text-[var(--rust)]" />
           </div>
           <div>
-            <h3 className="text-2xl font-black capitalize">{currentPlan.toLowerCase()}</h3>
-            <p className="text-xs opacity-70 mt-1 font-medium">Monthly billing active</p>
+            <h3 className="text-2xl font-black capitalize text-[var(--ink)]">{currentPlan.toLowerCase()}</h3>
+            <p className="mt-1 text-xs font-medium text-[var(--ink-muted)]">Monthly billing active</p>
           </div>
         </div>
       </div>
@@ -281,23 +281,23 @@ export default function BillingPage() {
         })}
       </div>
 
-      <div className="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
+      <div className="relative overflow-hidden rounded-[3rem] border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff7ef_0%,#f8eadf_100%)] p-12 text-[var(--ink)]">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.08] text-[var(--rust-dark)]">
           <CreditCard size={200} />
         </div>
         <div className="max-w-2xl relative z-10">
-          <h3 className="text-2xl font-black mb-4">Payment Security</h3>
-          <p className="text-slate-400 text-sm leading-relaxed mb-6">
+          <h3 className="mb-4 text-2xl font-black">Payment Security</h3>
+          <p className="mb-6 text-sm leading-relaxed text-[var(--ink-muted)]">
             All payments are processed securely via NMI. Card data is tokenized by NMI Collect.js, and your raw card details never pass through our servers.
           </p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-              <ShieldCheck size={20} className="text-emerald-400" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-300">PCI Compliant</span>
+              <ShieldCheck size={20} className="text-emerald-600" />
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--ink-muted)]">PCI Compliant</span>
             </div>
             <div className="flex items-center gap-2">
-              <ShieldCheck size={20} className="text-emerald-400" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-300">256-bit SSL</span>
+              <ShieldCheck size={20} className="text-emerald-600" />
+              <span className="text-xs font-bold uppercase tracking-widest text-[var(--ink-muted)]">256-bit SSL</span>
             </div>
           </div>
         </div>

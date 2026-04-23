@@ -77,5 +77,6 @@ export async function processTextIngestion(
       where: { id: documentId },
       data: { status: 'FAILED' }
     });
+    throw error;
   }
 }

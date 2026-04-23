@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Files, 
-  MessageSquare, 
-  Settings, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Files,
+  MessageSquare,
+  Settings,
+  LogOut,
   Sparkles,
-  Zap
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUsage } from "@/hooks/useUsage";
@@ -29,97 +29,75 @@ export default function Sidebar() {
   const { usage, questionPercentage } = useUsage();
 
   return (
-    <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-xl flex flex-col h-screen sticky top-0 transition-colors">
-      {/* Logo */}
-      <div className="p-6">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center group-hover:-translate-y-0.5 transition-all duration-300">
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-600 to-cyan-500 blur-sm opacity-40 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative w-10 h-10 bg-white dark:bg-slate-800 rounded-xl border border-white/50 dark:border-slate-700/50 flex items-center justify-center shadow-md">
-              <Sparkles size={20} className="text-brand-600" />
-            </div>
-          </div>
-          <span className="font-bold text-slate-900 dark:text-white text-xl tracking-tight">DocWise</span>
-        </Link>
-      </div>
+    <aside className="hidden h-screen w-60 shrink-0 flex-col border-r border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] lg:flex">
+      <Link href="/dashboard" className="flex items-center gap-3 border-b border-[rgba(26,24,20,0.10)] px-5 py-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ink)] text-[var(--cream)]">
+          <Sparkles size={16} />
+        </div>
+        <span className="font-display text-lg font-bold tracking-tight text-[var(--ink)]">DocWise</span>
+      </Link>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1 mt-4">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
-                isActive 
-                  ? "bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 shadow-sm shadow-brand-100/50 dark:shadow-none" 
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
-              )}
-            >
-              <Icon size={20} className={cn(
-                "transition-colors",
-                isActive ? "text-brand-600 dark:text-brand-400" : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-              )} />
-              {item.name}
-              {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse-soft" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+      <nav className="flex-1 px-3 py-4">
+        <div className="mb-3 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-faint)]">Main</div>
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
 
-      {/* Usage Indicator */}
-      <div className="px-4 mb-6">
-        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-0.5">
-              {user?.plan || "Free"} Plan
-            </span>
-            <Zap size={14} className={cn(
-              "shrink-0",
-              user?.plan === "PRO" ? "text-brand-500 fill-brand-500" : "text-amber-500 fill-amber-500"
-            )} />
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-[var(--rust-light)] text-[var(--rust-dark)]"
+                    : "text-[var(--ink-muted)] hover:bg-[rgba(26,24,20,0.05)] hover:text-[var(--ink)]"
+                )}
+              >
+                <Icon size={18} className={cn(isActive ? "text-[var(--rust)]" : "text-[var(--ink-faint)]")} />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-[rgba(26,24,20,0.10)] bg-[var(--cream)] p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--ink-faint)]">Monthly questions</span>
+            <span className="text-xs font-bold text-[var(--ink)]">{questionPercentage}%</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden mt-2">
-            <div 
-              className="h-full bg-brand-500 transition-all duration-500" 
-              style={{ width: `${questionPercentage}%` }} 
-            />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(26,24,20,0.10)]">
+            <div className="h-full rounded-full bg-brand-500" style={{ width: `${questionPercentage}%` }} />
           </div>
-          <p className="mt-2.5 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+          <p className="mt-2 text-xs font-bold text-[var(--ink-muted)]">
             {usage?.questionsUsed || 0} / {usage?.questionsLimit || 20} questions
           </p>
           {(user?.plan === "FREE" || !user?.plan) && (
-            <Link href="/billing">
-              <button className="mt-3 w-full py-2 text-[10px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 bg-white dark:bg-slate-800 border border-brand-200 dark:border-brand-500/30 rounded-xl hover:bg-brand-50 dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95">
+            <Link href="/billing" className="mt-3 block">
+              <button className="w-full rounded-xl border border-[rgba(26,24,20,0.12)] bg-white px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--rust-dark)] transition-colors hover:bg-[var(--rust-light)]">
                 Upgrade to Pro
               </button>
             </Link>
           )}
         </div>
-      </div>
+      </nav>
 
-      {/* User / Logout */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white shrink-0">
+      <div className="border-t border-[rgba(26,24,20,0.10)] px-4 py-4">
+        <div className="mb-3 flex items-center gap-3 rounded-xl px-2 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--rust-light)] font-bold text-[var(--rust)]">
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name || "User"}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email || "user@example.com"}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-[var(--ink)]">{user?.name || "User"}</p>
+            <p className="truncate text-xs text-[var(--ink-faint)]">{user?.email || "user@example.com"}</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={logout}
-          className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-all group"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--ink-muted)] transition-colors hover:bg-[rgba(26,24,20,0.05)] hover:text-[var(--rust-dark)]"
         >
-          <LogOut size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors" />
+          <LogOut size={18} />
           Sign out
         </button>
       </div>
