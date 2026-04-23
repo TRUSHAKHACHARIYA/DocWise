@@ -38,6 +38,10 @@ export const useDocumentStore = create<DocumentStore>((set) => ({
         size: formatSize(d.sizeBytes),
         status: d.status,
         uploadedAt: new Date(d.createdAt).toLocaleDateString(),
+        detailedStatus: d.detailedStatus,
+        progress: d.progress,
+        errorReason: d.errorReason,
+        retryCount: d.retryCount,
       }))
     }),
 
@@ -50,6 +54,10 @@ export const useDocumentStore = create<DocumentStore>((set) => ({
         size: formatSize(d.sizeBytes),
         status: d.status,
         uploadedAt: new Date(d.createdAt).toLocaleDateString(),
+        detailedStatus: d.detailedStatus,
+        progress: d.progress,
+        errorReason: d.errorReason,
+        retryCount: d.retryCount,
       }, ...state.documents] 
     })),
 

@@ -65,14 +65,14 @@ function getQueue(): Queue<IngestionJobData> {
   return queue;
 }
 
-function getDeadLetterQueue(): Queue<DeadLetterJobData> {
+export function getDeadLetterQueue(): Queue<DeadLetterJobData> {
   if (!deadLetterQueue) {
     deadLetterQueue = new Queue<DeadLetterJobData>(deadLetterQueueName, { connection: getConnection() });
   }
   return deadLetterQueue;
 }
 
-async function processIngestionData(name: string, data: IngestionJobData) {
+async function processIngestionData(name: string, data: IngestionJobData, attemptsMade: number = 0) {
   const { documentId, userId } = data;
 
   try {
@@ -91,10 +91,14 @@ async function processIngestionData(name: string, data: IngestionJobData) {
 
     throw new Error(`Unsupported ingestion job name: ${name}`);
   } catch (error: any) {
-    logger.error(`Ingestion job failed for document ${documentId}`, { error: error?.message });
+    logger.error(`Ingestion job failed for document ${documentId}`, { error: error?.message, attempt: attemptsMade });
     await prisma.document.update({
       where: { id: documentId },
-      data: { status: 'FAILED' },
+      data: { 
+        status: 'FAILED',
+        errorReason: error?.message || 'Unknown error',
+        retryCount: attemptsMade
+      },
     });
     throw error;
   }
@@ -122,7 +126,7 @@ export const initWorker = () => {
   const worker = new Worker<IngestionJobData>(
     queueName,
     async (job) => {
-      await processIngestionData(job.name, job.data);
+      await processIngestionData(job.name, job.data, job.attemptsMade);
     },
     { connection: getConnection() }
   );
@@ -163,4 +167,34 @@ export const initWorker = () => {
 
   logger.info('Background ingestion worker initialized');
   return worker;
+};
+
+export const getDeadLetterJobs = async () => {
+  const q = getDeadLetterQueue();
+  const jobs = await q.getJobs(['waiting', 'active', 'delayed', 'completed', 'failed']);
+  return jobs.map(j => ({
+    id: j.id,
+    name: j.name,
+    data: j.data,
+    timestamp: j.timestamp,
+    finishedOn: j.finishedOn,
+    failedReason: j.failedReason,
+  }));
+};
+
+export const retryDeadLetterJob = async (jobId: string) => {
+  const dlq = getDeadLetterQueue();
+  const job = await dlq.getJob(jobId);
+  
+  if (!job) {
+    throw new Error('Job not found in dead-letter queue');
+  }
+
+  // Add back to main queue
+  await ingestionQueue.add(job.name, job.data);
+  
+  // Remove from DLQ
+  await job.remove();
+  
+  return { success: true };
 };

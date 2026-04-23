@@ -11,6 +11,10 @@ interface Document {
   size: string;
   status: 'READY' | 'PROCESSING' | 'FAILED';
   uploadedAt: string;
+  detailedStatus?: string;
+  progress?: number;
+  errorReason?: string;
+  retryCount?: number;
 }
 
 interface DocumentCardProps {
@@ -72,6 +76,30 @@ export default function DocumentCard({ document, onDelete, isSelected, onSelect 
           <span className="w-1 h-1 rounded-full bg-slate-300" />
           <span className="text-xs font-bold text-slate-400">{document.size}</span>
         </div>
+        {isFailed && document.errorReason && (
+          <p className="mt-2 text-[10px] font-bold text-red-500 uppercase tracking-tight line-clamp-1 bg-red-50 px-2 py-1 rounded-lg border border-red-100">
+            {document.errorReason}
+            {document.retryCount && document.retryCount > 0 ? ` (${document.retryCount} retries)` : ""}
+          </p>
+        )}
+        {isProcessing && (
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between">
+               <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest animate-pulse">
+                 {document.detailedStatus || "Processing..."}
+               </span>
+               <span className="text-[10px] font-black text-slate-400">
+                 {document.progress || 0}%
+               </span>
+            </div>
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+               <div 
+                 className="h-full bg-brand-500 transition-all duration-500 rounded-full shadow-[0_0_8px_rgba(194,91,58,0.4)]"
+                 style={{ width: `${document.progress || 5}%` }}
+               />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="pt-4 border-t border-slate-50 flex items-center justify-between">

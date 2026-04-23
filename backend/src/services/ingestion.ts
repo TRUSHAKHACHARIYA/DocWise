@@ -13,6 +13,12 @@ export async function processTextIngestion(
 ) {
   try {
     logger.info(`Starting ingestion for document ${documentId}`, { userId, pageCount });
+    
+    await prisma.document.update({
+      where: { id: documentId },
+      data: { detailedStatus: 'Chunking text...', progress: 10 }
+    });
+
     let allChunks: { text: string, startIndex: number, pageNumber?: number }[] = [];
 
     if (pages && pages.length > 0) {
@@ -28,6 +34,11 @@ export async function processTextIngestion(
     logger.info(`Document ${documentId} fragmented into ${allChunks.length} chunks`);
 
     if (allChunks.length > 0) {
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { detailedStatus: 'Generating embeddings...', progress: 40 }
+      });
+
       const chunkTexts = allChunks.map(c => c.text);
       logger.info(`Generating embeddings for ${allChunks.length} chunks...`);
       const embeddings = await embedChunks(chunkTexts);
@@ -46,6 +57,11 @@ export async function processTextIngestion(
 
       await upsertVectors(userId, vectors);
 
+      await prisma.document.update({
+        where: { id: documentId },
+        data: { detailedStatus: 'Saving to database...', progress: 80 }
+      });
+
       const dbChunks = allChunks.map((chunk) => ({
         documentId,
         userId,
@@ -60,15 +76,18 @@ export async function processTextIngestion(
         where: { id: documentId },
         data: { 
           status: 'READY',
+          detailedStatus: 'Complete',
+          progress: 100,
           chunkCount: allChunks.length,
-          pageCount
+          pageCount,
+          errorReason: null
         }
       });
       logger.info(`Ingestion complete for document ${documentId}`);
     } else {
       await prisma.document.update({
         where: { id: documentId },
-        data: { status: 'READY', chunkCount: 0 }
+        data: { status: 'READY', chunkCount: 0, errorReason: null }
       });
     }
   } catch (error: any) {

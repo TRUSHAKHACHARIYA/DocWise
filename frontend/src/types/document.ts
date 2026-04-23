@@ -12,6 +12,10 @@ export interface Document {
   chunkCount: number;
   pageCount: number;
   status: DocStatus;
+  detailedStatus?: string;
+  progress: number;
+  errorReason?: string;
+  retryCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +27,10 @@ export interface UIDocument {
   size: string;
   status: DocStatus;
   uploadedAt: string;
+  detailedStatus?: string;
+  progress?: number;
+  errorReason?: string;
+  retryCount?: number;
 }
 
 export interface DocumentUploadResponse {
