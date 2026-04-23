@@ -1,52 +1,44 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Search, Menu } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export default function DashboardHeader() {
   const pathname = usePathname();
-  
-  // Get page title from pathname
+
   const getPageTitle = () => {
-    const path = pathname.split('/').pop() || 'Dashboard';
-    return path.charAt(0).toUpperCase() + path.slice(1);
+    const segment = pathname.split("/").filter(Boolean).pop() || "Dashboard";
+    return segment.charAt(0).toUpperCase() + segment.slice(1);
   };
 
   return (
-    <header className="h-20 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 px-10 flex items-center justify-between transition-colors duration-300">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-[rgba(26,24,20,0.10)] bg-[rgba(255,253,249,0.85)] px-6 backdrop-blur-xl lg:px-8">
       <div className="flex items-center gap-4">
-        {/* Mobile Menu Toggle (only visible on mobile) */}
-        <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-          <Menu size={20} />
+        <button className="rounded-xl p-2 text-[var(--ink-muted)] transition-colors hover:bg-[rgba(26,24,20,0.05)] lg:hidden">
+          <Menu size={18} />
         </button>
-        <h1 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{getPageTitle()}</h1>
+        <div>
+          <h1 className="font-display text-lg font-bold tracking-tight text-[var(--ink)]">
+            {getPageTitle()}
+          </h1>
+          <p className="text-xs text-[var(--ink-faint)]">DocWise workspace</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Simple Search */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-800 text-slate-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500/50 transition-all">
-          <Search size={16} />
-          <input 
-            type="text" 
-            placeholder="Search documentation..." 
-            className="bg-transparent border-none outline-none text-sm w-48 text-slate-900 dark:text-white placeholder:text-slate-400"
+      <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-2 rounded-full border border-[rgba(26,24,20,0.10)] bg-[var(--cream)] px-3 py-2 text-[13px] text-[var(--ink-faint)] md:flex">
+          <Search size={15} />
+          <input
+            type="text"
+            placeholder="Search documents..."
+            className="w-44 border-none bg-transparent outline-none placeholder:text-[var(--ink-faint)]"
           />
         </div>
-
         <ThemeToggle />
-
-        {/* Notifications */}
-        <button className="p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors relative group">
-          <Bell size={20} className="group-hover:scale-110 transition-transform" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full" />
-        </button>
-
-        <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
-
-        {/* Integration Button (Quick Action) */}
-        <button className="hidden sm:flex items-center gap-2 px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg transition-all shadow-brand-500/20 active:scale-95">
-          New Document
+        <button className="relative rounded-full p-2.5 text-[var(--ink-muted)] transition-colors hover:bg-[rgba(26,24,20,0.05)]">
+          <Bell size={18} />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-[var(--warm-white)] bg-brand-500" />
         </button>
       </div>
     </header>

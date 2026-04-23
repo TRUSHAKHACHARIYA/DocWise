@@ -102,11 +102,11 @@ export default function SettingsPage() {
                 className={cn(
                   "w-full flex items-center gap-4 px-5 py-4 rounded-3xl text-sm font-bold transition-all group",
                   activeTab === tab.id 
-                    ? "bg-slate-900 shadow-xl shadow-slate-200 text-white" 
+                    ? "bg-[var(--rust-light)] shadow-xl shadow-[rgba(194,91,58,0.12)] text-[var(--ink)]" 
                     : "text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm"
                 )}
               >
-                <Icon size={18} className={cn("transition-transform group-hover:scale-110", activeTab === tab.id ? "text-brand-400" : "text-slate-400")} />
+                <Icon size={18} className={cn("transition-transform group-hover:scale-110", activeTab === tab.id ? "text-[var(--rust-dark)]" : "text-slate-400")} />
                 {tab.label}
               </button>
             );
@@ -268,18 +268,18 @@ export default function SettingsPage() {
 
           {activeTab === 'api' && (
             <div className="space-y-8 animate-fade-in">
-              <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-brand-500/20 text-brand-400 flex items-center justify-center mb-6">
+              <div className="flex flex-col items-center rounded-[2.5rem] border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff7ef_0%,#f7e7d8_100%)] p-10 text-center text-[var(--ink)]">
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(194,91,58,0.14)] text-[var(--rust-dark)]">
                     <Shield size={32} />
                 </div>
-                <h4 className="text-xl font-black uppercase tracking-tight mb-2">Advanced API Access</h4>
-                <p className="text-sm font-medium text-slate-400 max-w-sm mb-10 leading-relaxed">
+                <h4 className="mb-2 text-xl font-black uppercase tracking-tight">Advanced API Access</h4>
+                <p className="mb-10 max-w-sm text-sm font-medium leading-relaxed text-[var(--ink-muted)]">
                    Programmatically interact with your documents. Generate API keys to integrate DocWise into your own applications.
                 </p>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 w-full flex items-center gap-4">
-                    <Key size={20} className="text-brand-400" />
-                    <span className="text-xs font-bold text-slate-500 flex-1 text-left">Upgrade to <span className="text-white">Enterprise Plan</span> to unlock full API capabilities.</span>
-                    <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-100">Upgrade</Button>
+                <div className="flex w-full items-center gap-4 rounded-2xl border border-[rgba(194,91,58,0.16)] bg-[rgba(255,255,255,0.72)] p-4">
+                    <Key size={20} className="text-[var(--rust-dark)]" />
+                    <span className="flex-1 text-left text-xs font-bold text-[var(--ink-muted)]">Upgrade to <span className="text-[var(--ink)]">Enterprise Plan</span> to unlock full API capabilities.</span>
+                    <Button size="sm" className="bg-[var(--rust)] text-white hover:bg-[var(--rust-dark)]">Upgrade</Button>
                 </div>
               </div>
             </div>

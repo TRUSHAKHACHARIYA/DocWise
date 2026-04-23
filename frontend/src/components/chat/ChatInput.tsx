@@ -12,6 +12,7 @@ interface ChatInputProps {
 export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isReady = text.trim() && !isLoading;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -36,10 +37,10 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
   };
 
   return (
-    <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-none p-2 pr-4 transition-all focus-within:ring-2 focus-within:ring-brand-500/10 focus-within:border-brand-500/30">
+    <div className="relative rounded-3xl border border-[rgba(194,91,58,0.14)] bg-[linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)] p-2 pr-4 shadow-[0_18px_40px_-24px_rgba(120,72,36,0.25)] transition-all focus-within:border-[rgba(194,91,58,0.28)] focus-within:ring-2 focus-within:ring-brand-500/10">
       <div className="flex items-end gap-2">
         {/* Attachment Button */}
-        <button className="p-3 text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-2xl transition-all h-[48px]">
+        <button className="h-[48px] rounded-2xl p-3 text-[var(--ink-faint)] transition-all hover:bg-[rgba(194,91,58,0.10)] hover:text-[var(--rust-dark)]">
           <Paperclip size={20} />
         </button>
 
@@ -50,13 +51,13 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask anything about your documents..."
-          className="flex-1 bg-transparent border-none outline-none text-sm py-3 px-2 resize-none max-h-[200px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed"
+          className="max-h-[200px] flex-1 resize-none border-none bg-transparent px-2 py-3 text-sm leading-relaxed text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
           disabled={isLoading}
         />
 
         {/* Quick Suggestion Button (Optional AI Magic) */}
         {!text && (
-          <button className="p-3 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-2xl transition-all h-[48px]">
+          <button className="h-[48px] rounded-2xl p-3 text-[var(--ink-faint)] transition-all hover:bg-[rgba(194,91,58,0.08)] hover:text-[var(--rust-dark)]">
             <Sparkles size={20} />
           </button>
         )}
@@ -66,10 +67,10 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
           onClick={handleSend}
           disabled={!text.trim() || isLoading}
           className={cn(
-            "p-3 rounded-2xl transition-all flex items-center justify-center h-[48px] w-[48px]",
-            text.trim() && !isLoading
-              ? "bg-brand-600 text-white shadow-lg shadow-brand-500/20 hover:scale-105 active:scale-95" 
-              : "bg-slate-100 dark:bg-slate-700 text-slate-300 dark:text-slate-500 pointer-events-none"
+            "flex h-[48px] w-[48px] items-center justify-center rounded-2xl p-3 transition-all",
+            isReady
+              ? "bg-[var(--rust)] text-white shadow-lg shadow-[rgba(194,91,58,0.20)] hover:scale-105 hover:bg-[var(--rust-dark)] active:scale-95"
+              : "pointer-events-none bg-[rgba(255,255,255,0.72)] text-[var(--ink-faint)] border border-[rgba(26,24,20,0.08)]"
           )}
         >
           {isLoading ? (

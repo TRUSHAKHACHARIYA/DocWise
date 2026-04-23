@@ -21,6 +21,7 @@ import { checkQuestionLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
 import createDOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
+import { ensureOwnedDocuments } from '../services/chatAccess';
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -52,6 +53,8 @@ export async function chatRoutes(app: FastifyInstance) {
       title: z.string().optional()
     }).parse(req.body);
 
+    const ownedDocumentIds = await ensureOwnedDocuments(userId, documentIds ?? []);
+
     const session = await prisma.chatSession.create({
       data: {
         userId,
@@ -59,12 +62,12 @@ export async function chatRoutes(app: FastifyInstance) {
       }
     });
 
-    if (documentIds && documentIds.length > 0) {
+    if (ownedDocumentIds.length > 0) {
       await prisma.chatSessionDoc.createMany({
-        data: documentIds.map(docId => ({
+        data: ownedDocumentIds.map(docId => ({
           sessionId: session.id,
           documentId: docId
-        }))
+        })),
       });
     }
 
@@ -106,21 +109,23 @@ export async function chatRoutes(app: FastifyInstance) {
 
     if (!session) return reply.code(404).send({ error: 'Session not found' });
 
+    const ownedDocumentIds = await ensureOwnedDocuments(userId, documentIds);
+
     // Replace documents for the session
     await prisma.chatSessionDoc.deleteMany({
       where: { sessionId }
     });
 
-    if (documentIds.length > 0) {
+    if (ownedDocumentIds.length > 0) {
       await prisma.chatSessionDoc.createMany({
-        data: documentIds.map(docId => ({
+        data: ownedDocumentIds.map(docId => ({
           sessionId,
           documentId: docId
-        }))
+        })),
       });
     }
 
-    return reply.send({ success: true, documentIds });
+    return reply.send({ success: true, documentIds: ownedDocumentIds });
   });
 
   // Send message and stream response (SSE)

@@ -24,13 +24,29 @@ type UrlIngestionJob = {
 };
 
 type IngestionJobData = FileIngestionJob | UrlIngestionJob;
+type DeadLetterJobData = IngestionJobData & {
+  failedReason: string;
+  failedAt: string;
+  attemptsMade: number;
+};
 
 const queueName = 'ingestion';
+const deadLetterQueueName = 'ingestion-dead-letter';
 const allowInlineFallback =
   env.NODE_ENV !== 'production' || process.env.QUEUE_INLINE_FALLBACK === 'true';
+const ingestionJobOptions = {
+  attempts: 3,
+  backoff: {
+    type: 'exponential' as const,
+    delay: 5000,
+  },
+  removeOnComplete: true,
+  removeOnFail: false,
+};
 
 let connection: IORedis | null = null;
 let queue: Queue<IngestionJobData> | null = null;
+let deadLetterQueue: Queue<DeadLetterJobData> | null = null;
 
 function getConnection(): IORedis {
   if (!connection) {
@@ -47,6 +63,13 @@ function getQueue(): Queue<IngestionJobData> {
     queue = new Queue<IngestionJobData>(queueName, { connection: getConnection() });
   }
   return queue;
+}
+
+function getDeadLetterQueue(): Queue<DeadLetterJobData> {
+  if (!deadLetterQueue) {
+    deadLetterQueue = new Queue<DeadLetterJobData>(deadLetterQueueName, { connection: getConnection() });
+  }
+  return deadLetterQueue;
 }
 
 async function processIngestionData(name: string, data: IngestionJobData) {
@@ -80,7 +103,7 @@ async function processIngestionData(name: string, data: IngestionJobData) {
 export const ingestionQueue = {
   add: async (name: string, data: IngestionJobData) => {
     try {
-      return await getQueue().add(name, data);
+      return await getQueue().add(name, data, ingestionJobOptions);
     } catch (error: any) {
       if (!allowInlineFallback) {
         throw error;
@@ -114,6 +137,28 @@ export const initWorker = () => {
       name: job?.name,
       error: error?.message,
     });
+
+    if (!job) {
+      return;
+    }
+
+    const attempts = job.opts.attempts ?? 1;
+    if (job.attemptsMade >= attempts) {
+      const deadLetterPayload: DeadLetterJobData = {
+        ...job.data,
+        failedReason: error?.message ?? 'Unknown ingestion failure',
+        failedAt: new Date().toISOString(),
+        attemptsMade: job.attemptsMade,
+      };
+
+      getDeadLetterQueue().add(job.name, deadLetterPayload).catch((deadLetterError) => {
+        logger.error('Failed to persist ingestion dead-letter job', {
+          jobId: job.id,
+          name: job.name,
+          error: deadLetterError?.message,
+        });
+      });
+    }
   });
 
   logger.info('Background ingestion worker initialized');

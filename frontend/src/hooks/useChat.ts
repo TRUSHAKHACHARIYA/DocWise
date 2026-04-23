@@ -3,8 +3,7 @@ import { useChatStore } from "@/store/chatStore";
 import { toast } from "@/store/toastStore";
 import type { Message, ChatSession } from "@/types/chat";
 import api from "@/lib/api";
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000") + "/api";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export function useChat() {
   const {
@@ -71,7 +70,7 @@ export function useChat() {
   const renameSession = async (sessionId: string, title: string) => {
     try {
       const response = await api.patch(`/chat/${sessionId}`, { title });
-      setSessions(sessions.map(s => s.id === sessionId ? response.data.session : s));
+      setSessions(useChatStore.getState().sessions.map((s) => (s.id === sessionId ? response.data.session : s)));
       toast.success("Success", "Chat renamed.");
     } catch (err) {
       toast.error("Error", "Failed to rename chat.");
@@ -138,7 +137,7 @@ export function useChat() {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch(`${API_URL}/chat/${activeSessionId}/message`, {
+      const response = await fetch(`${API_BASE_URL}/chat/${activeSessionId}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

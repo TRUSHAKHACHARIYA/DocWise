@@ -1,58 +1,64 @@
 import dotenv from "dotenv";
+import { z } from "zod";
+
 dotenv.config();
 
-function required(key: string): string {
-  const val = process.env[key];
-  if (!val) throw new Error(`Missing required env var: ${key}`);
-  return val;
-}
+const csvToList = (value: string) =>
+  value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 
-function optional(key: string, fallback: string): string {
-  return process.env[key] ?? fallback;
-}
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  PORT: z.coerce.number().int().positive().default(4000),
+  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  BACKEND_PUBLIC_URL: z.string().url().default("http://localhost:4000"),
+  CORS_ORIGINS: z.string().default(""),
+
+  DATABASE_URL: z.string().min(1, "Missing required env var: DATABASE_URL"),
+
+  JWT_ACCESS_SECRET: z.string().min(1, "Missing required env var: JWT_ACCESS_SECRET"),
+  JWT_REFRESH_SECRET: z.string().min(1, "Missing required env var: JWT_REFRESH_SECRET"),
+  JWT_ACCESS_EXPIRES: z.string().default("15m"),
+  JWT_REFRESH_EXPIRES: z.string().default("7d"),
+
+  S3_ENDPOINT: z.string().min(1, "Missing required env var: S3_ENDPOINT"),
+  S3_ACCESS_KEY_ID: z.string().min(1, "Missing required env var: S3_ACCESS_KEY_ID"),
+  S3_SECRET_ACCESS_KEY: z.string().min(1, "Missing required env var: S3_SECRET_ACCESS_KEY"),
+  S3_BUCKET_NAME: z.string().min(1, "Missing required env var: S3_BUCKET_NAME"),
+  S3_REGION: z.string().default("auto"),
+
+  EMBEDDING_PROVIDER: z.enum(["openai", "anthropic", "cohere"]).default("openai"),
+  OPENAI_API_KEY: z.string().default(""),
+  OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
+  ANTHROPIC_API_KEY: z.string().default(""),
+  ANTHROPIC_EMBEDDING_MODEL: z.string().default("claude-embedding-3"),
+  COHERE_API_KEY: z.string().default(""),
+  COHERE_EMBEDDING_MODEL: z.string().default("embed-multilingual-v3.0"),
+
+  PINECONE_API_KEY: z.string().min(1, "Missing required env var: PINECONE_API_KEY"),
+  PINECONE_INDEX: z.string().min(1, "Missing required env var: PINECONE_INDEX"),
+
+  RESEND_API_KEY: z.string().default(""),
+  EMAIL_FROM: z.string().default("noreply@docwise.app"),
+
+  NMI_PRIVATE_API_KEY: z.string().default(""),
+  NMI_API_BASE_URL: z.string().url().default("https://secure.nmi.com/api/v5"),
+  NMI_PLAN_STARTER: z.string().default("STARTER"),
+  NMI_PLAN_PRO: z.string().default("PRO"),
+  NMI_WEBHOOK_SECRET: z.string().default(""),
+  NMI_WEBHOOK_EVENTS: z
+    .string()
+    .default("subscription.created,subscription.updated,subscription.cancelled"),
+
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  SENTRY_DSN: z.string().default(""),
+});
+
+const parsed = envSchema.parse(process.env);
 
 export const env = {
-  NODE_ENV: optional("NODE_ENV", "development"),
-  PORT: parseInt(optional("PORT", "4000"), 10),
-  FRONTEND_URL: optional("FRONTEND_URL", "http://localhost:3000"),
-  BACKEND_PUBLIC_URL: optional("BACKEND_PUBLIC_URL", "http://localhost:4000"),
-
-  DATABASE_URL: required("DATABASE_URL"),
-
-  JWT_ACCESS_SECRET: required("JWT_ACCESS_SECRET"),
-  JWT_REFRESH_SECRET: required("JWT_REFRESH_SECRET"),
-  JWT_ACCESS_EXPIRES: optional("JWT_ACCESS_EXPIRES", "15m"),
-  JWT_REFRESH_EXPIRES: optional("JWT_REFRESH_EXPIRES", "7d"),
-
-  S3_ENDPOINT: required("S3_ENDPOINT"),
-  S3_ACCESS_KEY_ID: required("S3_ACCESS_KEY_ID"),
-  S3_SECRET_ACCESS_KEY: required("S3_SECRET_ACCESS_KEY"),
-  S3_BUCKET_NAME: required("S3_BUCKET_NAME"),
-  S3_REGION: optional("S3_REGION", "auto"),
-
-  // Embedding Provider Configuration
-  EMBEDDING_PROVIDER: optional("EMBEDDING_PROVIDER", "openai"), // openai, anthropic, cohere
-  OPENAI_API_KEY: optional("OPENAI_API_KEY", ""),
-  OPENAI_EMBEDDING_MODEL: optional("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
-  ANTHROPIC_API_KEY: optional("ANTHROPIC_API_KEY", ""),
-  ANTHROPIC_EMBEDDING_MODEL: optional("ANTHROPIC_EMBEDDING_MODEL", "claude-embedding-3"),
-  COHERE_API_KEY: optional("COHERE_API_KEY", ""),
-  COHERE_EMBEDDING_MODEL: optional("COHERE_EMBEDDING_MODEL", "embed-multilingual-v3.0"),
-  
-  // Vector Database
-  PINECONE_API_KEY: required("PINECONE_API_KEY"),
-  PINECONE_INDEX: required("PINECONE_INDEX"),
-
-  RESEND_API_KEY: optional("RESEND_API_KEY", ""),
-  EMAIL_FROM: optional("EMAIL_FROM", "noreply@docwise.app"),
-
-  NMI_PRIVATE_API_KEY: optional("NMI_PRIVATE_API_KEY", ""),
-  NMI_API_BASE_URL: optional("NMI_API_BASE_URL", "https://secure.nmi.com/api/v5"),
-  NMI_PLAN_STARTER: optional("NMI_PLAN_STARTER", "STARTER"),
-  NMI_PLAN_PRO: optional("NMI_PLAN_PRO", "PRO"),
-  NMI_WEBHOOK_SECRET: optional("NMI_WEBHOOK_SECRET", ""),
-  NMI_WEBHOOK_EVENTS: optional("NMI_WEBHOOK_EVENTS", "subscription.created,subscription.updated,subscription.cancelled"),
-
-  REDIS_URL: optional("REDIS_URL", "redis://localhost:6379"),
-  SENTRY_DSN: optional("SENTRY_DSN", ""),
+  ...parsed,
+  CORS_ORIGINS: csvToList(parsed.CORS_ORIGINS),
 };

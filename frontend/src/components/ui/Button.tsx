@@ -15,7 +15,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             primary: "btn-primary",
             secondary: "btn-secondary",
             ghost: "btn-ghost",
-            outline: "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all",
+            outline: "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-[rgba(26,24,20,0.14)] text-[var(--ink)] bg-[var(--warm-white)] hover:bg-[var(--cream)] focus:outline-none focus:ring-2 focus:ring-[rgba(196,71,30,0.18)] transition-all",
             danger: "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-150",
         }
 
