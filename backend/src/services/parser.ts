@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const pdfParse = require('pdf-parse');
 import mammoth from 'mammoth';
+import { createWorker } from 'tesseract.js';
+import { logger } from '../utils/logger';
 
 /**
  * Extract text and basic metadata from a file buffer.
@@ -27,6 +28,11 @@ export async function extractText(
       return { text: buffer.toString('utf-8') };
     }
 
+    if (mimeType.startsWith('image/')) {
+      const text = await extractTextFromImage(buffer, fileName);
+      return { text };
+    }
+
     throw new Error(`Unsupported file type: ${mimeType}`);
   } catch (error: any) {
     console.error(`Parser error [${fileName}]:`, error);
@@ -50,9 +56,15 @@ async function extractTextFromPdf(buffer: Buffer): Promise<{ text: string, pageC
     };
 
     const data = await pdfParse(buffer, options);
+    const text = data.text || pages.join('\n\n');
+
+    // Simple heuristic: many pages but very little text likely means scanned document
+    if (text.trim().length < 50 && (data.numpages || pages.length) > 0) {
+      throw new Error('No extractable text found. This PDF may be scanned or image-based (OCR not yet supported).');
+    }
     
     return { 
-      text: data.text || pages.join('\n\n'), 
+      text, 
       pageCount: data.numpages || pages.length || 1,
       pages
     };
@@ -67,5 +79,19 @@ async function extractTextFromDocx(buffer: Buffer): Promise<string> {
     return result.value;
   } catch (error: any) {
     throw new Error(`DOCX parsing failed: ${error.message}`);
+  }
+}
+
+async function extractTextFromImage(buffer: Buffer, fileName: string): Promise<string> {
+  logger.info(`Starting OCR for image: ${fileName}`);
+  const worker = await createWorker('eng');
+  try {
+    const { data: { text } } = await worker.recognize(buffer);
+    return text;
+  } catch (error: any) {
+    logger.error(`OCR failed for ${fileName}`, { error: error.message });
+    throw new Error(`OCR failed: ${error.message}`);
+  } finally {
+    await worker.terminate();
   }
 }

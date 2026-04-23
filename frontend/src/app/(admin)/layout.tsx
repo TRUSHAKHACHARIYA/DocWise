@@ -19,6 +19,7 @@ import AuthGuard from "@/components/auth/AuthGuard";
 const adminNavItems = [
   { name: "Overview", href: "/admin", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Ingestion Queue", href: "/admin/queue", icon: BarChart3 },
   { name: "Security Logs", href: "/admin/logs", icon: Terminal },
   { name: "System Settings", href: "/admin/settings", icon: Settings },
 ];

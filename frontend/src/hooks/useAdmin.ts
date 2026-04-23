@@ -43,11 +43,21 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface DeadLetterJob {
+  id: string;
+  name: string;
+  data: any;
+  timestamp: number;
+  finishedOn?: number;
+  failedReason?: string;
+}
+
 export function useAdmin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [growthData, setGrowthData] = useState<GrowthData | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [deadLetterJobs, setDeadLetterJobs] = useState<DeadLetterJob[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalLogs, setTotalLogs] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,11 +129,34 @@ export function useAdmin() {
     }
   };
 
+  const fetchDeadLetterJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get("/admin/queue/dead-letter");
+      setDeadLetterJobs(response.data.jobs);
+    } catch (err) {
+      toast.error("Error", "Failed to load dead-letter queue.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const retryJob = async (id: string) => {
+    try {
+      await api.post(`/admin/queue/dead-letter/retry/${id}`);
+      toast.success("Success", "Job rescheduled successfully.");
+      setDeadLetterJobs(prev => prev.filter(j => j.id !== id));
+    } catch (err) {
+      toast.error("Error", "Failed to retry job.");
+    }
+  };
+
   return {
     stats,
     growthData,
     users,
     logs,
+    deadLetterJobs,
     totalUsers,
     totalLogs,
     isLoading,
@@ -131,7 +164,9 @@ export function useAdmin() {
     fetchGrowthData,
     fetchUsers,
     fetchLogs,
+    fetchDeadLetterJobs,
     updateUser,
-    deleteUser
+    deleteUser,
+    retryJob
   };
 }

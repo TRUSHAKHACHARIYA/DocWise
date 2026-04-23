@@ -213,4 +213,18 @@ export async function adminRoutes(app: FastifyInstance) {
       pages: Math.ceil(total / query.limit)
     });
   });
+  
+  // NEW: Ingestion Dead-Letter Queue - Triage failed background jobs
+  app.get('/queue/dead-letter', async (req, reply) => {
+    const { getDeadLetterJobs } = await import('../services/queue');
+    const jobs = await getDeadLetterJobs();
+    return reply.send({ jobs });
+  });
+
+  app.post('/queue/dead-letter/retry/:id', async (req, reply) => {
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const { retryDeadLetterJob } = await import('../services/queue');
+    await retryDeadLetterJob(id);
+    return reply.send({ message: 'Job rescheduled for processing' });
+  });
 }

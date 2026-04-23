@@ -44,10 +44,17 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
 
   const processFiles = async (newFiles: File[]) => {
     // Validate file types (PDF, DOCX, TXT)
-    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    const allowedTypes = [
+      'application/pdf', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+      'text/plain',
+      'image/png',
+      'image/jpeg',
+      'image/webp'
+    ];
     const validFiles = newFiles.filter(file => {
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Invalid file type", `${file.name} is not supported. Use PDF, DOCX, or TXT.`);
+        toast.error("Invalid file type", `${file.name} is not supported. Use PDF, DOCX, TXT, or Images (PNG/JPG).`);
         return false;
       }
       if (file.size > 10 * 1024 * 1024) { // 10MB limit
@@ -171,7 +178,7 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
             ref={fileInputRef}
             onChange={handleFileSelect}
             multiple
-            accept=".pdf,.docx,.txt"
+            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
             className="hidden"
           />
 
@@ -187,7 +194,7 @@ export default function UploadZone({ onUpload }: UploadZoneProps) {
               {isDragging ? "Drop your files here" : "Click or drag to upload"}
             </h3>
             <p className="text-sm text-slate-500 font-medium">
-              Support PDF, DOCX, and TXT (Max 10MB)
+              Support PDF, DOCX, TXT, and Images (Max 10MB)
             </p>
           </div>
         </div>

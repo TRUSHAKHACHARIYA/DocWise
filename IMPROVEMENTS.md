@@ -15,6 +15,11 @@ This document tracks completed improvements and the next highest-value follow-up
 - Ingestion now uses BullMQ retries with exponential backoff.
 - Failed ingestion jobs are also written to a dead-letter queue for later inspection.
 - Ingestion failures now surface as failures instead of being swallowed silently.
+- Added Admin Triage view for the ingestion dead-letter queue with manual retry support.
+- Document ingestion now tracks failure reasons and retry counts in the database and UI.
+- Implemented scanned document detection for PDFs to provide clearer error feedback.
+- Streamed real-time ingestion progress (percentage and detailed status) to the UI.
+- Integrated `tesseract.js` for OCR support on images (PNG, JPG, WEBP).
 
 ### API and Config
 - Frontend API base URL handling is centralized in one shared helper.
@@ -31,16 +36,11 @@ This document tracks completed improvements and the next highest-value follow-up
 ### 1. PostgreSQL Migration
 - Move the current SQLite-backed metadata store to PostgreSQL for better concurrency and production resilience.
 
-### 2. Stronger Queue Ops
-- Add a small admin or internal view for the dead-letter queue so failed ingestion jobs are easy to triage.
-- Track retry counts and failure reasons in the UI so users can understand document processing state.
 
 ### 3. Smarter Ingestion
 - Add token-based chunking for more precise context sizing.
-- Add OCR support for scanned documents and image-heavy PDFs.
 
 ### 4. Better UX
-- Stream ingestion progress to the UI so users can see parsing and embedding stages in real time.
 - Add PDF citation jump-to-source behavior for chat answers.
 
 ### 5. Search and Retrieval
