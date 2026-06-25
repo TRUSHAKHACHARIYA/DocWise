@@ -16,10 +16,11 @@ interface Message {
 
 interface MessageBubbleProps {
   message: Message;
-  onSourceClick?: (source: Source) => void;
+  activeSource?: Source | null;
+  onSourceClick?: (source: Source, sources: Source[]) => void;
 }
 
-export default function MessageBubble({ message, onSourceClick }: MessageBubbleProps) {
+export default function MessageBubble({ message, activeSource, onSourceClick }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const { submitMessageFeedback } = useChat();
   const [rating, setRating] = useState<'positive' | 'negative' | null>(null);
@@ -102,14 +103,27 @@ export default function MessageBubble({ message, onSourceClick }: MessageBubbleP
 
             {/* Citations / Sources */}
             {message.sources && message.sources.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-3">
-                {message.sources.map((source, idx) => (
-                  <SourceCard
-                    key={idx}
-                    source={source}
-                    onOpen={onSourceClick}
-                  />
-                ))}
+              <div className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  Evidence ({message.sources.length})
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {message.sources.map((source, idx) => {
+                    const isActive =
+                      activeSource?.documentId === source.documentId &&
+                      activeSource?.page === source.page &&
+                      activeSource?.excerpt === source.excerpt;
+
+                    return (
+                      <SourceCard
+                        key={idx}
+                        source={source}
+                        isActive={isActive}
+                        onOpen={(selected) => onSourceClick?.(selected, message.sources!)}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

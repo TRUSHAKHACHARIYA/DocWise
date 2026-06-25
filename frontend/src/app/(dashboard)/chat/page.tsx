@@ -22,12 +22,16 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { toast } from "@/store/toastStore";
 import ChatInput from "@/components/chat/ChatInput";
 import MessageBubble from "@/components/chat/MessageBubble";
+import CitationPanel from "@/components/chat/CitationPanel";
 import PDFViewer from "@/components/chat/PDFViewer";
 import { Source } from "@/components/chat/SourceCard";
 
 export default function ChatPage() {
   const { user } = useAuth();
-  const [activePdf, setActivePdf] = useState<Source | null>(null);
+  const [panelSources, setPanelSources] = useState<Source[]>([]);
+  const [activeCitation, setActiveCitation] = useState<Source | null>(null);
+  const [isCitationPanelOpen, setIsCitationPanelOpen] = useState(true);
+  const [isMobileCitationOpen, setIsMobileCitationOpen] = useState(false);
   const { 
     sessions, 
     activeSessionId, 
@@ -136,24 +140,29 @@ export default function ChatPage() {
     });
   };
 
-  const handleSourceClick = (source: Source) => {
-    setActivePdf(source);
+  const handleSourceClick = (source: Source, sources: Source[]) => {
+    setPanelSources(sources);
+    setActiveCitation(source);
+    setIsCitationPanelOpen(true);
+    setIsMobileCitationOpen(true);
   };
 
   return (
-    <div className="flex h-[calc(100vh-120px)] gap-6 relative">
-      {/* PDF Viewer Overlay */}
-      {activePdf && activePdf.documentId && (
-        <PDFViewer 
-          documentId={activePdf.documentId}
-          documentName={activePdf.title}
-          initialPage={activePdf.page}
-          initialSearch={activePdf.excerpt}
-          onClose={() => setActivePdf(null)}
-        />
+    <div className="relative flex h-[calc(100vh-120px)] gap-4 lg:gap-6">
+      {/* Mobile citation overlay */}
+      {isMobileCitationOpen && activeCitation?.documentId && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <PDFViewer
+            documentId={activeCitation.documentId}
+            documentName={activeCitation.title}
+            initialPage={activeCitation.page}
+            initialSearch={activeCitation.excerpt}
+            onClose={() => setIsMobileCitationOpen(false)}
+          />
+        </div>
       )}
 
-      {/* Sidebar: Chat Sessions */}
+      {/* Sidebar: Sessions + document context */}
       <div className={cn(
         "w-80 flex flex-col bg-[var(--warm-white)] border border-[rgba(26,24,20,0.10)] rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-300 z-20",
         !isSidebarOpen && "w-0 border-none opacity-0 -translate-x-full"
@@ -251,10 +260,46 @@ export default function ChatPage() {
             </div>
           ))}
           {!isLoading && sessions.length === 0 && (
-            <div className="text-center p-8 text-slate-400 font-bold text-xs uppercase tracking-widest mt-10">
+            <div className="mt-10 p-8 text-center text-xs font-bold uppercase tracking-widest text-slate-400">
               No chats yet
             </div>
           )}
+        </div>
+
+        <div className="border-t border-[rgba(26,24,20,0.08)] p-4">
+          <h4 className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--ink-muted)]">
+            <FileText size={14} />
+            Active documents
+          </h4>
+          <div className="custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-1">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                onClick={() => toggleDocSelection(doc.id)}
+                className={cn(
+                  "group relative cursor-pointer overflow-hidden rounded-xl border p-3 transition-all",
+                  selectedDocIds.includes(doc.id)
+                    ? "border-[var(--rust)] bg-[var(--rust)] shadow-md shadow-[rgba(194,91,58,0.18)]"
+                    : "border-[rgba(26,24,20,0.08)] bg-[var(--cream)] hover:bg-white"
+                )}
+              >
+                <p
+                  className={cn(
+                    "truncate pr-4 text-xs font-bold",
+                    selectedDocIds.includes(doc.id) ? "text-white" : "text-[var(--ink)]"
+                  )}
+                >
+                  {doc.name}
+                </p>
+                <span className="text-[9px] font-bold uppercase text-[var(--ink-faint)]">{doc.size}</span>
+              </div>
+            ))}
+            {documents.length === 0 && (
+              <p className="px-2 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--ink-faint)]">
+                Upload documents first
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -291,6 +336,14 @@ export default function ChatPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCitationPanelOpen((open) => !open)}
+                  className="hidden gap-2 rounded-xl border-[rgba(26,24,20,0.10)] text-[10px] font-black uppercase tracking-widest lg:inline-flex"
+                >
+                  {isCitationPanelOpen ? "Hide sources" : "Show sources"}
+                </Button>
                  <Button 
                    variant="outline" 
                    size="sm" 
@@ -314,9 +367,10 @@ export default function ChatPage() {
                     id: m.id,
                     role: m.role === 'USER' ? 'user' : 'ai',
                     content: m.content,
-                    sources: m.sources as any,
+                    sources: m.sources as Source[] | undefined,
                     isStreaming: isStreaming && m.id === messages[messages.length - 1].id && m.role === 'ASSISTANT'
                   }} 
+                  activeSource={activeCitation}
                   onSourceClick={handleSourceClick}
                 />
               ))}
@@ -333,60 +387,21 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* Right Sidebar: Knowledge Base / Context Selector */}
-      <div className="hidden w-72 flex-col overflow-hidden rounded-[2.5rem] border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff6ed_0%,#f7e6d7_100%)] p-6 text-[var(--ink)] shadow-2xl shadow-[rgba(194,91,58,0.12)] transition-all xl:flex">
-        <h4 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-[var(--ink-muted)]">
-          <FileText size={16} />
-          Context Selection
-        </h4>
-        <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-          {documents.map(doc => (
-            <div 
-              key={doc.id} 
-              onClick={() => toggleDocSelection(doc.id)}
-              className={cn(
-                "p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden",
-                selectedDocIds.includes(doc.id)
-                  ? "border-[var(--rust)] bg-[var(--rust)] shadow-lg shadow-[rgba(194,91,58,0.18)]"
-                  : "border-[rgba(26,24,20,0.08)] bg-[rgba(255,255,255,0.72)] hover:bg-white"
-              )}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <p className={cn(
-                  "text-xs font-bold truncate pr-6",
-                  selectedDocIds.includes(doc.id) ? "text-white" : "text-[var(--ink)]"
-                )}>
-                  {doc.name}
-                </p>
-                {selectedDocIds.includes(doc.id) && (
-                  <div className="absolute right-3 top-3 w-4 h-4 bg-white/20 rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-[var(--ink-faint)]">
-                  {doc.size}
-                </span>
-                <span className={cn(
-                  "text-[9px] font-bold uppercase",
-                  selectedDocIds.includes(doc.id) ? "text-[#ffe1d4]" : "text-[var(--ink-muted)]"
-                )}>
-                  {selectedDocIds.includes(doc.id) ? "Selected" : "Exclude"}
-                </span>
-              </div>
-            </div>
-          ))}
-          {documents.length === 0 && (
-            <div className="flex flex-col items-center justify-center mt-20 text-center px-4">
-              <Plus className="text-slate-600 mb-4 h-8 w-8" />
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                Connect your documents first to start chatting
-              </p>
-            </div>
-          )}
+      {/* Right panel: Citations + source preview (desktop) */}
+      {isCitationPanelOpen && (
+        <div className="hidden w-96 min-w-[22rem] lg:flex">
+          <CitationPanel
+            className="w-full"
+            sources={panelSources}
+            activeSource={activeCitation}
+            onSourceSelect={(source) => {
+              setActiveCitation(source);
+              setIsMobileCitationOpen(false);
+            }}
+            onClear={() => setActiveCitation(null)}
+          />
         </div>
-      </div>
+      )}
     </div>
   );
 }

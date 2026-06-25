@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Source {
   title: string;
@@ -11,14 +12,20 @@ export interface Source {
 
 interface SourceCardProps {
   source: Source;
+  isActive?: boolean;
   onOpen?: (source: Source) => void;
 }
 
-export default function SourceCard({ source, onOpen }: SourceCardProps) {
+export default function SourceCard({ source, isActive, onOpen }: SourceCardProps) {
   return (
     <div 
       onClick={() => onOpen?.(source)}
-      className="group bg-slate-50 hover:bg-white border border-slate-100 hover:border-brand-200 hover:shadow-md rounded-xl p-3 max-w-[240px] transition-all duration-300 cursor-pointer"
+      className={cn(
+        "group max-w-[240px] cursor-pointer rounded-xl border p-3 transition-all duration-300",
+        isActive
+          ? "border-brand-400 bg-brand-50 shadow-md"
+          : "border-slate-100 bg-slate-50 hover:border-brand-200 hover:bg-white hover:shadow-md"
+      )}
     >
       <div className="flex items-center gap-2 mb-2">
         <div className="w-6 h-6 rounded-md bg-brand-100 flex items-center justify-center text-brand-600">
