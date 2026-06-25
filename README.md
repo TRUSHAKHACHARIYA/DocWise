@@ -1,8 +1,8 @@
-# DocWise — AI-Powered Document Intelligence Platform
+# DocWise — Secure Multi-Document AI Workspace
 
-> **Transform your documents into interactive knowledge.** Upload PDFs, ask questions, and get precise, cited answers powered by RAG technology.
+> **Grounded answers with citations across your document library.** Built for teams and research-heavy professionals who need control, audit trails, and governance—not another single-PDF chat tool.
 
-DocWise is a premium SaaS platform built for researchers, legal teams, and businesses. It solves the "needle in the haystack" problem by allowing you to chat with your document library using advanced Retrieval-Augmented Generation (RAG).
+DocWise is a premium SaaS platform for legal, compliance, and research teams. Query across large document libraries with Retrieval-Augmented Generation (RAG), verifiable source citations, admin controls, and usage-based billing.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
@@ -13,16 +13,21 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 ## ✨ Key Features
 
 ### 🧠 Intelligent RAG Pipeline
--   **Context-Aware Chat**: Claude Sonnet 4 (claude-sonnet-4-20250514) integrated for high-quality, human-like reasoning.
--   **Source Citations**: Every answer includes clickable excerpts from the original documents to prevent hallucinations.
+-   **Context-Aware Chat**: Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`) for high-quality, grounded reasoning.
+-   **Source Citations**: Every answer includes clickable excerpts; citations jump to and highlight the source passage in the PDF viewer.
 -   **Multi-Document Analysis**: Select multiple files in the sidebar to query across your entire knowledge base simultaneously.
--   **Semantic Search**: Powered by Pinecone vector storage and OpenAI embeddings.
+-   **Semantic Search**: Powered by Pinecone vector storage with configurable embeddings (OpenAI, Anthropic, or Cohere).
+-   **Scanned PDF OCR**: Tesseract fallback for image-based PDFs (up to 25 pages).
+-   **Token-Based Chunking**: 512-token chunks with 64-token overlap for improved retrieval quality.
 
 ### 💼 SaaS Infrastructure
 -   **Usage Enforcement**: Built-in monthly quotas for documents and questions based on user plans (**Free, Starter, Pro, Enterprise**).
--   **Secure Authentication**: Hardened JWT-based auth with HttpOnly cookies for refresh tokens and in-memory access token storage.
--   **Background Processing**: Industrial-grade document ingestion powered by **BullMQ** and **Redis** to handle large PDFs without timeouts.
+-   **Real Storage Tracking**: Plan-based storage limits enforced from actual document `sizeBytes`.
+-   **Secure Authentication**: JWT with HttpOnly refresh cookies, plus API key auth (`Bearer dw_...`) for Pro+ programmatic access.
+-   **Account Deletion**: Password-confirmed permanent deletion with S3, Pinecone, and audit log cleanup.
+-   **Background Processing**: Document ingestion via **BullMQ** and **Redis**—handles large PDFs without timeouts.
 -   **Audit Logging**: Detailed tracking of security events (logins, uploads, deletions) for compliance.
+-   **Admin Analytics**: Real signup, usage, and activity metrics via `/api/admin/analytics/summary`.
 -   **NMI Integration**: Automated billing and customer portal for subscription management.
 -   **Multi-tenant Architecture**: Isolated user spaces with role-based access control (User/Admin).
 
@@ -30,8 +35,16 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 -   **Real-time Streaming**: Instant AI responses via Server-Sent Events (SSE).
 -   **PostgreSQL Database**: Production-ready relational storage with Prisma migrations (local dev via Docker Compose).
 -   **Evaluation Suite**: In-built RAG evaluator to measure response accuracy against a "Golden Dataset".
--   **Document Processing**: Support for PDF and Word documents with advanced text extraction.
+-   **Document Processing**: PDF and Word documents with text extraction, OCR fallback, and token-aware chunking.
 -   **Vector Search**: Pinecone integration for semantic similarity search across documents.
+-   **Developer Settings**: API key management UI at `/settings/developer` for Pro+ users.
+
+### 🗺️ Roadmap (In Progress)
+See [`docs/PLAN.md`](docs/PLAN.md) for the full strategic roadmap. Upcoming priorities:
+-   Document comparison workflows
+-   Shared team workspaces, folders, and collections
+-   Persistent 3-panel citation workspace
+-   GTM landing pages (use cases, security, comparisons)
 
 ---
 
@@ -41,9 +54,9 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS, Zustand, Axios |
 | **Backend** | Fastify, Node.js 20+, TypeScript 6.0, Prisma ORM |
-| **AI/ML** | Claude 3.5 Sonnet v2, OpenAI Embeddings, Cohere Rerank v3 |
+| **AI/ML** | Claude 3.5 Sonnet, OpenAI/Anthropic/Cohere Embeddings, Cohere Rerank v3 |
 | **Database** | PostgreSQL (local via Docker / Neon / Supabase in prod), Pinecone (Vector), Redis (Queue & RL) |
-| **Security** | JWT (HttpOnly Cookies), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
+| **Security** | JWT (HttpOnly Cookies), API Keys (`dw_...`), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
 | **Storage** | AWS S3 / R2 for file storage |
 | **Billing** | NMI (Checkout & Billing Portal) |
 | **Email** | Nodemailer / Resend |
@@ -57,6 +70,7 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 ### 📦 Prerequisites
 - **Node.js 20+** - [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js) or **pnpm**
+- **Docker Desktop** - Required for local PostgreSQL and Redis via `npm run db:up` ([Docker Compose](docker-compose.yml) runs Postgres 15 + Redis 7). Without Docker, use hosted Postgres (Neon/Supabase) and an external Redis instance—set `DATABASE_URL` and `REDIS_URL` accordingly.
 - **Git** for version control
 - **API Keys** for external services (see Environment Setup)
 
@@ -197,6 +211,12 @@ npm run build          # Build both frontend and backend
 npm run eval:gate      # Run evaluation quality gate
 npm run perf:budget    # Check performance budget
 npm run release:check  # Pre-release checks
+
+# Database (Docker)
+npm run db:up          # Start PostgreSQL + Redis containers
+npm run db:down        # Stop containers
+npm run db:migrate     # Apply Prisma migrations
+npm run db:setup       # db:up + db:migrate in one step
 ```
 
 ---
@@ -248,7 +268,7 @@ npm run validate:backend   # Backend validation only
 
 ---
 
-## � Complete Feature Ecosystem
+## 🌐 Complete Feature Ecosystem
 
 ### Interactive Feature Flow Diagram
 ```mermaid
@@ -277,10 +297,11 @@ graph TB
     subgraph "🧠 AI & Processing"
         PDF_PARSE[PDF Processing]
         DOCX_PARSE[Word Processing]
+        OCR[Scanned PDF OCR]
         EMBEDDINGS[OpenAI Embeddings]
         VEC_STORE[Pinecone Vector DB]
         RERANK[Cohere Rerank v3]
-        CLAUDE[Claude Sonnet 4]
+        CLAUDE[Claude 3.5 Sonnet]
     end
 
     %% SaaS Infrastructure
@@ -313,7 +334,6 @@ graph TB
     %% Storage & Database
     subgraph "🗄️ Storage & Database"
         POSTGRES[(PostgreSQL)]
-        SQLITE[(SQLite Local)]
         S3_STORAGE[AWS S3/R2 Storage]
         REDIS[(Redis Cache)]
         FILE_MGMT[File Management]
@@ -340,6 +360,7 @@ graph TB
     DOC_MGMT --> PDF_PARSE
     DOC_MGMT --> DOCX_PARSE
     DOC_MGMT --> FILE_MGMT
+    PDF_PARSE --> OCR
     PDF_PARSE --> EMBEDDINGS
     DOCX_PARSE --> EMBEDDINGS
     EMBEDDINGS --> VEC_STORE
@@ -378,7 +399,7 @@ graph TB
 
     %% Storage Connections
     USER_MGMT --> POSTGRES
-    DOC_MGMT --> SQLITE
+    DOC_MGMT --> POSTGRES
     FILE_MGMT --> S3_STORAGE
     SEMANTIC --> REDIS
 
@@ -407,23 +428,23 @@ graph TB
 
     class UI,AUTH,DASH,CHAT,ADMIN,BILLING uiLayer
     class DOC_MGMT,RAG_CHAT,MULTI_DOC,SEMANTIC,REAL_TIME,CITATIONS coreFeatures
-    class PDF_PARSE,DOCX_PARSE,EMBEDDINGS,VEC_STORE,RERANK,CLAUDE aiProcessing
+    class PDF_PARSE,DOCX_PARSE,OCR,EMBEDDINGS,VEC_STORE,RERANK,CLAUDE aiProcessing
     class USER_MGMT,SUBS,USAGE_TRACK,AUDIT,RATE_LIMIT,EMAIL saasInfra
     class NMI,WEBHOOKS,INVOICES,CUSTOMER_PORTAL payment
     class JWT_AUTH,RBAC,DATA_ENCRYPT,SECURITY_LOGS,COMPLIANCE security
-    class POSTGRES,SQLITE,S3_STORAGE,REDIS,FILE_MGMT storage
+    class POSTGRES,S3_STORAGE,REDIS,FILE_MGMT storage
     class PERFORMANCE,ERROR_TRACKING,USER_ANALYTICS,SYSTEM_HEALTH,ALERTS monitoring
 ```
 
 ### Feature Interaction Matrix
 | Feature Category | Core Components | User Benefits | Technical Implementation |
 |-----------------|-----------------|----------------|-------------------------|
-| **📄 Document Processing** | PDF Parser, Word Parser, File Storage | Upload any document, automatic text extraction | PDF-parse, Mammoth.js, AWS S3/R2 |
-| **🤖 AI-Powered Chat** | RAG Pipeline, Claude LLM, Citations | Get accurate answers with sources | OpenAI Embeddings, Pinecone, Cohere Rerank |
+| **📄 Document Processing** | PDF Parser, OCR, Word Parser, Token Chunker, File Storage | Upload any document, automatic text extraction including scanned PDFs | pdf-parse, Tesseract OCR, Mammoth.js, 512/64 token chunking, AWS S3/R2 |
+| **🤖 AI-Powered Chat** | RAG Pipeline, Claude LLM, Citations + PDF Highlight | Get accurate answers with clickable, highlighted sources | Claude 3.5 Sonnet, Embeddings, Pinecone, Cohere Rerank |
 | **🔍 Smart Search** | Semantic Search, Vector DB, Multi-doc analysis | Find information across all documents | Pinecone Vector Search, Similarity Matching |
-| **👥 User Management** | Authentication, Roles, Subscription plans | Secure access with tiered features | JWT, bcrypt, NMI Integration |
+| **👥 User Management** | Authentication, API Keys, Roles, Subscription plans | Secure access with tiered features and programmatic API | JWT, API keys (`dw_...`), bcrypt, NMI Integration |
 | **💳 Billing System** | Payment processing, Usage tracking, Webhooks | Automated billing with usage limits | NMI Tokenized Checkout, Customer Portal |
-| **📊 Analytics & Monitoring** | Performance metrics, Error tracking, Health checks | System reliability and insights | Custom monitoring, Sentry integration |
+| **📊 Analytics & Monitoring** | Admin analytics, Performance metrics, Error tracking | System reliability and real usage insights | `/api/admin/analytics/summary`, Sentry integration |
 | **🔒 Security & Compliance** | Audit logs, Data encryption, Access control | Enterprise-grade security | JWT Auth, Role-based access, Audit trails |
 
 ### User Journey Flow
@@ -491,7 +512,7 @@ sequenceDiagram
 
 ---
 
-## �🏗️ Architecture Overview
+## 🏗️ Architecture Overview
 
 ### System Design
 ```
@@ -505,7 +526,7 @@ sequenceDiagram
 │                    API LAYER                         │
 │  Fastify (Node.js 20)  — Port 4000                  │
 │  Routes: /auth /documents /chat /admin /webhooks     │
-│  Middleware: JWT auth, rate limit, usage limit       │
+│  Middleware: JWT/API key auth, rate limit, usage limit │
 └──┬──────────┬──────────┬──────────┬─────────────────┘
    │          │          │          │
    ▼          ▼          ▼          ▼
@@ -527,6 +548,7 @@ sequenceDiagram
 ### Project Structure
 ```text
 DocWise/
+├── docker-compose.yml        # Local PostgreSQL 15 + Redis 7
 ├── frontend/                 # Next.js 15 Application
 │   ├── src/
 │   │   ├── app/              # App Router pages
@@ -548,9 +570,12 @@ DocWise/
 │   │   └── types/           # TypeScript definitions
 │   ├── evals/               # RAG Quality Testing Pipeline
 │   └── uploads/              # Temporary file storage
-├── docs/                     # Architecture & Deployment Guides
+├── docs/                     # Architecture, strategy & deployment
+│   ├── PLAN.md               # Strategic roadmap, positioning, GTM
+│   ├── TASK.md               # Engineering day-by-day build plan
 │   ├── ARCHITECTURE.md       # Detailed system architecture
 │   ├── DEPLOYMENT_GUIDE.md   # Production deployment guide
+│   ├── dev/deployment_plan.md # Deployment checklist
 │   ├── CONTEXT.md            # Business logic documentation
 │   └── PROMPT.md             # AI prompt engineering
 ├── scripts/                  # Build & deployment scripts
@@ -567,8 +592,9 @@ DocWise/
 ### Database Schema
 The application uses Prisma ORM with the following key models:
 - **User**: Authentication, roles, subscription plans
-- **Document**: File metadata, processing status
+- **Document**: File metadata, processing status, `sizeBytes` for storage tracking
 - **Message**: Chat history with citations
+- **ApiKey**: Programmatic access keys (`dw_...` prefix) for Pro+ users
 - **Subscription**: NMI integration for billing
 - **AuditLog**: Security and compliance tracking
 
@@ -598,29 +624,39 @@ Key production environment variables include:
 ## 📚 API Documentation
 
 ### Core Endpoints
-- **Authentication**: `/api/auth/*` - Login, register, password reset
-- **Documents**: `/api/documents/*` - Upload, list, delete documents
-- **Chat**: `/api/chat/*` - Query documents with RAG
-- **Admin**: `/api/admin/*` - User management, analytics
-- **Webhooks**: `/api/webhooks/*` - NMI integration
+- **Authentication**: `/api/auth/*` — Login, register, password reset, token refresh
+- **User**: `/api/user/*` — Profile, usage, API keys, account deletion
+- **Documents**: `/api/documents/*` — Upload, list, delete documents
+- **Chat**: `/api/chat/*` — Query documents with RAG (SSE streaming)
+- **Admin**: `/api/admin/*` — User management, analytics, queue triage
+- **Webhooks**: `/api/webhooks/*` — NMI billing integration
 
 ### Authentication
-- JWT-based authentication with access/refresh tokens
+- **JWT**: Access token + HttpOnly refresh cookie (`/api/auth/refresh`)
+- **API keys**: `Authorization: Bearer dw_...` for programmatic access (Pro+)
 - Role-based access control (USER/ADMIN)
 - Email verification for account activation
+
+### User Endpoints
+- `GET /api/user/me` — Profile, plan, and usage (documents, questions, `storageUsedMB`)
+- `DELETE /api/user/account` — Password-confirmed permanent deletion (S3 + Pinecone cleanup)
+
+### Admin Endpoints
+- `GET /api/admin/analytics/summary` — Signups, active users, document and question usage
 
 ---
 
 ## 🔧 Configuration
 
 ### Supported Document Types
-- **PDF**: Full text extraction with metadata
+- **PDF**: Text extraction with metadata; Tesseract OCR fallback for scanned/image PDFs (max 25 pages)
 - **Word Documents**: .docx format support
 - **Planned**: Markdown, plain text, web pages
 
 ### AI Model Configuration
-- **Primary LLM**: Claude Sonnet 4 (claude-sonnet-4-20250514)
-- **Embeddings**: OpenAI text-embedding-ada-002
+- **Primary LLM**: Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
+- **Embeddings**: Configurable via `EMBEDDING_PROVIDER` — OpenAI (`text-embedding-3-small`), Anthropic (`claude-embedding-3`), or Cohere (`embed-multilingual-v3.0`)
+- **Chunking**: 512 tokens per chunk, 64-token overlap
 - **Reranking**: Cohere Rerank v3 for improved relevance
 
 ### Usage Limits by Plan
@@ -651,13 +687,16 @@ Key production environment variables include:
 
 ---
 
-## � Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
-1. **Database Connection**: Ensure `DATABASE_URL` is correctly configured
-2. **API Keys**: Verify all required API keys are set in environment
-3. **CORS Issues**: Check `FRONTEND_URL` matches your frontend domain
-4. **File Upload**: Ensure sufficient disk space and proper permissions
+1. **Docker not running**: `npm run db:up` fails — start Docker Desktop, then retry
+2. **Database connection**: Ensure `DATABASE_URL` points to a running PostgreSQL instance
+3. **Redis required**: BullMQ ingestion and rate limiting need Redis at `REDIS_URL` (included in Docker Compose)
+4. **`npm` not recognized (Windows)**: Install [Node.js LTS](https://nodejs.org/) and restart your terminal
+5. **API keys**: Verify all required API keys are set in environment
+6. **CORS issues**: Check `FRONTEND_URL` matches your frontend domain
+7. **File upload**: Ensure S3/R2 credentials are configured and bucket permissions are correct
 
 ### Debug Mode
 Enable debug logging by setting `DEBUG=docwise:*` in your environment.
@@ -682,7 +721,9 @@ Licensed under the [MIT License](LICENSE).
 
 ## 📞 Support
 
-- **Documentation**: Check the [`docs/`](docs/) folder for detailed guides
+- **Product roadmap**: [`docs/PLAN.md`](docs/PLAN.md) — positioning, competitive landscape, phased roadmap
+- **Engineering plan**: [`docs/TASK.md`](docs/TASK.md) — day-by-day build tasks
+- **Architecture & deployment**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md)
 - **Issues**: Open an issue on GitHub for bug reports
 - **Email**: Contact support for enterprise inquiries
 
