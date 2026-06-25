@@ -26,10 +26,10 @@ This document outlines the steps to move DocWise from local development to a pro
    - Resend (Email Sending Domain)
 
 ### Phase 2: Database Migration
-1. Set up a **PostgreSQL** instance.
-2. Update `DATABASE_URL` in `backend/.env`.
-3. Update `schema.prisma` provider to `postgresql` (if not already handled via env).
-4. Run `npx prisma migrate deploy` to set up the production tables.
+1. Set up a **PostgreSQL** instance (local: `npm run db:up` from repo root).
+2. Update `DATABASE_URL` in `backend/.env` to `postgresql://docwise:docwise@localhost:5432/docwise`.
+3. Prisma provider is `postgresql` in `schema.prisma`.
+4. Run `npm run db:migrate` (or `npx prisma migrate deploy` in `backend/`).
 
 ### Phase 3: Backend Deployment (Railway)
 1. Connect your GitHub repository to **Railway**.

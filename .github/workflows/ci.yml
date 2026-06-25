@@ -35,6 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm install
         
+      - name: Run Prisma migrations
+        run: |
+          cd backend
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/docwise_test"
+        
       - name: Run typecheck
         run: npm run typecheck
         

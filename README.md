@@ -28,7 +28,7 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 
 ### ⚡ Technical Excellence
 -   **Real-time Streaming**: Instant AI responses via Server-Sent Events (SSE).
--   **Zero-Setup Dev**: Ships with **SQLite** for instant local development without complex database configuration.
+-   **PostgreSQL Database**: Production-ready relational storage with Prisma migrations (local dev via Docker Compose).
 -   **Evaluation Suite**: In-built RAG evaluator to measure response accuracy against a "Golden Dataset".
 -   **Document Processing**: Support for PDF and Word documents with advanced text extraction.
 -   **Vector Search**: Pinecone integration for semantic similarity search across documents.
@@ -42,7 +42,7 @@ DocWise is a premium SaaS platform built for researchers, legal teams, and busin
 | **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS, Zustand, Axios |
 | **Backend** | Fastify, Node.js 20+, TypeScript 6.0, Prisma ORM |
 | **AI/ML** | Claude 3.5 Sonnet v2, OpenAI Embeddings, Cohere Rerank v3 |
-| **Database** | SQLite (Local) / PostgreSQL (Prod), Pinecone (Vector), Redis (Queue & RL) |
+| **Database** | PostgreSQL (local via Docker / Neon / Supabase in prod), Pinecone (Vector), Redis (Queue & RL) |
 | **Security** | JWT (HttpOnly Cookies), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
 | **Storage** | AWS S3 / R2 for file storage |
 | **Billing** | NMI (Checkout & Billing Portal) |
@@ -83,8 +83,8 @@ Create environment files in both backend and frontend directories:
 
 **Backend Environment (`backend/.env`)**
 ```env
-# Database
-DATABASE_URL="file:./dev.db"
+# Database (PostgreSQL — use docker compose for local dev)
+DATABASE_URL="postgresql://docwise:docwise@localhost:5432/docwise"
 
 # Authentication
 JWT_ACCESS_SECRET="your-super-secret-jwt-access-key-min-32-chars"
@@ -142,28 +142,38 @@ NEXT_PUBLIC_SENTRY_DSN="your-sentry-dsn"
 
 #### 3. Database Setup
 ```bash
+# Start PostgreSQL + Redis locally (Docker required)
+npm run db:up
+
 cd backend
 
 # Generate Prisma client
 npx prisma generate
 
-# Run initial migration
-npx prisma migrate dev --name init
+# Apply migrations
+npm run db:migrate
 
 # (Optional) Seed with sample data
-npx ts-node prisma/seed.ts
+node seed-demo.js
 ```
 
 #### 4. Launch Development Servers
+```bash
+# Start PostgreSQL + Redis (if not already running)
+npm run db:up
+
+# Terminal 1: Backend + Frontend (monorepo)
+npm run dev
+```
+
+Or run separately:
+
 ```bash
 # Terminal 1: Backend Server (Port 4000)
 cd backend && npm run dev
 
 # Terminal 2: Frontend Server (Port 3000)
 cd frontend && npm run dev
-
-# Terminal 3: Redis (if using caching)
-redis-server
 ```
 
 Visit **http://localhost:3000** to start analyzing documents!
