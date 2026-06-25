@@ -1,11 +1,12 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { FileText, Sparkles, Shield, Zap } from "lucide-react";
+import { FileText, Sparkles, Shield, Zap, GitCompare, PanelRight } from "lucide-react";
 
 const features = [
-  { icon: FileText, label: "Any PDF, DOCX, or TXT file" },
-  { icon: Zap, label: "Streaming answers in under 2 seconds" },
-  { icon: Shield, label: "Private and secure by default" },
+  { icon: PanelRight, label: "3-panel chat with embedded PDF citations" },
+  { icon: GitCompare, label: "Compare two documents with cited excerpts" },
+  { icon: Zap, label: "Sample docs & suggested prompts—value in under a minute" },
+  { icon: Shield, label: "Private workspaces with audit logs & RBAC" },
 ];
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -29,7 +30,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <em className="italic text-brand-100">finally speak.</em>
           </h1>
           <p className="mt-5 text-white/60 text-base leading-7 max-w-lg">
-            Upload documents and get precise, cited answers in seconds. Built for teams that need trustworthy context, not guesswork.
+            Multi-document chat with cited answers, a 3-panel citation workspace, and document comparison—built for teams that need evidence, not guesswork.
           </p>
         </div>
 

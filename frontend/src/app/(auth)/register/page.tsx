@@ -70,7 +70,7 @@ export default function RegisterPage() {
     <div className="w-full">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-extrabold text-slate-900 mb-2">Create Account</h1>
-        <p className="text-slate-500 text-sm">Join DocWise and start chatting securely.</p>
+        <p className="text-slate-500 text-sm">Start with sample docs—cited chat and compare in minutes.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
