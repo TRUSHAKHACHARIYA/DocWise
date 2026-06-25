@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useDocumentStore } from "@/store/documentStore";
 import { toast } from "@/store/toastStore";
 import api from "@/lib/api";
+import { SAMPLE_DOCUMENTS, fetchSampleFile } from "@/lib/onboarding";
 
 export function useDocuments() {
   const {
@@ -101,6 +102,37 @@ export function useDocuments() {
     }
   };
 
+  const loadSampleDocuments = async (): Promise<string[]> => {
+    const uploadedIds: string[] = [];
+
+    try {
+      for (const sample of SAMPLE_DOCUMENTS) {
+        const file = await fetchSampleFile(sample);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await api.post("/documents/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        addDocument(response.data.document);
+        uploadedIds.push(response.data.document.id);
+      }
+
+      toast.success(
+        "Sample library loaded",
+        "Demo MSA and security policy are processing — pick a suggested prompt when ready."
+      );
+
+      return uploadedIds;
+    } catch (error: any) {
+      toast.error("Sample load failed", error.response?.data?.error || "Could not load sample documents.");
+      throw error;
+    }
+  };
+
   return {
     documents,
     isLoading,
@@ -110,5 +142,6 @@ export function useDocuments() {
     ingestUrl,
     deleteDocument,
     deleteBulk,
+    loadSampleDocuments,
   };
 }

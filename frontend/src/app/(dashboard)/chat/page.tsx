@@ -11,7 +11,8 @@ import {
   Download,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Sparkles,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
@@ -25,6 +26,7 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import CitationPanel from "@/components/chat/CitationPanel";
 import PDFViewer from "@/components/chat/PDFViewer";
 import { Source } from "@/components/chat/SourceCard";
+import { SUGGESTED_PROMPTS } from "@/lib/onboarding";
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -47,8 +49,9 @@ export default function ChatPage() {
     updateSessionDocuments
   } = useChat();
 
-  const { documents, loadDocuments } = useDocuments();
+  const { documents, loadDocuments, loadSampleDocuments } = useDocuments();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
@@ -146,6 +149,35 @@ export default function ChatPage() {
     setIsCitationPanelOpen(true);
     setIsMobileCitationOpen(true);
   };
+
+  const handleTrySamples = async () => {
+    setIsLoadingSamples(true);
+    try {
+      const uploadedIds = await loadSampleDocuments();
+      setSelectedDocIds(uploadedIds);
+      await createSession("Sample library Q&A", uploadedIds);
+    } catch {
+      // Toast handled in loadSampleDocuments
+    } finally {
+      setIsLoadingSamples(false);
+    }
+  };
+
+  const hasReadySelectedDocs = selectedDocIds.some((id) => {
+    const doc = documents.find((d) => d.id === id);
+    return doc?.status === "READY";
+  });
+
+  const hasProcessingSelectedDocs = selectedDocIds.some((id) => {
+    const doc = documents.find((d) => d.id === id);
+    return doc?.status === "PROCESSING";
+  });
+
+  const showSuggestedPrompts =
+    Boolean(activeSessionId) &&
+    messages.length === 0 &&
+    hasReadySelectedDocs &&
+    !isStreaming;
 
   return (
     <div className="relative flex h-[calc(100vh-120px)] gap-4 lg:gap-6">
@@ -295,9 +327,20 @@ export default function ChatPage() {
               </div>
             ))}
             {documents.length === 0 && (
-              <p className="px-2 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--ink-faint)]">
-                Upload documents first
-              </p>
+              <div className="space-y-3 px-1 py-2">
+                <p className="text-center text-[10px] font-bold uppercase tracking-widest text-[var(--ink-faint)]">
+                  Upload documents first
+                </p>
+                <Button
+                  size="sm"
+                  onClick={handleTrySamples}
+                  disabled={isLoadingSamples}
+                  className="w-full gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                >
+                  <Sparkles size={14} />
+                  {isLoadingSamples ? "Loading samples..." : "Try sample docs"}
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -311,12 +354,26 @@ export default function ChatPage() {
               <BrainCircuit size={40} />
             </div>
             <h3 className="mb-2 text-2xl font-black uppercase tracking-tight text-[var(--ink)]">Ready to analyze?</h3>
-            <p className="mb-8 max-w-xs text-[10px] font-medium uppercase leading-relaxed tracking-widest text-[var(--ink-muted)]">
-              Select a previous conversation or start a new one to unlock the power of your documents.
+            <p className="mb-8 max-w-sm text-[10px] font-medium uppercase leading-relaxed tracking-widest text-[var(--ink-muted)]">
+              Start a new conversation or load sample MSA and policy documents to get a cited answer in under a minute.
             </p>
-            <Button onClick={handleNewSession} size="lg" className="rounded-2xl shadow-xl shadow-[rgba(194,91,58,0.16)]">
-              New Conversation
-            </Button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button onClick={handleNewSession} size="lg" className="rounded-2xl shadow-xl shadow-[rgba(194,91,58,0.16)]">
+                New Conversation
+              </Button>
+              {documents.length === 0 && (
+                <Button
+                  onClick={handleTrySamples}
+                  disabled={isLoadingSamples}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 rounded-2xl"
+                >
+                  <Sparkles size={18} />
+                  {isLoadingSamples ? "Loading samples..." : "Try sample documents"}
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <>
@@ -360,6 +417,11 @@ export default function ChatPage() {
 
             {/* Messages */}
             <div className="custom-scrollbar flex-1 overflow-y-auto bg-[linear-gradient(180deg,rgba(255,250,242,0.92),rgba(250,241,230,0.78))] p-8" ref={scrollRef}>
+              {messages.length === 0 && hasProcessingSelectedDocs && (
+                <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Documents are still processing. Suggested prompts will appear when ingestion completes.
+                </div>
+              )}
               {messages.map((m) => (
                 <MessageBubble 
                   key={m.id} 
@@ -380,7 +442,8 @@ export default function ChatPage() {
             <div className="bg-gradient-to-t from-[var(--warm-white)] via-[var(--warm-white)] to-transparent p-6">
               <ChatInput 
                 onSend={sendMessage} 
-                isLoading={isStreaming} 
+                isLoading={isStreaming}
+                suggestedPrompts={showSuggestedPrompts ? SUGGESTED_PROMPTS : undefined}
               />
             </div>
           </>

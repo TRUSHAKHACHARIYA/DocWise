@@ -1,0 +1,21 @@
+MASTER SERVICE AGREEMENT (SAMPLE)
+DocWise Demo Document — Not a legally binding contract.
+
+Section 12 — Term and Termination
+12.1 Initial Term. This Agreement begins on the Effective Date and continues for twelve (12) months unless terminated earlier under this Section 12.
+12.2 Renewal. The Agreement renews automatically for successive one (1) year periods unless either party provides written notice of non-renewal at least ninety (90) days before the end of the then-current term.
+12.3 Termination for Convenience. Either party may terminate this Agreement for convenience upon ninety (90) days prior written notice to the other party.
+12.4 Early Termination Fee. If Customer terminates for convenience before the end of an Initial Term or Renewal Term, Customer shall pay a pro-rated early termination fee equal to fifty percent (50%) of the remaining fees for that term, as detailed in Exhibit B.
+12.5 Termination for Cause. Either party may terminate immediately upon written notice if the other party materially breaches this Agreement and fails to cure within thirty (30) days of notice.
+
+Section 14 — Limitation of Liability
+14.1 Except for breaches of confidentiality, indemnification obligations, or gross negligence, each party's aggregate liability shall not exceed the fees paid by Customer in the twelve (12) months preceding the claim.
+14.2 Neither party shall be liable for indirect, incidental, or consequential damages.
+
+Exhibit B — Fee Schedule
+B.1 Annual platform fee: $24,000 payable quarterly in advance.
+B.2 Early termination fee calculation: 50% of unpaid fees for the remaining contract period.
+
+Section 8 — Data Protection
+8.1 Vendor shall maintain administrative, technical, and physical safeguards consistent with SOC 2 Type II standards.
+8.2 Customer data shall be retained for seven (7) years after contract termination unless law requires longer retention.

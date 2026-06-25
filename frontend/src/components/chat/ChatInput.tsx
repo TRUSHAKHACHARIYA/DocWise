@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 interface ChatInputProps {
   onSend: (message: string) => void;
   isLoading?: boolean;
+  suggestedPrompts?: string[];
 }
 
-export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
+export default function ChatInput({ onSend, isLoading, suggestedPrompts }: ChatInputProps) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isReady = text.trim() && !isLoading;
@@ -37,6 +38,22 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
   };
 
   return (
+    <div className="space-y-3">
+      {suggestedPrompts && suggestedPrompts.length > 0 && !isLoading && (
+        <div className="flex flex-wrap gap-2 px-1">
+          {suggestedPrompts.map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              onClick={() => onSend(prompt)}
+              className="rounded-full border border-[rgba(194,91,58,0.18)] bg-white px-3 py-1.5 text-left text-[11px] font-semibold leading-snug text-[var(--ink-muted)] transition-colors hover:border-[var(--rust)] hover:bg-[var(--rust-light)] hover:text-[var(--ink)]"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+      )}
+
     <div className="relative rounded-3xl border border-[rgba(194,91,58,0.14)] bg-[linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)] p-2 pr-4 shadow-[0_18px_40px_-24px_rgba(120,72,36,0.25)] transition-all focus-within:border-[rgba(194,91,58,0.28)] focus-within:ring-2 focus-within:ring-brand-500/10">
       <div className="flex items-end gap-2">
         {/* Attachment Button */}
@@ -80,6 +97,7 @@ export default function ChatInput({ onSend, isLoading }: ChatInputProps) {
           )}
         </button>
       </div>
+    </div>
     </div>
   );
 }
