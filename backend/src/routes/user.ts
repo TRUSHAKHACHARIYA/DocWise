@@ -3,7 +3,9 @@ import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { prisma } from '../utils/prisma';
 import { requireAuth } from '../middleware/auth';
-import { getEffectiveLimits, isInTrial } from '../services/usage';
+import { deleteFile } from '../services/fileStorage';
+import { deleteVectorsByDocumentId } from '../services/vectorStore';
+import { getEffectiveLimits, getUserStorageUsedBytes, isInTrial } from '../services/usage';
 
 export async function userRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth);
@@ -33,6 +35,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     const inTrial = isInTrial(user);
     const currentLimit = getEffectiveLimits(user);
+    const storageUsedBytes = await getUserStorageUsedBytes(user.id);
 
     return reply.send({
       user: {
@@ -49,8 +52,8 @@ export async function userRoutes(app: FastifyInstance) {
           questionsLimit: currentLimit.maxQuestions,
           docsUploaded: usage?.docsUploaded || 0,
           docsLimit: currentLimit.maxDocs,
-          storageUsedMB: 0, // Mock for now, would need a sum of document sizes
-          storageLimitMB: 100, // Default storage limit
+          storageUsedMB: Math.round((storageUsedBytes / (1024 * 1024)) * 100) / 100,
+          storageLimitMB: currentLimit.maxStorageMB,
           plan: inTrial ? 'trial' : user.plan.toLowerCase()
       }
     });
@@ -111,5 +114,56 @@ export async function userRoutes(app: FastifyInstance) {
       take: 20
     });
     return reply.send({ logs });
+  });
+
+  // Permanently delete account and all associated data
+  app.delete('/account', async (req, reply) => {
+    const userId = req.user!.id;
+    const { password } = z.object({
+      password: z.string().min(1),
+    }).parse(req.body);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return reply.code(404).send({ error: 'User not found' });
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return reply.code(401).send({ error: 'Invalid password' });
+    }
+
+    const documents = await prisma.document.findMany({
+      where: { userId },
+      select: { id: true, s3Key: true },
+    });
+
+    await Promise.all(
+      documents.map(async (doc) => {
+        try {
+          await deleteFile(doc.s3Key);
+          await deleteVectorsByDocumentId(userId, doc.id);
+        } catch (error) {
+          req.log.warn({ error, documentId: doc.id }, 'Failed to clean up document during account deletion');
+        }
+      })
+    );
+
+    await prisma.auditLog.create({
+      data: {
+        actorId: userId,
+        action: 'ACCOUNT_DELETED',
+        targetType: 'USER',
+        targetId: userId,
+        metadata: { email: user.email },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      },
+    });
+
+    await prisma.user.delete({ where: { id: userId } });
+
+    reply.clearCookie('refreshToken', { path: '/' });
+    return reply.send({ message: 'Account deleted successfully' });
   });
 }

@@ -1,16 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
-import { chunkText } from '../services/chunker';
+import { describe, it, expect } from 'vitest';
+import { chunkText, estimateTokenCount } from '../services/chunker';
+import { isLikelyScannedPdf } from '../services/parser';
 
 describe('Document Ingestion Pipeline', () => {
   describe('Chunker Service', () => {
-    it('should chunk text correctly based on size', () => {
-      // Create a long text string
+    it('should chunk text correctly based on token size', () => {
       const longText = 'This is a test sentence. '.repeat(100);
       const chunks = chunkText(longText);
-      
+
       expect(chunks.length).toBeGreaterThan(1);
-      // Default chunk size is ~2000 chars (500 tokens * 4)
-      expect(chunks[0].text.length).toBeLessThanOrEqual(2200);
+      expect(estimateTokenCount(chunks[0].text)).toBeLessThanOrEqual(560);
     });
 
     it('should handle empty text gracefully', () => {
@@ -20,12 +19,24 @@ describe('Document Ingestion Pipeline', () => {
 
     it('should maintain text integrity across chunks', () => {
       const originalText = 'Section one content. Section two content. Section three content.';
-      // Force smaller chunks for testing if needed, but using default for now
       const chunks = chunkText(originalText);
-      
-      const combinedText = chunks.map(c => c.text).join(' ');
+
+      const combinedText = chunks.map((c) => c.text).join(' ');
       expect(combinedText).toContain('Section one');
       expect(combinedText).toContain('Section three');
+    });
+
+    it('should estimate token counts conservatively', () => {
+      const text = 'word '.repeat(100).trim();
+      const tokens = estimateTokenCount(text);
+      expect(tokens).toBeGreaterThanOrEqual(100);
+    });
+  });
+
+  describe('Parser heuristics', () => {
+    it('detects likely scanned PDFs with little text per page', () => {
+      expect(isLikelyScannedPdf('short', 10)).toBe(true);
+      expect(isLikelyScannedPdf('x'.repeat(500), 10)).toBe(false);
     });
   });
 });

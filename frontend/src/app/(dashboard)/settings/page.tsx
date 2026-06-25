@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { User, Lock, Bell, Shield, Key, Trash2, Save, History, Smartphone, Globe, CheckCircle } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
+import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -14,10 +17,19 @@ import api from "@/lib/api";
 type TabType = 'profile' | 'security' | 'api' | 'activity';
 
 export default function SettingsPage() {
-  const { user, updateUser } = useAuth();
+  const router = useRouter();
+  const { user, updateUser, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const hasApiAccess =
+    user?.role === "ADMIN" ||
+    user?.plan === "PRO" ||
+    user?.plan === "ENTERPRISE";
 
   // Form states
   const [profileName, setProfileName] = useState(user?.name || "");
@@ -80,6 +92,25 @@ export default function SettingsPage() {
       toast.error("Error", err.response?.data?.error || "Failed to change password.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      return toast.error("Error", "Enter your password to confirm deletion.");
+    }
+
+    setIsDeleting(true);
+    try {
+      await api.delete("/user/account", { data: { password: deletePassword } });
+      setShowDeleteModal(false);
+      logout();
+      router.push("/");
+      toast.success("Account deleted", "Your account and all data have been removed.");
+    } catch (err: any) {
+      toast.error("Error", err.response?.data?.error || "Failed to delete account.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -205,8 +236,12 @@ export default function SettingsPage() {
                     Danger Zone
                 </h3>
                 <p className="text-sm font-medium text-slate-500 mt-2 mb-8 max-w-sm">Account deletion is permanent. All documents, chats, and processing data will be purged.</p>
-                <Button variant="outline" className="text-rose-600 border-rose-100 rounded-2xl hover:bg-rose-50 hover:border-rose-300 font-bold px-8">
-                  Deactivate Account
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="text-rose-600 border-rose-100 rounded-2xl hover:bg-rose-50 hover:border-rose-300 font-bold px-8"
+                >
+                  Delete Account
                 </Button>
               </div>
             </div>
@@ -276,16 +311,71 @@ export default function SettingsPage() {
                 <p className="mb-10 max-w-sm text-sm font-medium leading-relaxed text-[var(--ink-muted)]">
                    Programmatically interact with your documents. Generate API keys to integrate DocWise into your own applications.
                 </p>
-                <div className="flex w-full items-center gap-4 rounded-2xl border border-[rgba(194,91,58,0.16)] bg-[rgba(255,255,255,0.72)] p-4">
+                {hasApiAccess ? (
+                  <div className="flex w-full flex-col items-center gap-4">
+                    <p className="text-sm font-medium text-[var(--ink-muted)]">
+                      Your plan includes API access. Manage keys in the developer settings.
+                    </p>
+                    <Link href="/settings/developer">
+                      <Button className="gap-2 bg-[var(--rust)] text-white hover:bg-[var(--rust-dark)]">
+                        <Key size={16} />
+                        Manage API Keys
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex w-full items-center gap-4 rounded-2xl border border-[rgba(194,91,58,0.16)] bg-[rgba(255,255,255,0.72)] p-4">
                     <Key size={20} className="text-[var(--rust-dark)]" />
-                    <span className="flex-1 text-left text-xs font-bold text-[var(--ink-muted)]">Upgrade to <span className="text-[var(--ink)]">Enterprise Plan</span> to unlock full API capabilities.</span>
-                    <Button size="sm" className="bg-[var(--rust)] text-white hover:bg-[var(--rust-dark)]">Upgrade</Button>
-                </div>
+                    <span className="flex-1 text-left text-xs font-bold text-[var(--ink-muted)]">Upgrade to <span className="text-[var(--ink)]">Pro</span> to unlock API capabilities.</span>
+                    <Link href="/billing">
+                      <Button size="sm" className="bg-[var(--rust)] text-white hover:bg-[var(--rust-dark)]">Upgrade</Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletePassword("");
+        }}
+        title="Delete Account"
+        description="This action is permanent. All documents, chat history, and vectors will be removed. Enter your password to confirm."
+        variant="danger"
+        footer={
+          <>
+            <Button
+              onClick={handleDeleteAccount}
+              loading={isDeleting}
+              className="bg-red-600 hover:bg-red-700 shadow-red-200"
+            >
+              Permanently Delete
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeletePassword("");
+              }}
+            >
+              Cancel
+            </Button>
+          </>
+        }
+      >
+        <Input
+          type="password"
+          label="Confirm Password"
+          placeholder="••••••••"
+          value={deletePassword}
+          onChange={(e) => setDeletePassword(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 }
