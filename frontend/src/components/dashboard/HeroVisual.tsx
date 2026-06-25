@@ -26,7 +26,21 @@ export default function HeroVisual() {
           <div className="w-36 h-4 bg-[rgba(26,24,20,0.06)] rounded-full mx-auto" />
         </div>
 
-        <div className="grid md:grid-cols-[1.15fr_0.85fr] min-h-[420px]">
+        <div className="grid md:grid-cols-[0.55fr_1fr_0.85fr] min-h-[420px]">
+          <div className="hidden border-r border-[rgba(26,24,20,0.08)] bg-[rgba(250,248,244,0.55)] p-4 md:block">
+            <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[var(--ink-faint)]">Workspace</div>
+            <div className="mt-4 space-y-2">
+              {["MSA_2024.pdf", "Security_Policy.docx", "Q3_Report.pdf"].map((doc, index) => (
+                <div
+                  key={doc}
+                  className={`rounded-xl px-3 py-2 text-[10px] font-semibold ${index === 0 ? "bg-brand-50 text-brand-800 border border-brand-200" : "text-[var(--ink-muted)]"}`}
+                >
+                  {doc}
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="p-8 border-r border-[rgba(26,24,20,0.08)] relative">
             <div className="space-y-4">
               <div className="h-6 w-3/4 bg-[rgba(26,24,20,0.08)] rounded-lg" />
@@ -56,7 +70,7 @@ export default function HeroVisual() {
           <div className="bg-[rgba(245,239,231,0.65)] p-6 flex flex-col gap-5">
             <div className="flex gap-3 items-start justify-end">
               <div className="max-w-[220px] rounded-2xl rounded-tr-none border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff7ef_0%,#f7e7d8_100%)] p-3 text-[10px] font-bold text-[var(--ink)] shadow-sm">
-                What are the key financial risks mentioned in the annual report?
+                What termination notice applies under Section 12?
               </div>
             </div>
 
