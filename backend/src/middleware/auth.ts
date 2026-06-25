@@ -1,7 +1,40 @@
+import { createHash } from "crypto";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { Plan, Role } from "@prisma/client";
 import { verifyAccessToken } from '../utils/auth';
 import { prisma } from '../utils/prisma';
+
+async function authenticateApiKey(rawKey: string): Promise<{
+  id: string;
+  role: Role;
+  plan: Plan;
+  trialEndsAt: Date | null;
+} | null> {
+  if (!rawKey.startsWith('dw_')) {
+    return null;
+  }
+
+  const keyHash = createHash('sha256').update(rawKey).digest('hex');
+  const apiKey = await prisma.apiKey.findFirst({
+    where: { keyHash, revokedAt: null },
+    include: {
+      user: {
+        select: { id: true, role: true, plan: true, trialEndsAt: true },
+      },
+    },
+  });
+
+  if (!apiKey) {
+    return null;
+  }
+
+  await prisma.apiKey.update({
+    where: { id: apiKey.id },
+    data: { lastUsedAt: new Date() },
+  });
+
+  return apiKey.user;
+}
 
 export const requireAuth = async (req: FastifyRequest, reply: FastifyReply) => {
   try {
@@ -16,6 +49,21 @@ export const requireAuth = async (req: FastifyRequest, reply: FastifyReply) => {
 
     if (!token) {
       return reply.code(401).send({ error: 'Authentication required' });
+    }
+
+    if (token.startsWith('dw_')) {
+      const apiKeyUser = await authenticateApiKey(token);
+      if (!apiKeyUser) {
+        return reply.code(401).send({ error: 'Invalid or revoked API key' });
+      }
+
+      req.user = {
+        id: apiKeyUser.id,
+        role: apiKeyUser.role as Role,
+        plan: apiKeyUser.plan as Plan,
+        trialEndsAt: apiKeyUser.trialEndsAt,
+      };
+      return;
     }
 
     const decoded = verifyAccessToken(token);

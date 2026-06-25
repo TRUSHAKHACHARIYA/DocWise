@@ -31,6 +31,15 @@ export interface GrowthData {
   }[];
 }
 
+export interface AnalyticsSummary {
+  totalUsers: number;
+  paidUsers: number;
+  conversionRate: number;
+  avgChatLength: number;
+  questionsLast30Days: number;
+  planDistribution: { plan: string; count: number }[];
+}
+
 export interface AuditLog {
   id: string;
   actorId: string | null;
@@ -55,6 +64,7 @@ export interface DeadLetterJob {
 export function useAdmin() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [growthData, setGrowthData] = useState<GrowthData | null>(null);
+  const [analyticsSummary, setAnalyticsSummary] = useState<AnalyticsSummary | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [deadLetterJobs, setDeadLetterJobs] = useState<DeadLetterJob[]>([]);
@@ -80,6 +90,18 @@ export function useAdmin() {
       setGrowthData(response.data);
     } catch (err) {
       console.error("Failed to load growth data", err);
+    }
+  };
+
+  const fetchAnalyticsSummary = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get("/admin/analytics/summary");
+      setAnalyticsSummary(response.data);
+    } catch (err) {
+      toast.error("Error", "Failed to load analytics summary.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,6 +176,7 @@ export function useAdmin() {
   return {
     stats,
     growthData,
+    analyticsSummary,
     users,
     logs,
     deadLetterJobs,
@@ -162,6 +185,7 @@ export function useAdmin() {
     isLoading,
     fetchStats,
     fetchGrowthData,
+    fetchAnalyticsSummary,
     fetchUsers,
     fetchLogs,
     fetchDeadLetterJobs,

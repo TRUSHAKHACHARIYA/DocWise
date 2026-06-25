@@ -124,6 +124,45 @@ export async function adminRoutes(app: FastifyInstance) {
       return reply.send({ usage });
   });
 
+  // Platform summary metrics for analytics dashboard
+  app.get('/analytics/summary', async (_req, reply) => {
+    const totalUsers = await prisma.user.count();
+    const paidUsers = await prisma.user.count({
+      where: { plan: { not: 'FREE' } },
+    });
+
+    const sessionMessageCounts = await prisma.chatSession.findMany({
+      select: { _count: { select: { messages: true } } },
+    });
+
+    const avgChatLength = sessionMessageCounts.length > 0
+      ? sessionMessageCounts.reduce((sum, session) => sum + session._count.messages, 0) / sessionMessageCounts.length
+      : 0;
+
+    const planDistribution = await prisma.user.groupBy({
+      by: ['plan'],
+      _count: { plan: true },
+    });
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentQuestions = await prisma.usageLog.aggregate({
+      where: { month: { gte: thirtyDaysAgo.toISOString().slice(0, 7) } },
+      _sum: { questionsUsed: true },
+    });
+
+    return reply.send({
+      totalUsers,
+      paidUsers,
+      conversionRate: totalUsers > 0 ? Math.round((paidUsers / totalUsers) * 1000) / 10 : 0,
+      avgChatLength: Math.round(avgChatLength * 10) / 10,
+      questionsLast30Days: recentQuestions._sum.questionsUsed ?? 0,
+      planDistribution: planDistribution.map((entry) => ({
+        plan: entry.plan,
+        count: entry._count.plan,
+      })),
+    });
+  });
+
   // NEW: Growth Analytics (Daily stats for last 30 days)
   app.get('/analytics/growth', async (req, reply) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

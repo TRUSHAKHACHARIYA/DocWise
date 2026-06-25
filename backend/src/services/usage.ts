@@ -36,24 +36,37 @@ export const CHECK_LIMITS = {
   FREE: {
     maxDocs: 3,
     maxQuestions: 20,
+    maxStorageMB: 100,
   },
   TRIAL: {
     maxDocs: 50,
     maxQuestions: 500,
+    maxStorageMB: 500,
   },
   STARTER: {
     maxDocs: 20,
     maxQuestions: 200,
+    maxStorageMB: 500,
   },
   PRO: {
     maxDocs: 100,
     maxQuestions: 1000,
+    maxStorageMB: 5000,
   },
   ENTERPRISE: {
     maxDocs: 999999,
     maxQuestions: 999999,
+    maxStorageMB: 50000,
   }
 };
+
+export async function getUserStorageUsedBytes(userId: string): Promise<number> {
+  const result = await prisma.document.aggregate({
+    where: { userId },
+    _sum: { sizeBytes: true },
+  });
+  return result._sum.sizeBytes ?? 0;
+}
 
 /**
  * Get effective limits for a user, considering trial status
