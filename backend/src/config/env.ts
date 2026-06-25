@@ -58,6 +58,10 @@ const envSchema = z.object({
 
 const parsed = envSchema.parse(process.env);
 
+if (parsed.NODE_ENV === "production" && !parsed.DATABASE_URL.startsWith("postgresql")) {
+  throw new Error("Production requires a PostgreSQL DATABASE_URL (postgresql://...)");
+}
+
 export const env = {
   ...parsed,
   CORS_ORIGINS: csvToList(parsed.CORS_ORIGINS),
