@@ -22,12 +22,32 @@ import { incrementUsage } from '../services/usage';
 import createDOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { ensureOwnedDocuments } from '../services/chatAccess';
+import { compareDocuments } from '../services/compare';
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 export async function chatRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireVerified);
+
+  // Compare two or more documents
+  app.post('/compare', { preHandler: [checkQuestionLimit] }, async (req, reply) => {
+    const userId = req.user!.id;
+    const { documentIds, focus } = z.object({
+      documentIds: z.array(z.string().uuid()).min(2).max(5),
+      focus: z.string().max(200).optional(),
+    }).parse(req.body);
+
+    const ownedIds = await ensureOwnedDocuments(userId, documentIds);
+
+    try {
+      const result = await compareDocuments(userId, ownedIds, focus);
+      await incrementUsage(userId, 'questionsUsed');
+      return reply.send(result);
+    } catch (error: any) {
+      return reply.code(400).send({ error: error.message || 'Comparison failed' });
+    }
+  });
 
   // Get all chat sessions
   app.get('/', async (req, reply) => {

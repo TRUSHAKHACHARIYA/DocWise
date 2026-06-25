@@ -7,9 +7,10 @@ import {
   FolderOpen,
   GitCompare,
   Lock,
+  PanelRight,
   Scale,
   ScrollText,
-  Shield,
+  Sparkles,
   Users,
   Zap,
 } from "lucide-react";
@@ -21,7 +22,12 @@ const coreBenefits = [
   {
     icon: Zap,
     title: "Grounded citations",
-    desc: "Every answer links to the exact page and passage—click to verify in the PDF viewer.",
+    desc: "Every answer links to the exact page and passage—click a citation to open the source in the panel.",
+  },
+  {
+    icon: PanelRight,
+    title: "3-panel citation workspace",
+    desc: "Documents, chat, and embedded PDF preview side by side—verify evidence without leaving the thread.",
   },
   {
     icon: FolderOpen,
@@ -29,24 +35,19 @@ const coreBenefits = [
     desc: "Ask across contracts, policies, and reports in one session—not one file at a time.",
   },
   {
-    icon: Shield,
-    title: "Secure workspaces",
-    desc: "Isolated tenant spaces with role-based access so teams stay in control.",
-  },
-  {
     icon: GitCompare,
-    title: "Compare workflows",
-    desc: "Surface differences across document sets with cited evidence (roadmap).",
+    title: "Document comparison",
+    desc: "Select two documents and get a cited summary of differences—ideal for MSAs, policies, and redlines.",
   },
   {
-    icon: Users,
-    title: "Team collaboration",
-    desc: "Shared libraries, admin oversight, and usage visibility for growing teams.",
+    icon: Sparkles,
+    title: "Fast onboarding",
+    desc: "Load sample documents and suggested prompts so new users see value in under a minute.",
   },
   {
     icon: Lock,
     title: "Governance built in",
-    desc: "Audit logs, quotas, and admin analytics for compliance-heavy workflows.",
+    desc: "Audit logs, role-based access, plan quotas, and admin analytics for compliance-heavy workflows.",
   },
 ];
 
@@ -99,16 +100,25 @@ const plans = [
     name: "Pro",
     price: "$49",
     period: "per month",
-    features: ["Unlimited documents", "Unlimited questions", "Multi-doc queries", "API access"],
+    features: ["Unlimited documents", "Unlimited questions", "Multi-doc queries", "Document comparison", "API access"],
     cta: "Start Pro trial",
     highlight: true,
   },
 ];
 
 const proofPoints = [
-  "Grounded answers with source citations",
-  "Ask across multiple documents at once",
-  "Admin controls and audit trails",
+  "3-panel chat with embedded PDF citations",
+  "Compare two documents with cited excerpts",
+  "Sample docs & suggested prompts on day one",
+];
+
+const shippedFeatures = [
+  "Citation panel + PDF highlights",
+  "Multi-document RAG chat",
+  "Document comparison",
+  "Sample onboarding",
+  "Admin audit logs & RBAC",
+  "API keys (Pro+)",
 ];
 
 const trustedTeams = ["Meridian Legal", "Northgate Compliance", "Arxis Research", "Lumina Health", "Crestview Ops", "Meridian Legal", "Northgate Compliance", "Arxis Research", "Lumina Health", "Crestview Ops"];
@@ -134,6 +144,7 @@ export default function LandingPage() {
           </Link>
 
           <div className="hidden gap-8 md:flex">
+            <a href="#features" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">Features</a>
             <a href="#benefits" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">Benefits</a>
             <a href="#use-cases" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">Use cases</a>
             <a href="#how-it-works" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">How it works</a>
@@ -166,7 +177,7 @@ export default function LandingPage() {
               <em className="italic text-brand-600"> with citations you can trust.</em>
             </h1>
             <p className="animate-reveal-up animation-delay-3 mt-6 max-w-xl text-lg leading-8 text-[var(--ink-muted)]">
-              DocWise turns document libraries into secure AI workspaces for teams. Ask questions across multiple documents, verify every answer with citations, and manage access with admin controls.
+              DocWise is a secure multi-document AI workspace: chat across your library with cited answers, verify sources in a 3-panel view, and compare two documents side by side—with admin controls built in.
             </p>
             <div className="animate-reveal-up animation-delay-4 mt-10 flex flex-wrap gap-4">
               <Link href="/register">
@@ -203,7 +214,34 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden border-y border-[rgba(26,24,20,0.08)] bg-[var(--warm-white)] px-6 py-8">
+        <section id="features" className="border-y border-[rgba(26,24,20,0.08)] bg-[var(--warm-white)] px-6 py-14">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-600">In the product today</p>
+                <h2 className="mt-3 font-display text-3xl font-bold tracking-tight md:text-4xl">
+                  Shipped for legal &amp; compliance teams
+                </h2>
+              </div>
+              <p className="max-w-md text-sm leading-7 text-[var(--ink-muted)]">
+                Not a roadmap slide deck—these capabilities are live in DocWise, from citation-backed chat to document comparison.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {shippedFeatures.map((feature) => (
+                <span
+                  key={feature}
+                  className="inline-flex items-center gap-2 rounded-full border border-[rgba(26,24,20,0.10)] bg-[var(--cream)] px-4 py-2 text-sm font-semibold text-[var(--ink-muted)]"
+                >
+                  <Check size={14} className="text-brand-500" />
+                  {feature}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="overflow-hidden border-b border-[rgba(26,24,20,0.08)] bg-[var(--warm-white)] px-6 py-8">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 md:flex-row md:justify-between">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--ink-faint)]">Trusted by legal, research &amp; knowledge teams</span>
             <div className="relative w-full overflow-hidden md:max-w-3xl">
@@ -291,11 +329,12 @@ export default function LandingPage() {
               </h2>
               <div className="mt-10 space-y-0 border-t border-[rgba(26,24,20,0.10)]">
                 {[
-                  ["1", "Upload your library", "Add contracts, policies, reports, and research—PDF or Word."],
+                  ["1", "Upload or try samples", "Add PDFs and Word docs—or load sample MSAs and policies to explore instantly."],
                   ["2", "Ask across documents", "Select multiple files and query your workspace in plain English."],
-                  ["3", "Verify every answer", "Citations jump to the exact page and highlight the source passage."],
+                  ["3", "Verify in the citation panel", "Click any citation to open the source PDF with the passage highlighted."],
+                  ["4", "Compare two versions", "Run a cited comparison on obligations, terms, or policy differences."],
                 ].map(([num, title, desc], index) => (
-                  <div key={title} className={`flex gap-5 border-b border-[rgba(26,24,20,0.10)] py-7 animate-reveal-up ${index === 0 ? "animation-delay-1" : index === 1 ? "animation-delay-2" : "animation-delay-3"}`}>
+                  <div key={title} className={`flex gap-5 border-b border-[rgba(26,24,20,0.10)] py-7 animate-reveal-up ${index === 0 ? "animation-delay-1" : index === 1 ? "animation-delay-2" : index === 2 ? "animation-delay-3" : "animation-delay-4"}`}>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgba(26,24,20,0.18)] bg-[var(--warm-white)] text-sm font-bold text-[var(--ink-muted)]">
                       {num}
                     </div>
@@ -309,28 +348,24 @@ export default function LandingPage() {
             </div>
 
             <div className="rounded-[2rem] border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] p-8 shadow-[0_18px_50px_-24px_rgba(26,24,20,0.28)]">
-              <div className="mb-4 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--rust-dark)]">Live workspace preview</div>
-              <div className="rounded-[1.5rem] border border-dashed border-[rgba(26,24,20,0.18)] bg-[var(--cream)] p-10 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--rust-light)] text-brand-600">
-                  <FolderOpen size={28} />
+              <div className="mb-4 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--rust-dark)]">Compare workflow</div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[1.25rem] border border-brand-200 bg-brand-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-700">MSA_v1.pdf</p>
+                  <p className="mt-2 text-xs italic text-[var(--ink-muted)]">&ldquo;90 days written notice required…&rdquo;</p>
                 </div>
-                <p className="text-lg font-bold">3 documents selected</p>
-                <p className="mt-2 text-sm text-[var(--ink-faint)]">MSA_2024.pdf · Security_Policy.docx · Q3_Report.pdf</p>
+                <div className="rounded-[1.25rem] border border-brand-200 bg-brand-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-700">MSA_v2.pdf</p>
+                  <p className="mt-2 text-xs italic text-[var(--ink-muted)]">&ldquo;60 days written notice required…&rdquo;</p>
+                </div>
               </div>
-              <div className="mt-6 space-y-3">
-                <div className="rounded-2xl bg-[var(--cream)] p-4 text-sm text-[var(--ink-muted)]">
-                  What termination clauses apply if we exit before the renewal date?
-                </div>
-                <div className="rounded-2xl rounded-tl-none border border-[rgba(194,91,58,0.16)] bg-[linear-gradient(180deg,#fff7ef_0%,#f6e3d3_100%)] p-4 text-sm text-[var(--ink)] shadow-[0_18px_30px_-24px_rgba(194,91,58,0.22)]">
-                  Section 12.3 requires 90 days written notice. Early termination triggers a pro-rated fee per Exhibit B.
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <div className="inline-flex rounded-full bg-[var(--sage-light)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--sage)]">
-                      MSA_2024.pdf — p. 14
-                    </div>
-                    <div className="inline-flex rounded-full bg-[var(--sage-light)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--sage)]">
-                      Exhibit B — p. 2
-                    </div>
-                  </div>
+              <div className="mt-4 rounded-2xl bg-[var(--cream)] p-4 text-sm text-[var(--ink-muted)]">
+                <p className="font-semibold text-[var(--ink)]">Termination notice</p>
+                <p className="mt-2 leading-6">Notice period shortened from 90 to 60 days. Early-exit fee language unchanged in Exhibit B.</p>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <div className="inline-flex rounded-full bg-[var(--sage-light)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--sage)]">
+                  Cited excerpts from both docs
                 </div>
               </div>
             </div>
@@ -348,8 +383,8 @@ export default function LandingPage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
               ["DocWise cut our contract review cycle from days to hours—with citations we can defend.", "Sarah Rowe", "General Counsel, Northgate"],
-              ["We query policies and SOPs across departments without losing source traceability.", "Tasha Liu", "Head of Compliance, Arxis"],
-              ["Multi-document research across three years of filings—every claim linked to a page.", "Dr. Marcus Kim", "Research Director, Lumina Health"],
+              ["The compare view surfaced clause drift between two MSAs in minutes, with quotes from both sides.", "Tasha Liu", "Head of Compliance, Arxis"],
+              ["Multi-document research across three years of filings—every claim linked to a page in the citation panel.", "Dr. Marcus Kim", "Research Director, Lumina Health"],
             ].map(([quote, name, role], index) => (
               <div key={name} className={`rounded-[2rem] border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-34px_rgba(26,24,20,0.28)] animate-reveal-up ${index === 0 ? "animation-delay-1" : index === 1 ? "animation-delay-2" : "animation-delay-3"}`}>
                 <p className="font-display text-lg italic leading-8 text-[var(--ink)]">&ldquo;{quote}&rdquo;</p>
@@ -495,6 +530,7 @@ export default function LandingPage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
           <span className="font-display text-xl font-bold">DocWise</span>
           <div className="flex flex-wrap gap-6 text-sm text-[var(--ink-faint)]">
+            <a href="#features" className="hover:text-[var(--ink)]">Features</a>
             <a href="#benefits" className="hover:text-[var(--ink)]">Benefits</a>
             <a href="#use-cases" className="hover:text-[var(--ink)]">Use cases</a>
             <a href="#security" className="hover:text-[var(--ink)]">Security</a>
