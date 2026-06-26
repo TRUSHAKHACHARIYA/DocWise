@@ -23,6 +23,8 @@ import { userRoutes } from "./routes/user";
 import { adminRoutes } from "./routes/admin";
 import { apiKeyRoutes } from "./routes/apiKeys";
 import { feedbackRoutes } from "./routes/feedback";
+import { folderRoutes } from "./routes/folders";
+import { workspaceRoutes } from "./routes/workspaces";
 
 type HttpMetricEntry = {
   count: number;
@@ -138,6 +140,8 @@ export const buildApp = (opts = {}) => {
   app.register(adminRoutes, { prefix: "/api/admin" });
   app.register(apiKeyRoutes, { prefix: "/api/keys" });
   app.register(feedbackRoutes, { prefix: "/api/feedback" });
+  app.register(folderRoutes, { prefix: "/api/folders" });
+  app.register(workspaceRoutes, { prefix: "/api/workspaces" });
 
   app.get("/", async () => {
     return { message: "DocWise API running" };

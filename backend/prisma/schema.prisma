@@ -62,11 +62,14 @@ model User {
   subscription  Subscription?
   apiKeys       ApiKey[]
   feedbacks     Feedback[]
+  workspaces    Workspace[]
+  folders       Folder[]
 }
 
 model Document {
   id         String    @id @default(uuid())
   userId     String
+  folderId   String?
   name       String
   s3Key      String
   sizeBytes  Int
@@ -84,8 +87,11 @@ model Document {
   updatedAt  DateTime  @updatedAt
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder       Folder?       @relation(fields: [folderId], references: [id], onDelete: SetNull)
   chatSessions ChatSessionDoc[]
   chunks       Chunk[]
+
+  @@index([folderId])
 }
 
 model Chunk {
@@ -104,11 +110,12 @@ model Chunk {
 }
 
 model ChatSession {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String   @default("New Chat")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  userId     String
+  title      String   @default("New Chat")
+  sourceOnly Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents ChatSessionDoc[]
@@ -207,4 +214,34 @@ model MessageFeedback {
   createdAt DateTime @default(now())
 
   message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model Workspace {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folders Folder[]
+
+  @@index([userId])
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  userId      String
+  workspaceId String?
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace  Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  documents  Document[]
+
+  @@index([userId])
+  @@index([workspaceId])
 }

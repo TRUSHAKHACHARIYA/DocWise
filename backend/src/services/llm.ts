@@ -7,10 +7,20 @@ const anthropic = new Anthropic({
   apiKey: env.ANTHROPIC_API_KEY,
 });
 
-export async function buildPrompt(systemPrompt: string, history: any[], newQuery: string, sourceChunks: RetrievedChunk[]): Promise<any> {
+export async function buildPrompt(
+  systemPrompt: string,
+  history: any[],
+  newQuery: string,
+  sourceChunks: RetrievedChunk[],
+  sourceOnly = false
+): Promise<any> {
   const contextText = sourceChunks.map((chunk, i) => `[Source ${i + 1}]:\n${chunk.text}`).join('\n\n');
 
-  const finalQuery = `Use the following documents to answer the question. If you don't know the answer, say "I don't have enough information to answer that." Keep it concise.
+  const groundingRule = sourceOnly
+    ? 'Answer ONLY using the CONTEXT below. If the answer is not contained in the context, respond exactly: "I don\'t have enough information in the provided documents to answer that." Do not use outside knowledge. Prefer short quotes from the sources.'
+    : 'If you don\'t know the answer from the context, say "I don\'t have enough information to answer that."';
+
+  const finalQuery = `Use the following documents to answer the question. ${groundingRule} Keep it concise.
 
 CONTEXT:
 ${contextText}
