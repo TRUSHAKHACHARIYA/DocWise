@@ -5,6 +5,7 @@ export type DocStatus = "PROCESSING" | "READY" | "FAILED";
 export interface Document {
   id: string;
   userId: string;
+  folderId?: string | null;
   name: string;
   s3Key: string;
   sizeBytes: number;
@@ -18,6 +19,7 @@ export interface Document {
   retryCount: number;
   createdAt: string;
   updatedAt: string;
+  folder?: { id: string; name: string } | null;
 }
 
 export interface UIDocument {

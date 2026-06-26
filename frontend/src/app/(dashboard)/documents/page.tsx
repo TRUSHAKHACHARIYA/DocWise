@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Filter, Plus, LayoutGrid, List, FileText, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Filter, Plus, LayoutGrid, List, FileText, Trash2, FolderOpen, FolderInput } from "lucide-react";
 import UploadZone from "@/components/documents/UploadZone";
 import DocumentCard from "@/components/documents/DocumentCard";
 import Button from "@/components/ui/Button";
@@ -9,21 +9,38 @@ import Modal from "@/components/ui/Modal";
 import Skeleton from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useFolders } from "@/hooks/useFolders";
+import type { Folder } from "@/types/workspace";
+
+type FolderFilter = "all" | "unfiled" | string;
 
 export default function DocumentsPage() {
-  const { documents, loadDocuments, deleteDocument, deleteBulk, isLoading } = useDocuments();
+  const { documents, loadDocuments, deleteDocument, deleteBulk, moveDocumentsToFolder, isLoading } = useDocuments();
+  const { folders, loadFolders } = useFolders();
   const [searchQuery, setSearchQuery] = useState("");
+  const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showUpload, setShowUpload] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; ids: string[] }>({
     isOpen: false,
     ids: []
   });
 
+  const reloadOptions = useMemo(() => {
+    if (folderFilter === "unfiled") return { unfiled: true };
+    if (folderFilter !== "all") return { folderId: folderFilter };
+    return undefined;
+  }, [folderFilter]);
+
   useEffect(() => {
-    loadDocuments();
+    loadFolders();
   }, []);
+
+  useEffect(() => {
+    loadDocuments(true, reloadOptions);
+  }, [folderFilter]);
 
   const filteredDocs = documents.filter(doc => 
     doc.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -62,17 +79,75 @@ export default function DocumentsPage() {
         setSelectedIds([]);
       }
       setDeleteModal({ isOpen: false, ids: [] });
+      await loadDocuments(false, reloadOptions);
     }
   };
 
+  const confirmMove = async (folderId: string | null) => {
+    await moveDocumentsToFolder(selectedIds, folderId, reloadOptions);
+    setSelectedIds([]);
+    setMoveModalOpen(false);
+    await loadFolders();
+  };
+
+  const folderLabel = (filter: FolderFilter, list: Folder[]) => {
+    if (filter === "all") return "All documents";
+    if (filter === "unfiled") return "Unfiled";
+    return list.find((f) => f.id === filter)?.name || "Folder";
+  };
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="mx-auto flex max-w-7xl gap-6">
+      <aside className="hidden w-56 shrink-0 lg:block">
+        <div className="sticky top-6 rounded-[1.5rem] border border-[rgba(26,24,20,0.10)] bg-[var(--warm-white)] p-4">
+          <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-[var(--ink-faint)]">Folders</p>
+          <div className="space-y-1">
+            {(["all", "unfiled"] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFolderFilter(key)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors",
+                  folderFilter === key
+                    ? "bg-[var(--rust-light)] text-[var(--rust-dark)]"
+                    : "text-[var(--ink-muted)] hover:bg-[var(--cream)]"
+                )}
+              >
+                <FolderOpen size={16} />
+                {key === "all" ? "All documents" : "Unfiled"}
+              </button>
+            ))}
+            {folders.map((folder) => (
+              <button
+                key={folder.id}
+                type="button"
+                onClick={() => setFolderFilter(folder.id)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors",
+                  folderFilter === folder.id
+                    ? "bg-[var(--rust-light)] text-[var(--rust-dark)]"
+                    : "text-[var(--ink-muted)] hover:bg-[var(--cream)]"
+                )}
+              >
+                <span className="flex items-center gap-2 truncate">
+                  <FolderOpen size={16} />
+                  {folder.name}
+                </span>
+                <span className="text-[10px] font-bold text-[var(--ink-faint)]">{folder._count?.documents ?? 0}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      <div className="min-w-0 flex-1 space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight uppercase">Your Knowledge Base</h2>
           <p className="text-slate-500 font-medium mt-1">
-            {isLoading ? "Fetching library..." : "Upload and manage the documents you want DocWise to know about."}
+            {isLoading ? "Fetching library..." : `${folderLabel(folderFilter, folders)} — upload and organize your knowledge base.`}
           </p>
         </div>
         <Button 
@@ -115,6 +190,15 @@ export default function DocumentsPage() {
             >
               <Trash2 size={16} />
               Delete Selected
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setMoveModalOpen(true)}
+              className="gap-2"
+              size="sm"
+            >
+              <FolderInput size={16} />
+              Move to folder
             </Button>
           </div>
         )}
@@ -208,6 +292,41 @@ export default function DocumentsPage() {
         </div>
       )}
 
+      <Modal
+        isOpen={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        title={`Move ${selectedIds.length} document(s)`}
+        description="Choose a folder or move to unfiled."
+        footer={
+          <Button variant="secondary" onClick={() => setMoveModalOpen(false)}>Cancel</Button>
+        }
+      >
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => confirmMove(null)}
+            className="flex w-full items-center gap-2 rounded-xl border border-[rgba(26,24,20,0.10)] px-4 py-3 text-sm font-semibold hover:bg-[var(--cream)]"
+          >
+            <FolderOpen size={16} />
+            Unfiled
+          </button>
+          {folders.map((folder) => (
+            <button
+              key={folder.id}
+              type="button"
+              onClick={() => confirmMove(folder.id)}
+              className="flex w-full items-center gap-2 rounded-xl border border-[rgba(26,24,20,0.10)] px-4 py-3 text-sm font-semibold hover:bg-[var(--cream)]"
+            >
+              <FolderOpen size={16} />
+              {folder.name}
+            </button>
+          ))}
+          {folders.length === 0 && (
+            <p className="text-sm text-[var(--ink-muted)]">Create folders in Workspaces first.</p>
+          )}
+        </div>
+      </Modal>
+
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
@@ -232,6 +351,7 @@ export default function DocumentsPage() {
           </div>
         }
       />
+      </div>
     </div>
   );
 }
