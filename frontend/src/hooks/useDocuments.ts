@@ -18,10 +18,15 @@ export function useDocuments() {
 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadDocuments = async (showLoading = true) => {
+  const loadDocuments = async (showLoading = true, options?: { folderId?: string; unfiled?: boolean }) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await api.get("/documents");
+      const response = await api.get("/documents", {
+        params: {
+          ...(options?.folderId ? { folderId: options.folderId } : {}),
+          ...(options?.unfiled ? { unfiled: "true" } : {}),
+        },
+      });
       setDocuments(response.data.documents);
     } catch (err) {
       setError("Failed to load documents.");
@@ -133,6 +138,26 @@ export function useDocuments() {
     }
   };
 
+  const moveDocumentToFolder = async (documentId: string, folderId: string | null, reloadOptions?: { folderId?: string; unfiled?: boolean }) => {
+    try {
+      await api.patch(`/documents/${documentId}/folder`, { folderId });
+      toast.success("Moved", folderId ? "Document moved to folder." : "Document removed from folder.");
+      await loadDocuments(false, reloadOptions);
+    } catch (error: any) {
+      toast.error("Move failed", error.response?.data?.error || "Could not move document.");
+    }
+  };
+
+  const moveDocumentsToFolder = async (documentIds: string[], folderId: string | null, reloadOptions?: { folderId?: string; unfiled?: boolean }) => {
+    try {
+      await Promise.all(documentIds.map((id) => api.patch(`/documents/${id}/folder`, { folderId })));
+      toast.success("Moved", `${documentIds.length} document(s) updated.`);
+      await loadDocuments(false, reloadOptions);
+    } catch (error: any) {
+      toast.error("Move failed", error.response?.data?.error || "Could not move documents.");
+    }
+  };
+
   return {
     documents,
     isLoading,
@@ -143,5 +168,7 @@ export function useDocuments() {
     deleteDocument,
     deleteBulk,
     loadSampleDocuments,
+    moveDocumentToFolder,
+    moveDocumentsToFolder,
   };
 }
