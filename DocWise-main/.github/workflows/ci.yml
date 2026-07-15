@@ -1,0 +1,70 @@
+name: DocWise CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docwise_test
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Run Prisma migrations
+        run: |
+          cd backend
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/docwise_test"
+        
+      - name: Run typecheck
+        run: npm run typecheck
+        
+      - name: Run backend tests
+        run: |
+          cd backend
+          npx prisma generate
+          npm run test
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/docwise_test"
+          JWT_ACCESS_SECRET: "test-secret-at-least-32-chars-long-123"
+          JWT_REFRESH_SECRET: "test-secret-at-least-32-chars-long-456"
+          
+      - name: Run frontend lint
+        run: |
+          cd frontend
+          npm run lint
+          
+      - name: Run evaluation gate
+        run: |
+          # Note: This requires API keys or mocks. For CI, we often use mocks or skip if keys are missing.
+          # Here we just check if the script runs.
+          npm run eval:gate
+        env:
+          EVAL_MIN_PASS_RATE: 0.7

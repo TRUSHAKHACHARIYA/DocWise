@@ -1,0 +1,38 @@
+{
+  "name": "docwise",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate --workspace backend",
+    "db:setup": "npm run db:up && npm run db:migrate",
+    "typecheck": "npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
+    "test": "npm run test --workspace backend",
+    "lint": "npm run lint --workspace frontend",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "docs:check": "node scripts/check-docs-sync.mjs",
+    "eval:gate": "node scripts/eval-gate.mjs",
+    "perf:budget": "node scripts/perf-budget-check.mjs",
+    "release:check": "node scripts/release-check.mjs",
+    "smoke:e2e": "node scripts/smoke-e2e.mjs",
+    "validate:backend": "npm run typecheck --workspace backend && npm run test --workspace backend",
+    "validate:frontend": "npm run lint --workspace frontend",
+    "validate": "npm run validate:backend && npm run validate:frontend && npm run docs:check && npm run release:check"
+  },
+  "dependencies": {
+    "axios": "^1.15.0",
+    "lucide-react": "^1.7.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "concurrently": "^9.2.1"
+  }
+}

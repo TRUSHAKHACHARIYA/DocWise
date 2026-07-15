@@ -1,0 +1,122 @@
+[
+  {
+    "id": "q1",
+    "question": "What is the primary objective of the DocWise project?",
+    "expected_answer": "The primary objective is to create a secure, high-performance RAG-based document analysis platform using modern technologies like Next.js, Fastify, and Pinecone.",
+    "document_ids": ["doc_main_readme"]
+  },
+  {
+    "id": "q2",
+    "question": "Which LLM model is used for generating responses?",
+    "expected_answer": "Anthropic Claude 3.5 Sonnet is used for intelligent conversation and document analysis.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q3",
+    "question": "How does the system handle document reranking?",
+    "expected_answer": "DocWise uses Cohere Rerank English v3.0 to process top chunks retrieved from Pinecone for improved accuracy.",
+    "document_ids": ["doc_pipeline"]
+  },
+  {
+    "id": "q4",
+    "question": "What is the role of Fastify in the DocWise backend?",
+    "expected_answer": "Fastify is used as the web framework for the backend due to its high performance and low overhead compared to Express.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q5",
+    "question": "What database is used for storing metadata and user information?",
+    "expected_answer": "Prisma is used as the ORM to interact with the database (SQLite in development, PostgreSQL in production).",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q6",
+    "question": "How is multi-tenancy isolated in the vector store?",
+    "expected_answer": "Multi-tenant isolation is achieved using Pinecone namespaces per user or organization.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q7",
+    "question": "What security measures are implemented for file uploads?",
+    "expected_answer": "Upload security includes MIME type validation, magic byte signature checks, and suspicious text payload detection.",
+    "document_ids": ["doc_security"]
+  },
+  {
+    "id": "q8",
+    "question": "What is the purpose of the audit logging system?",
+    "expected_answer": "The audit logging system tracks critical user actions like registrations, logins, and password resets for security and compliance.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q9",
+    "question": "How are usage limits enforced?",
+    "expected_answer": "Usage limits are enforced via middleware that checks the user's plan and consumed quotas before allowing actions like uploading docs or asking questions.",
+    "document_ids": ["doc_billing"]
+  },
+  {
+    "id": "q10",
+    "question": "What is the trial period duration for new users?",
+    "expected_answer": "New users receive a 7-day trial period upon email verification.",
+    "document_ids": ["doc_billing"]
+  },
+  {
+    "id": "q11",
+    "question": "Which service handles email notifications?",
+    "expected_answer": "The Resend service is used for sending transactional emails like verification and password resets.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q12",
+    "question": "How does the system handle large document ingestion to avoid timeouts?",
+    "expected_answer": "Large documents are processed in the background using BullMQ to avoid HTTP request timeouts.",
+    "document_ids": ["doc_pipeline"]
+  },
+  {
+    "id": "q13",
+    "question": "What styling framework is used for the frontend?",
+    "expected_answer": "Vanilla CSS and Tailwind CSS (where requested) are used for styling, with a focus on premium aesthetics.",
+    "document_ids": ["doc_frontend"]
+  },
+  {
+    "id": "q14",
+    "question": "How is the state managed in the React application?",
+    "expected_answer": "Zustand is used for lightweight and efficient state management in the frontend.",
+    "document_ids": ["doc_frontend"]
+  },
+  {
+    "id": "q15",
+    "question": "What is the purpose of the PWA manifest?",
+    "expected_answer": "The PWA manifest allows the application to be installed on devices and provides a more native-like experience.",
+    "document_ids": ["doc_frontend"]
+  },
+  {
+    "id": "q16",
+    "question": "How are real-time responses streamed to the user?",
+    "expected_answer": "Server-Sent Events (SSE) are used to stream LLM responses token-by-token for a dynamic chat experience.",
+    "document_ids": ["doc_pipeline"]
+  },
+  {
+    "id": "q17",
+    "question": "What is the strategy for handling database migrations?",
+    "expected_answer": "Prisma Migrate is used to manage database schema changes and ensure consistency across environments.",
+    "document_ids": ["doc_arch_guide"]
+  },
+  {
+    "id": "q18",
+    "question": "How does the system protect against brute-force attacks on login?",
+    "expected_answer": "The login route is protected by rate limiting and audit logs to detect and prevent brute-force attempts.",
+    "document_ids": ["doc_security"]
+  },
+  {
+    "id": "q19",
+    "question": "What is the role of the Chunker service?",
+    "expected_answer": "The Chunker service splits documents into smaller segments with sliding window and semantic boundary awareness for better retrieval.",
+    "document_ids": ["doc_pipeline"]
+  },
+  {
+    "id": "q20",
+    "question": "How are API keys managed for external integrations?",
+    "expected_answer": "Users can generate, view, and revoke API keys from the developer settings to build custom integrations.",
+    "document_ids": ["doc_arch_guide"]
+  }
+]

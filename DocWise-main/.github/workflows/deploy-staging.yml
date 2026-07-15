@@ -1,0 +1,10 @@
+name: Deploy Staging Alias
+
+on:
+  workflow_dispatch:
+
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Staging deployment is handled in .github/workflows/main.yml"

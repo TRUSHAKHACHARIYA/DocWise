@@ -1,0 +1,28 @@
+INFORMATION SECURITY POLICY (SAMPLE)
+DocWise Demo Document — Internal policy excerpt for onboarding.
+
+1. Purpose
+This policy defines minimum security controls for employees, contractors, and vendors handling company or customer data.
+
+2. Access Control
+2.1 All users must use multi-factor authentication (MFA) for production systems.
+2.2 Access is granted on a least-privilege basis and reviewed quarterly.
+2.3 Shared credentials are prohibited.
+
+3. Vendor Management
+3.1 Third-party vendors with access to confidential data must sign a Data Processing Addendum (DPA).
+3.2 Vendors must provide evidence of annual penetration testing and vulnerability remediation.
+3.3 Critical vendors are subject to annual security questionnaire review.
+
+4. Data Retention and Disposal
+4.1 Customer contracts and audit logs are retained for seven (7) years.
+4.2 Employees must securely delete local copies of confidential documents within thirty (30) days of project closure.
+4.3 Hard drives must be wiped using NIST 800-88 standards before disposal.
+
+5. Incident Response
+5.1 Security incidents must be reported to the Security team within one (1) hour of discovery.
+5.2 Material breaches affecting customer data require customer notification within seventy-two (72) hours where required by law.
+
+6. Acceptable Use
+6.1 Uploading customer data to unapproved AI tools is prohibited without Legal and Security approval.
+6.2 Employees must verify AI-generated answers against source documents before use in compliance workflows.

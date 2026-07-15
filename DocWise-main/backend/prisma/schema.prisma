@@ -1,0 +1,212 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { 
+  USER 
+  ADMIN 
+}
+
+enum Plan { 
+  FREE 
+  STARTER 
+  PRO 
+  ENTERPRISE 
+}
+
+enum DocStatus { 
+  PROCESSING 
+  READY 
+  FAILED 
+}
+
+enum SubStatus { 
+  ACTIVE 
+  CANCELLED 
+  PAST_DUE 
+  TRIALING 
+}
+
+enum MessageRole { 
+  USER 
+  ASSISTANT 
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String
+  name              String
+  role              Role      @default(USER)
+  plan              Plan      @default(FREE)
+  billingCustomerId String?
+  trialEndsAt       DateTime? // When free trial ends
+  verifiedAt        DateTime?
+  verificationToken String?   @unique
+  verificationExpires DateTime?
+  resetPasswordToken  String?   @unique
+  resetPasswordExpires DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  documents     Document[]
+  chatSessions  ChatSession[]
+  usageLogs     UsageLog[]
+  subscription  Subscription?
+  apiKeys       ApiKey[]
+  feedbacks     Feedback[]
+}
+
+model Document {
+  id         String    @id @default(uuid())
+  userId     String
+  name       String
+  s3Key      String
+  sizeBytes  Int
+  mimeType   String
+  chunkCount Int       @default(0)
+  pageCount  Int       @default(0)
+  status     DocStatus @default(PROCESSING)
+  detailedStatus String?
+  progress   Int       @default(0)
+  errorReason String?
+  retryCount  Int       @default(0)
+
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatSessions ChatSessionDoc[]
+  chunks       Chunk[]
+}
+
+model Chunk {
+  id         String   @id @default(uuid())
+  documentId String
+  userId     String   // Denormalized for fast filtering by user
+  text       String
+  textSearch Unsupported("tsvector")? // Full-text search vector
+  startIndex Int
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([textSearch], type: Gin)
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents ChatSessionDoc[]
+  messages  Message[]
+}
+
+model ChatSessionDoc {
+  sessionId  String
+  documentId String
+
+  session  ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  document Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, documentId])
+}
+
+model Message {
+  id          String      @id @default(uuid())
+  sessionId   String
+  role        MessageRole
+  content     String
+  sources     Json?       // [{chunkId, text, page, score, docName}]
+  tokensUsed  Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  feedback MessageFeedback?
+}
+
+model UsageLog {
+  id              String   @id @default(uuid())
+  userId          String
+  month           String   // "2025-01"
+  questionsUsed   Int      @default(0)
+  tokensUsed      Int      @default(0)
+  docsUploaded    Int      @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+}
+
+model Subscription {
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  gatewaySubId      String    @unique
+  plan              Plan
+  status            SubStatus
+  currentPeriodEnd  DateTime
+  createdAt         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  userId     String
+  keyHash    String    @unique
+  name       String
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
+}
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  type      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MessageFeedback {
+  id        String   @id @default(uuid())
+  messageId String   @unique
+  isPositive Boolean
+  comment   String?
+  createdAt DateTime @default(now())
+
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
