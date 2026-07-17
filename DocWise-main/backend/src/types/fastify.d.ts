@@ -1,5 +1,5 @@
 import 'fastify';
-import { Plan, Role } from "@prisma/client";
+import { Plan, Role, OrgRole } from "@prisma/client";
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -8,6 +8,10 @@ declare module 'fastify' {
       role: Role;
       plan: Plan;
       trialEndsAt?: Date | null;
+    };
+    org?: {
+      organizationId: string;
+      membershipRole: OrgRole;
     };
   }
 }

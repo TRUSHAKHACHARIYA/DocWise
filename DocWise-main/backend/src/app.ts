@@ -22,6 +22,7 @@ import { userRoutes } from "./routes/user";
 import { adminRoutes } from "./routes/admin";
 import { apiKeyRoutes } from "./routes/apiKeys";
 import { feedbackRoutes } from "./routes/feedback";
+import { organizationRoutes } from "./routes/organizations";
 
 type HttpMetricEntry = {
   count: number;
@@ -53,14 +54,16 @@ export const buildApp = (opts = {}) => {
     max: 100,
     timeWindow: "15 minutes",
     keyGenerator: (req: any) => {
-      // Peek at the Authorization header to extract user ID for per-user rate limiting.
-      // This runs at onRequest before auth middleware populates req.user, so we decode
-      // the JWT payload without verification — safe for rate-limiting key only.
+      // Peek at the Authorization header or accessToken cookie to extract user ID for
+      // per-user rate limiting. This runs at onRequest before auth middleware populates
+      // req.user, so we decode the JWT payload without verification — safe for
+      // rate-limiting key only (not used for auth decisions).
       if (req.user?.id) return req.user.id;
-      const authHeader = req.headers?.authorization;
-      if (authHeader?.startsWith('Bearer ')) {
+      const token = req.headers?.authorization?.startsWith('Bearer ')
+        ? req.headers.authorization.slice(7)
+        : req.cookies?.accessToken;
+      if (token) {
         try {
-          const token = authHeader.slice(7);
           const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
           if (payload?.sub) return payload.sub;
         } catch { /* fall through to IP */ }
@@ -146,6 +149,7 @@ export const buildApp = (opts = {}) => {
   app.register(adminRoutes, { prefix: "/api/admin" });
   app.register(apiKeyRoutes, { prefix: "/api/keys" });
   app.register(feedbackRoutes, { prefix: "/api/feedback" });
+  app.register(organizationRoutes, { prefix: "/api/organizations" });
 
   app.get("/", async () => {
     return { message: "DocWise API running" };

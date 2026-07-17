@@ -38,24 +38,23 @@ function parsePeriodEndToUnix(value: unknown): number {
 
 /**
  * Check if a webhook event has already been processed.
- * Uses a simple in-memory set with TTL for idempotency.
- * For production, consider a database-backed approach.
+ * Uses database-backed idempotency that survives restarts and works across instances.
  */
-const processedEvents = new Map<string, number>();
-const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-function isEventProcessed(eventId: string): boolean {
-  const timestamp = processedEvents.get(eventId);
-  if (!timestamp) return false;
-  if (Date.now() - timestamp > IDEMPOTENCY_TTL_MS) {
-    processedEvents.delete(eventId);
+async function isEventProcessed(eventId: string): Promise<boolean> {
+  const existing = await prisma.webhookEvent.findUnique({ where: { eventId } });
+  if (!existing) return false;
+  const hoursSince = (Date.now() - existing.processedAt.getTime()) / (1000 * 60 * 60);
+  if (hoursSince > 24) {
+    await prisma.webhookEvent.delete({ where: { eventId } });
     return false;
   }
   return true;
 }
 
-function markEventProcessed(eventId: string): void {
-  processedEvents.set(eventId, Date.now());
+async function markEventProcessed(eventId: string, payload?: any): Promise<void> {
+  await prisma.webhookEvent.create({
+    data: { eventId, payload: payload ?? undefined }
+  });
 }
 
 export async function webhookRoutes(app: FastifyInstance) {
@@ -101,7 +100,7 @@ export async function webhookRoutes(app: FastifyInstance) {
 
     // Idempotency: generate event ID from gatewaySubId + eventType + periodEnd
     const eventId = `${gatewaySubId}:${eventType}:${periodEndUnix}`;
-    if (isEventProcessed(eventId)) {
+    if (await isEventProcessed(eventId)) {
       logger.info(`Webhook event already processed, skipping`, { eventId, eventType });
       return reply.code(200).send({ received: true, idempotent: true });
     }
@@ -125,7 +124,7 @@ export async function webhookRoutes(app: FastifyInstance) {
       : status || 'active';
 
     await syncUserPlan(userId, gatewaySubId, planId || 'FREE', normalizedStatus, periodEndUnix);
-    markEventProcessed(eventId);
+    await markEventProcessed(eventId, payload);
 
     return reply.send({ received: true });
   });

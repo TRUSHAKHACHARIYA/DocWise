@@ -13,6 +13,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const docCount = await prisma.document.count();
     const chatCount = await prisma.chatSession.count();
     const messageCount = await prisma.message.count();
+    const orgCount = await prisma.organization.count();
 
     // Get recently active users (last 7 days)
     const activeUsers = await prisma.user.count({
@@ -30,6 +31,7 @@ export async function adminRoutes(app: FastifyInstance) {
       docCount,
       chatCount,
       messageCount,
+      orgCount,
       activeUsers,
       planDistribution: planDistribution.map(p => ({
           plan: p.plan,

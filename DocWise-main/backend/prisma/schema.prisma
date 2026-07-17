@@ -39,6 +39,12 @@ enum MessageRole {
   ASSISTANT 
 }
 
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 model User {
   id                String    @id @default(uuid())
   email             String    @unique
@@ -62,11 +68,14 @@ model User {
   subscription  Subscription?
   apiKeys       ApiKey[]
   feedbacks     Feedback[]
+  memberships   Membership[]
+  ownedOrgs     Organization[]
 }
 
 model Document {
   id         String    @id @default(uuid())
   userId     String
+  organizationId String?
   name       String
   s3Key      String
   sizeBytes  Int
@@ -84,8 +93,11 @@ model Document {
   updatedAt  DateTime  @updatedAt
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   chatSessions ChatSessionDoc[]
   chunks       Chunk[]
+
+  @@index([organizationId])
 }
 
 model Chunk {
@@ -108,13 +120,17 @@ model Chunk {
 model ChatSession {
   id        String   @id @default(uuid())
   userId    String
+  organizationId String?
   title     String   @default("New Chat")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   documents ChatSessionDoc[]
   messages  Message[]
+
+  @@index([organizationId])
 }
 
 model ChatSessionDoc {
@@ -209,4 +225,45 @@ model MessageFeedback {
   createdAt DateTime @default(now())
 
   message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  ownerId   String
+  plan      Plan     @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members     Membership[]
+  documents   Document[]
+  chatSessions ChatSession[]
+
+  @@index([ownerId])
+}
+
+model Membership {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           OrgRole @default(MEMBER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid())
+  eventId   String   @unique
+  processedAt DateTime @default(now())
+  payload   Json?
+
+  @@index([processedAt])
 }

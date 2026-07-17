@@ -10,6 +10,7 @@ import {
   LogOut,
   Sparkles,
   Zap,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUsage } from "@/hooks/useUsage";
@@ -19,6 +20,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Documents", href: "/documents", icon: Files },
   { name: "Chat", href: "/chat", icon: MessageSquare },
+  { name: "Teams", href: "/team", icon: Users },
   { name: "Billing", href: "/billing", icon: Zap },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

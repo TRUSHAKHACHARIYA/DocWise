@@ -1,4 +1,5 @@
 import { prisma } from '../utils/prisma';
+import { Prisma } from '@prisma/client';
 
 export const getCurrentMonth = () => {
   const now = new Date();
@@ -43,13 +44,17 @@ export const tryIncrementUsage = async (
     create: { userId, month, questionsUsed: 0, docsUploaded: 0 },
   });
 
-  // Conditional update: only increment if current value + amount <= limit
+  // Conditional update: only increment if current value + amount <= limit.
+  // Use Prisma.raw() for column name since $executeRaw binds all ${...} as parameters,
+  // which Postgres cannot use in a SET clause. Column name is safe because `type` only
+  // ever comes from our own code (not user input).
+  const column = type === 'docsUploaded' ? Prisma.raw('"docsUploaded"') : Prisma.raw('"questionsUsed"');
   const result = await prisma.$executeRaw`
     UPDATE "UsageLog"
-    SET ${type} = ${type} + ${amount}
+    SET ${column} = ${column} + ${amount}
     WHERE "userId" = ${userId}
       AND "month" = ${month}
-      AND ${type} + ${amount} <= ${limit}
+      AND ${column} + ${amount} <= ${limit}
   `;
 
   return result > 0;

@@ -24,6 +24,7 @@ import { ingestionQueue } from '../services/queue';
 import { scrapeUrl } from '../services/scraper';
 import { deleteVectorsByDocumentId } from '../services/vectorStore';
 import { looksSuspiciousTextPayload, validateUploadMimeType, validateUploadSignature } from '../utils/uploadSecurity';
+import { resolveOrgContext } from '../middleware/organization';
 
 export async function documentRoutes(app: FastifyInstance) {
   app.register(multipart, {
@@ -33,6 +34,7 @@ export async function documentRoutes(app: FastifyInstance) {
   });
 
   app.addHook('preHandler', requireVerified);
+  app.addHook('preHandler', resolveOrgContext);
   
   app.post('/upload', { preHandler: [checkDocumentLimit, checkStorageLimit] }, async (req, reply) => {
     const data = await req.file();
@@ -41,6 +43,7 @@ export async function documentRoutes(app: FastifyInstance) {
     }
 
     const userId = req.user!.id;
+    const organizationId = req.org?.organizationId ?? null;
     const buffer = await data.toBuffer();
     const sizeBytes = buffer.length;
 
@@ -64,6 +67,7 @@ export async function documentRoutes(app: FastifyInstance) {
       const document = await prisma.document.create({
         data: {
           userId,
+          organizationId,
           name: data.filename,
           s3Key: key,
           sizeBytes,
@@ -91,6 +95,7 @@ export async function documentRoutes(app: FastifyInstance) {
   app.post('/ingest-url', { preHandler: [checkDocumentLimit] }, async (req, reply) => {
     const { url } = z.object({ url: z.string().url() }).parse(req.body);
     const userId = req.user!.id;
+    const organizationId = req.org?.organizationId ?? null;
 
     try {
       // 1. Scrape content
@@ -100,6 +105,7 @@ export async function documentRoutes(app: FastifyInstance) {
       const document = await prisma.document.create({
         data: {
           userId,
+          organizationId,
           name: title,
           s3Key: `web/${userId}/${Date.now()}-${title.substring(0, 20)}.txt`,
           sizeBytes: Buffer.byteLength(text),
@@ -127,8 +133,14 @@ export async function documentRoutes(app: FastifyInstance) {
 
   app.get('/', async (req, reply) => {
     const userId = req.user!.id;
+    const orgId = req.org?.organizationId;
+
+    const where = orgId
+      ? { OR: [{ userId }, { organizationId: orgId }] }
+      : { userId };
+
     const documents = await prisma.document.findMany({
-      where: { userId },
+      where,
       orderBy: { createdAt: 'desc' }
     });
 
@@ -140,7 +152,7 @@ export async function documentRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
 
     const document = await prisma.document.findFirst({
-      where: { id, userId }
+      where: { id, OR: [{ userId }, { organizationId: req.org?.organizationId }] }
     });
 
     if (!document) {
@@ -169,7 +181,7 @@ export async function documentRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
 
     const document = await prisma.document.findFirst({
-      where: { id, userId }
+      where: { id, OR: [{ userId }, { organizationId: req.org?.organizationId }] }
     });
 
     if (!document) {
@@ -194,7 +206,7 @@ export async function documentRoutes(app: FastifyInstance) {
 
     try {
       const documents = await prisma.document.findMany({
-        where: { id: { in: ids }, userId }
+        where: { id: { in: ids }, OR: [{ userId }, { organizationId: req.org?.organizationId }] }
       });
 
       // Cleanup files and vectors in parallel
@@ -204,7 +216,7 @@ export async function documentRoutes(app: FastifyInstance) {
       }));
 
       const result = await prisma.document.deleteMany({
-        where: { id: { in: ids }, userId }
+        where: { id: { in: ids }, OR: [{ userId }, { organizationId: req.org?.organizationId }] }
       });
 
       return reply.send({ 

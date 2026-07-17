@@ -21,18 +21,26 @@ import { checkQuestionLimit } from '../middleware/usageLimits';
 import createDOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { ensureOwnedDocuments } from '../services/chatAccess';
+import { resolveOrgContext } from '../middleware/organization';
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 export async function chatRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireVerified);
+  app.addHook('preHandler', resolveOrgContext);
 
   // Get all chat sessions
   app.get('/', async (req, reply) => {
     const userId = req.user!.id;
+    const orgId = req.org?.organizationId;
+
+    const where = orgId
+      ? { OR: [{ userId }, { organizationId: orgId }] }
+      : { userId };
+
     const sessions = await prisma.chatSession.findMany({
-      where: { userId },
+      where,
       orderBy: { updatedAt: 'desc' },
       include: {
         messages: {
@@ -47,6 +55,7 @@ export async function chatRoutes(app: FastifyInstance) {
   // Create new session
   app.post('/', async (req, reply) => {
     const userId = req.user!.id;
+    const organizationId = req.org?.organizationId ?? null;
     const { documentIds, title } = z.object({
       documentIds: z.array(z.string()).optional(),
       title: z.string().optional()
@@ -57,6 +66,7 @@ export async function chatRoutes(app: FastifyInstance) {
     const session = await prisma.chatSession.create({
       data: {
         userId,
+        organizationId,
         title: title || 'New Chat',
       }
     });
@@ -77,9 +87,14 @@ export async function chatRoutes(app: FastifyInstance) {
   app.get('/:sessionId', async (req, reply) => {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
+    const orgId = req.org?.organizationId;
+
+    const where = orgId
+      ? { id: sessionId, OR: [{ userId }, { organizationId: orgId }] }
+      : { id: sessionId, userId };
 
     const session = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId },
+      where,
       include: {
         messages: {
           orderBy: { createdAt: 'asc' }
@@ -102,9 +117,12 @@ export async function chatRoutes(app: FastifyInstance) {
       documentIds: z.array(z.string())
     }).parse(req.body);
 
-    const session = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId }
-    });
+    const orgId = req.org?.organizationId;
+    const where = orgId
+      ? { id: sessionId, OR: [{ userId }, { organizationId: orgId }] }
+      : { id: sessionId, userId };
+
+    const session = await prisma.chatSession.findFirst({ where });
 
     if (!session) return reply.code(404).send({ error: 'Session not found' });
 
@@ -137,8 +155,13 @@ export async function chatRoutes(app: FastifyInstance) {
 
     const content = DOMPurify.sanitize(rawContent);
 
+    const orgId = req.org?.organizationId;
+    const where = orgId
+      ? { id: sessionId, OR: [{ userId }, { organizationId: orgId }] }
+      : { id: sessionId, userId };
+
     const session = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId },
+      where,
       include: {
         documents: true,
         messages: {
@@ -262,9 +285,12 @@ export async function chatRoutes(app: FastifyInstance) {
       title: z.string().min(1).max(100).trim()
     }).parse(req.body);
 
-    const session = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId }
-    });
+    const orgId = req.org?.organizationId;
+    const where = orgId
+      ? { id: sessionId, OR: [{ userId }, { organizationId: orgId }] }
+      : { id: sessionId, userId };
+
+    const session = await prisma.chatSession.findFirst({ where });
 
     if (!session) return reply.code(404).send({ error: 'Session not found' });
 
@@ -281,9 +307,12 @@ export async function chatRoutes(app: FastifyInstance) {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
 
-    const session = await prisma.chatSession.findFirst({
-      where: { id: sessionId, userId }
-    });
+    const orgId = req.org?.organizationId;
+    const where = orgId
+      ? { id: sessionId, OR: [{ userId }, { organizationId: orgId }] }
+      : { id: sessionId, userId };
+
+    const session = await prisma.chatSession.findFirst({ where });
 
     if (!session) return reply.code(404).send({ error: 'Session not found' });
 

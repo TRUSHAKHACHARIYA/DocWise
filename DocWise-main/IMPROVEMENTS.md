@@ -11,7 +11,7 @@ This document tracks completed improvements and the next highest-value follow-up
 - The client uses credentialed requests so cookie-based auth works consistently.
 - SSRF protection blocks requests to private/reserved IP ranges and localhost.
 - Prompt injection defense: retrieved content wrapped in XML tags with system-prompt instructions.
-- Webhook idempotency prevents duplicate event processing.
+- Webhook idempotency is database-backed (survives restarts, works across instances).
 
 ### Reliability
 - Document and URL ingestion run in the background instead of blocking the request.
@@ -24,6 +24,15 @@ This document tracks completed improvements and the next highest-value follow-up
 - Streamed real-time ingestion progress (percentage and detailed status) to the UI.
 - Integrated `tesseract.js` for OCR support on images (PNG, JPG, WEBP).
 - BullMQ jobs pass S3 keys instead of full file buffers to reduce Redis memory usage.
+
+### Team/Organization Layer (Phase 1 Complete)
+- Organization and Membership models for multi-tenant team support.
+- Role-based access: OWNER, ADMIN, MEMBER with appropriate permission levels.
+- Org-scoped document and chat access via `x-org-id` header.
+- Organization CRUD routes with member invite, role update, and removal.
+- Organization ownership auto-transfer on user deletion (or org cleanup if empty).
+- Full team management UI: create orgs, invite members, manage roles, view stats.
+- Admin dashboard now shows organization count in platform stats.
 
 ### API and Config
 - Frontend API base URL handling is centralized in one shared helper.
@@ -49,30 +58,27 @@ This document tracks completed improvements and the next highest-value follow-up
 
 ## Suggested Next Steps
 
-### 1. Team/Organization Layer
-- Add Organization and Membership models for multi-tenant team support.
-- Org-scoped document/chat/API-key access controls.
-- Invite flow, org admin panel, and org-level billing.
-
-### 2. Enterprise/Legal Buyer Readiness
+### 1. Enterprise/Legal Buyer Readiness
 - Written data retention and deletion policy.
 - Encryption-at-rest documentation for S3/R2 and Postgres.
 - Trust/security page with sub-processor list and incident contact.
 - SOC 2 roadmap statement.
 - DPA template ready on request.
 
-### 3. Design and Polish
+### 2. Design and Polish
 - Accessibility audit (contrast, focus states, ARIA labels).
 - Empty/loading/error state polish across all pages.
 - Mobile responsiveness pass on the 3-panel chat workspace.
 - Dark mode consistency check.
 
-### 4. Additional Features
+### 3. Additional Features
 - Document comparison mode for version diffing.
 - Answer confidence indicators from retrieval/rerank scores.
 - Conversation-level export as cited PDF/Markdown.
 - Semantic caching for repeated questions.
 - Google Drive / SharePoint / Notion import integrations.
 - Slack/Teams bot integration.
+- Org-level billing and plan management.
+- Webhook/event system for org activity notifications.
 
 Last Updated: July 15, 2026
