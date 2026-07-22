@@ -23,14 +23,17 @@ export async function upsertVectors(namespace: string, vectors: Array<{ id: stri
   }
 }
 
-export async function queryVectors(namespace: string, queryEmbedding: number[], topK = 5, documentIds?: string[]) {
-  const filter = documentIds && documentIds.length > 0 ? { documentId: { "$in": documentIds } } : undefined;
-
+export async function queryVectors(
+  namespace: string,
+  queryEmbedding: number[],
+  topK = 5,
+  filters?: Record<string, any>,
+) {
   const results = await index.namespace(namespace).query({
     vector: queryEmbedding,
     topK,
     includeMetadata: true,
-    filter,
+    filter: filters && Object.keys(filters).length > 0 ? filters : undefined,
   });
 
   return results.matches;

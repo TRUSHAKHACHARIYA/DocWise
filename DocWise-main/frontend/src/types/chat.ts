@@ -16,6 +16,7 @@ export interface Message {
   role: MessageRole;
   content: string;
   sources?: MessageSource[];
+  confidence?: number;
   tokensUsed: number;
   createdAt: string;
 }

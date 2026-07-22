@@ -125,50 +125,55 @@ export const ingestionQueue = {
 };
 
 export const initWorker = () => {
-  const worker = new Worker<IngestionJobData>(
-    queueName,
-    async (job) => {
-      await processIngestionData(job.name, job.data, job.attemptsMade);
-    },
-    { connection: getConnection() }
-  );
+  if (!allowInlineFallback) {
+    const worker = new Worker<IngestionJobData>(
+      queueName,
+      async (job) => {
+        await processIngestionData(job.name, job.data, job.attemptsMade);
+      },
+      { connection: getConnection() }
+    );
 
-  worker.on('completed', (job) => {
-    logger.info(`Ingestion job completed`, { jobId: job.id, name: job.name });
-  });
-
-  worker.on('failed', (job, error) => {
-    logger.error(`Ingestion job failed`, {
-      jobId: job?.id,
-      name: job?.name,
-      error: error?.message,
+    worker.on('completed', (job) => {
+      logger.info(`Ingestion job completed`, { jobId: job.id, name: job.name });
     });
 
-    if (!job) {
-      return;
-    }
-
-    const attempts = job.opts.attempts ?? 1;
-    if (job.attemptsMade >= attempts) {
-      const deadLetterPayload: DeadLetterJobData = {
-        ...job.data,
-        failedReason: error?.message ?? 'Unknown ingestion failure',
-        failedAt: new Date().toISOString(),
-        attemptsMade: job.attemptsMade,
-      };
-
-      getDeadLetterQueue().add(job.name, deadLetterPayload).catch((deadLetterError) => {
-        logger.error('Failed to persist ingestion dead-letter job', {
-          jobId: job.id,
-          name: job.name,
-          error: deadLetterError?.message,
-        });
+    worker.on('failed', (job, error) => {
+      logger.error(`Ingestion job failed`, {
+        jobId: job?.id,
+        name: job?.name,
+        error: error?.message,
       });
-    }
-  });
 
-  logger.info('Background ingestion worker initialized');
-  return worker;
+      if (!job) {
+        return;
+      }
+
+      const attempts = job.opts.attempts ?? 1;
+      if (job.attemptsMade >= attempts) {
+        const deadLetterPayload: DeadLetterJobData = {
+          ...job.data,
+          failedReason: error?.message ?? 'Unknown ingestion failure',
+          failedAt: new Date().toISOString(),
+          attemptsMade: job.attemptsMade,
+        };
+
+        getDeadLetterQueue().add(job.name, deadLetterPayload).catch((deadLetterError) => {
+          logger.error('Failed to persist ingestion dead-letter job', {
+            jobId: job.id,
+            name: job.name,
+            error: deadLetterError?.message,
+          });
+        });
+      }
+    });
+
+    logger.info('Background ingestion worker initialized');
+    return worker;
+  }
+
+  logger.warn('[QUEUE] Redis unavailable in non-production mode. Inline fallback active — no background worker.');
+  return null;
 };
 
 export const getDeadLetterJobs = async () => {

@@ -113,7 +113,18 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-xs text-slate-400 leading-relaxed">
+        By creating an account you agree to our{" "}
+        <Link href="/terms" className="font-semibold text-brand-600 hover:text-brand-700 transition-colors">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="font-semibold text-brand-600 hover:text-brand-700 transition-colors">
+          Privacy Policy
+        </Link>.
+      </p>
+
+      <p className="mt-6 text-center text-sm text-slate-500">
         Already have an account?{" "}
         <Link href="/login" className="font-semibold text-brand-600 hover:text-brand-700 transition-colors">
           Sign in

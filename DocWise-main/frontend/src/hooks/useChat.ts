@@ -179,9 +179,9 @@ export function useChat() {
               appendStreamingToken(data.text);
             }
             if (data.sources) {
-              // Update the assistant message with sources once they arrive (usually first line)
+              // Update the assistant message with sources and confidence once they arrive
               setMessages(useChatStore.getState().messages.map(m => 
-                m.id === aiMessageId ? { ...m, sources: data.sources } : m
+                m.id === aiMessageId ? { ...m, sources: data.sources, confidence: data.confidence } : m
               ));
             }
             if (data.error) {

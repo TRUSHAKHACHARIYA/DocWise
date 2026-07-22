@@ -499,6 +499,8 @@ export default function LandingPage() {
             <a href="#use-cases" className="hover:text-[var(--ink)]">Use cases</a>
             <a href="#security" className="hover:text-[var(--ink)]">Security</a>
             <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
+            <Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link>
+            <Link href="/privacy" className="hover:text-[var(--ink)]">Privacy</Link>
           </div>
           <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--ink-faint)]">
             DocWise © 2026

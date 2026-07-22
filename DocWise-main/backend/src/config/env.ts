@@ -56,6 +56,10 @@ const envSchema = z.object({
 
   REDIS_URL: z.string().default("redis://localhost:6379"),
   SENTRY_DSN: z.string().default(""),
+
+  GOOGLE_CLIENT_ID: z.string().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().default(""),
+  GOOGLE_REDIRECT_URI: z.string().default("http://localhost:4000/api/integrations/google-drive/callback"),
 });
 
 const parsed = envSchema.parse(process.env);

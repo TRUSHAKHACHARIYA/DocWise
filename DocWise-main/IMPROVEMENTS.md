@@ -50,11 +50,23 @@ This document tracks completed improvements and the next highest-value follow-up
 ### Search and Retrieval
 - Postgres full-text search (tsvector + GIN index) replaces LIKE keyword fallback.
 - Keyword match scores use ts_rank relevance instead of arbitrary fixed scores.
+- Token-based chunking (512-token chunks, 64-token overlap) with semantic boundary-aware splitting.
+
+### Infrastructure
+- PostgreSQL migration: database provider switched from SQLite to PostgreSQL with dedicated migration files and GIN index support.
 
 ### Code Quality
 - All services unified to use structured logger (`utils/logger.ts`).
 - Admin and self-service user deletion share a single `cleanupUserData` path.
 - Unused CSRF plugin removed (Bearer + sameSite=strict cookies already provide CSRF protection).
+
+### Chat and Document Flow (continued)
+- PDF citation jump-to-source in chat: clicking a citation in the CitationPanel opens an embedded PDF viewer that scrolls to and highlights the matching passage.
+
+## In Progress
+
+- **Shared workspaces/folders** — branch `feat/phase-b-workspaces-folders` (PR #41, not yet merged). Adds shared document folders and workspace-level permissions.
+- **Document comparison workflows** — design not started. Planned for post-launch.
 
 ## Suggested Next Steps
 
@@ -81,4 +93,4 @@ This document tracks completed improvements and the next highest-value follow-up
 - Org-level billing and plan management.
 - Webhook/event system for org activity notifications.
 
-Last Updated: July 15, 2026
+Last Updated: July 22, 2026

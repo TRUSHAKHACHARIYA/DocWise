@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Sparkles, User, Copy, ThumbsUp, ThumbsDown, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import SourceCard, { Source } from "./SourceCard";
@@ -11,6 +11,7 @@ interface Message {
   role: "user" | "ai";
   content: string;
   sources?: Source[];
+  confidence?: number;
   isStreaming?: boolean;
 }
 
@@ -66,6 +67,33 @@ export default function MessageBubble({ message, activeSource, onSourceClick }: 
         {/* Sources & Actions (only for AI) */}
         {!isUser && !message.isStreaming && (
           <div className="mt-4 w-full space-y-4">
+            {/* Confidence Indicator */}
+            {message.confidence !== undefined && message.confidence > 0 && (
+              <div className="flex items-center gap-2 ml-2">
+                {message.confidence >= 0.7 ? (
+                  <ShieldCheck size={14} className="text-emerald-500" />
+                ) : message.confidence >= 0.4 ? (
+                  <ShieldQuestion size={14} className="text-amber-500" />
+                ) : (
+                  <ShieldAlert size={14} className="text-rose-500" />
+                )}
+                <span className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest",
+                  message.confidence >= 0.7
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : message.confidence >= 0.4
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-rose-600 dark:text-rose-400"
+                )}>
+                  {message.confidence >= 0.7
+                    ? "High confidence"
+                    : message.confidence >= 0.4
+                      ? "Medium confidence"
+                      : "Low confidence"}
+                </span>
+              </div>
+            )}
+
             {/* Feedback / Copy Actions */}
             <div className="flex items-center gap-3 ml-2">
               <button 
