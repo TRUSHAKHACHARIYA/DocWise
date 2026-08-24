@@ -38,6 +38,7 @@ const envSchema = z.object({
   VOYAGE_EMBEDDING_MODEL: z.string().default("voyage-3"),
   COHERE_API_KEY: z.string().default(""),
   COHERE_EMBEDDING_MODEL: z.string().default("embed-multilingual-v3.0"),
+  CHUNKING_STRATEGY: z.enum(["fixed", "recursive", "document"]).optional(),
 
   PINECONE_API_KEY: z.string().min(1, "Missing required env var: PINECONE_API_KEY"),
   PINECONE_INDEX: z.string().min(1, "Missing required env var: PINECONE_INDEX"),

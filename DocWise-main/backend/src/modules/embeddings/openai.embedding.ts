@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { EmbeddingProvider } from './index';
+import { EmbeddingProvider } from './embedding.interface';
 
 export class OpenAIEmbeddingProvider implements EmbeddingProvider {
   private client: OpenAI;

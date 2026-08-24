@@ -13,11 +13,11 @@ vi.mock("../utils/prisma", () => ({
   },
 }));
 
-vi.mock("../services/chunker", () => ({
+vi.mock("../modules/chunking/chunker.factory", () => ({
   chunkText: vi.fn(),
 }));
 
-vi.mock("../services/embedder", () => ({
+vi.mock("../modules/embeddings", () => ({
   embedChunks: vi.fn(),
 }));
 
@@ -40,15 +40,15 @@ vi.mock("../utils/logger", () => ({
 }));
 
 import { prisma } from "../utils/prisma";
-import { chunkText } from "../services/chunker";
-import { embedChunks } from "../services/embedder";
+import { chunkText } from "../modules/chunking/chunker.factory";
+import { embedChunks } from "../modules/embeddings";
 import { upsertVectors } from "../services/vectorStore";
 import {
   generateDocumentSummary,
   extractDocumentMetadata,
   generateChunkContext,
 } from "../services/llm";
-import { processTextIngestion } from "../services/ingestion";
+import { processTextIngestion } from "../modules/ingestion/ingestion.service";
 
 describe("Summary Indexing", () => {
   beforeEach(() => {

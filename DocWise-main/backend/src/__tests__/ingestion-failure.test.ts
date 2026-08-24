@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { processTextIngestion } from "../services/ingestion";
+import { processTextIngestion } from "../modules/ingestion/ingestion.service";
 import { prisma } from "../utils/prisma";
 
 vi.mock("../utils/prisma", () => ({
@@ -13,11 +13,11 @@ vi.mock("../utils/prisma", () => ({
   },
 }));
 
-vi.mock("../services/chunker", () => ({
+vi.mock("../modules/chunking/chunker.factory", () => ({
   chunkText: vi.fn(() => [{ text: "chunk", startIndex: 0 }]),
 }));
 
-vi.mock("../services/embedder", () => ({
+vi.mock("../modules/embeddings", () => ({
   embedChunks: vi.fn(async () => {
     throw new Error("embedding failed");
   }),

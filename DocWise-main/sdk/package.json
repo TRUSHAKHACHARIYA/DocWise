@@ -4,9 +4,11 @@
   "description": "TypeScript SDK for the DocWise Retrieval API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "node init && tsc",
     "prepublishOnly": "npm run build",
     "typecheck": "tsc --noEmit"
   },
