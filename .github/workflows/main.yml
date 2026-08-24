@@ -9,6 +9,21 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docwise_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -17,8 +32,22 @@ jobs:
           node-version: '20'
       - name: Install root dependencies
         run: npm ci
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: backend
       - name: Validate repo
         run: npm run validate
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/docwise_test"
+          JWT_ACCESS_SECRET: "test-secret-at-least-32-chars-long-123"
+          JWT_REFRESH_SECRET: "test-secret-at-least-32-chars-long-456"
+          OPENAI_API_KEY: "test-openai-key"
+          S3_ENDPOINT: "https://s3.local"
+          S3_ACCESS_KEY_ID: "test-access-key"
+          S3_SECRET_ACCESS_KEY: "test-secret-key"
+          S3_BUCKET_NAME: "test-bucket"
+          PINECONE_API_KEY: "test-pinecone-key"
+          PINECONE_INDEX: "test-index"
 
   backend_build:
     runs-on: ubuntu-latest
