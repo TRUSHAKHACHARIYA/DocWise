@@ -1,5 +1,5 @@
-import { getDefaultEmbeddingProvider } from './embeddings/factory';
-import { logger } from '../utils/logger';
+import { getDefaultEmbeddingProvider } from './embedding.factory';
+import { logger } from '../../utils/logger';
 
 let embeddingProvider: ReturnType<typeof getDefaultEmbeddingProvider>;
 

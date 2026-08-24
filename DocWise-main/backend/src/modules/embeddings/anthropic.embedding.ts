@@ -1,4 +1,4 @@
-import { EmbeddingProvider } from './index';
+import { EmbeddingProvider } from './embedding.interface';
 import axios from 'axios';
 import { logger } from '../../utils/logger';
 

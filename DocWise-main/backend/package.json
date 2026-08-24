@@ -2,10 +2,10 @@
   "name": "docwise-backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "ts-node-dev --respawn src/server.ts",
+    "dev": "node init && ts-node-dev --respawn src/server.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "node init && tsc",
+    "start": "node init && node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
