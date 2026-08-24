@@ -1,7 +1,7 @@
-import { EmbeddingProvider, EmbeddingProviderType } from './index';
-import { OpenAIEmbeddingProvider } from './openai';
-import { AnthropicEmbeddingProvider } from './anthropic';
-import { CohereEmbeddingProvider } from './cohere';
+import { EmbeddingProvider, EmbeddingProviderType } from './embedding.interface';
+import { OpenAIEmbeddingProvider } from './openai.embedding';
+import { AnthropicEmbeddingProvider } from './anthropic.embedding';
+import { CohereEmbeddingProvider } from './cohere.embedding';
 import { env } from '../../config/env';
 
 /**
@@ -17,7 +17,7 @@ export function createEmbeddingProvider(type: EmbeddingProviderType = 'openai'):
         env.OPENAI_API_KEY,
         env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
       );
-    
+
     case 'anthropic':
       if (!env.VOYAGE_API_KEY) {
         throw new Error('VOYAGE_API_KEY is required for Anthropic/Voyage embedding provider');
@@ -26,7 +26,7 @@ export function createEmbeddingProvider(type: EmbeddingProviderType = 'openai'):
         env.VOYAGE_API_KEY,
         env.VOYAGE_EMBEDDING_MODEL || 'voyage-3'
       );
-    
+
     case 'cohere':
       if (!env.COHERE_API_KEY) {
         throw new Error('COHERE_API_KEY is required for Cohere embedding provider');
@@ -35,7 +35,7 @@ export function createEmbeddingProvider(type: EmbeddingProviderType = 'openai'):
         env.COHERE_API_KEY,
         env.COHERE_EMBEDDING_MODEL || 'embed-multilingual-v3.0'
       );
-    
+
     default:
       throw new Error(`Unsupported embedding provider type: ${type}`);
   }

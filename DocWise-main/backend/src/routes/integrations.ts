@@ -3,8 +3,8 @@ import { google } from 'googleapis';
 import { prisma } from '../utils/prisma';
 import { requireAuth } from '../middleware/auth';
 import { getGoogleAuthUrl, exchangeCode, refreshAccessToken, listDocuments, downloadFile } from '../services/googleDrive';
-import { extractText } from '../services/parser';
-import { processTextIngestion } from '../services/ingestion';
+import { parseDocument } from '../modules/ingestion/parsers/parser.factory';
+import { processTextIngestion } from '../modules/ingestion/ingestion.service';
 import { uploadFile } from '../services/fileStorage';
 import { logger } from '../utils/logger';
 
@@ -167,8 +167,11 @@ export async function integrationRoutes(app: FastifyInstance) {
           });
 
           // Parse and ingest
-          const parsed = await extractText(buffer, file.mimeType, file.name);
-          await processTextIngestion(userId, document.id, parsed.text, parsed.pageCount ?? 0, parsed.pages);
+          const parsed = await parseDocument(buffer, file.mimeType, file.name);
+          await processTextIngestion(userId, document.id, parsed.text, parsed.pageCount ?? 0, parsed.pages, {
+            structure: parsed.structure,
+            structuralMetadata: parsed.metadata,
+          });
 
           filesProcessed++;
         } catch (err: any) {
