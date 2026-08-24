@@ -8,17 +8,17 @@ export interface EmbeddingProvider {
    * Generate embeddings for multiple text chunks
    */
   embedChunks(chunks: string[]): Promise<number[][]>;
-  
+
   /**
    * Generate embedding for a single query
    */
   embedQuery(query: string): Promise<number[]>;
-  
+
   /**
    * Get the dimension of embeddings produced by this provider
    */
   getDimensions(): number;
-  
+
   /**
    * Get the name/model identifier for this provider
    */

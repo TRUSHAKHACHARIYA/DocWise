@@ -1,19 +1,26 @@
-import { prisma } from '../utils/prisma';
-import { chunkText } from './chunker';
-import { embedChunks } from './embedder';
-import { upsertVectors } from './vectorStore';
-import { logger } from '../utils/logger';
+import { prisma } from '../../utils/prisma';
+import { chunkText } from '../chunking/chunker.factory';
+import { embedChunks } from '../embeddings';
+import { upsertVectors } from '../../services/vectorStore';
+import { logger } from '../../utils/logger';
+import { DocumentStructure } from './parsers/parser.types';
+
+export interface IngestionExtras {
+  structure?: DocumentStructure;
+  structuralMetadata?: Record<string, unknown>;
+}
 
 export async function processTextIngestion(
   userId: string,
   documentId: string,
   text: string,
   pageCount: number = 0,
-  pages?: string[]
+  pages?: string[],
+  extras?: IngestionExtras
 ) {
   try {
     logger.info(`Starting ingestion for document ${documentId}`, { userId, pageCount });
-    
+
     await prisma.document.update({
       where: { id: documentId },
       data: { detailedStatus: 'Chunking text...', progress: 10 }
@@ -27,6 +34,17 @@ export async function processTextIngestion(
         const pageChunks = chunkText(pageText);
         allChunks.push(...pageChunks.map(c => ({ ...c, pageNumber })));
       });
+    } else if (extras?.structure && extras.structure.sections.length > 1) {
+      // Structure-aware chunking: chunk each detected section separately
+      // so chunks never straddle section boundaries.
+      for (const section of extras.structure.sections) {
+        const sectionBody = section.title ? `${section.title}\n\n${section.content}` : section.content;
+        const sectionChunks = chunkText(sectionBody);
+        allChunks.push(...sectionChunks.map(c => ({
+          ...c,
+          startIndex: section.startIndex + c.startIndex,
+        })));
+      }
     } else {
       allChunks = chunkText(text);
     }
@@ -67,14 +85,14 @@ export async function processTextIngestion(
         userId,
         text: chunk.text,
         startIndex: chunk.startIndex,
-        pageNumber: chunk.pageNumber
+        pageNumber: chunk.pageNumber ?? null
       }));
 
       await prisma.chunk.createMany({ data: dbChunks });
 
       await prisma.document.update({
         where: { id: documentId },
-        data: { 
+        data: {
           status: 'READY',
           detailedStatus: 'Complete',
           progress: 100,
