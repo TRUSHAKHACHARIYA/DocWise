@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const supertest = require("supertest");
 const { buildApp } = require("../dist/app.js");
 const { prisma } = require("../dist/utils/prisma.js");
-const { chunkText } = require("../dist/services/chunker.js");
+const { chunkText } = require("../dist/modules/chunking/index.js");
 const {
   validateUploadMimeType,
   validateUploadSignature,

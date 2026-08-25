@@ -1,8 +1,8 @@
 import { Queue, Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import { env } from '../config/env';
-import { extractText } from './parser';
-import { processTextIngestion } from './ingestion';
+import { parseDocument } from '../modules/ingestion/parsers/parser.factory';
+import { processTextIngestion } from '../modules/ingestion/ingestion.service';
 import { prisma } from '../utils/prisma';
 import { logger } from '../utils/logger';
 
@@ -78,8 +78,11 @@ async function processIngestionData(name: string, data: IngestionJobData, attemp
   try {
     if (name === 'process-file') {
       const fileData = data as FileIngestionJob;
-      const parsed = await extractText(fileData.buffer, fileData.mimetype, fileData.filename);
-      await processTextIngestion(userId, documentId, parsed.text, parsed.pageCount ?? 0, parsed.pages);
+      const parsed = await parseDocument(fileData.buffer, fileData.mimetype, fileData.filename);
+      await processTextIngestion(userId, documentId, parsed.text, parsed.pageCount ?? 0, parsed.pages, {
+        structure: parsed.structure,
+        structuralMetadata: parsed.metadata,
+      });
       return;
     }
 

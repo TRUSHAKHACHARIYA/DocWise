@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { chunkText, estimateTokenCount } from '../services/chunker';
-import { isLikelyScannedPdf } from '../services/parser';
+import { chunkText, estimateTokenCount } from '../modules/chunking';
+import { isLikelyScannedPdf } from '../modules/ingestion/parsers/pdf.parser';
 
 describe('Document Ingestion Pipeline', () => {
   describe('Chunker Service', () => {

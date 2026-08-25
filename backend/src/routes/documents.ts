@@ -17,8 +17,6 @@ import { z } from 'zod';
 import { prisma } from '../utils/prisma';
 import { uploadFile, getFileUrl, deleteFile } from '../services/fileStorage';
 import { requireVerified } from '../middleware/auth';
-import { extractText } from '../services/parser';
-import { processTextIngestion } from '../services/ingestion';
 import { checkDocumentLimit } from '../middleware/usageLimits';
 import { incrementUsage } from '../services/usage';
 import { ingestionQueue } from '../services/queue';

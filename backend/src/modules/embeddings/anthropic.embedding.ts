@@ -1,5 +1,6 @@
-import { EmbeddingProvider } from './index';
+import { EmbeddingProvider } from './embedding.interface';
 import axios from 'axios';
+import { logger } from '../../utils/logger';
 
 /**
  * Anthropic-aligned Embedding Provider (via Voyage AI)
@@ -34,8 +35,8 @@ export class AnthropicEmbeddingProvider implements EmbeddingProvider {
 
       return response.data.data.map((item: any) => item.embedding);
     } catch (error: any) {
-      console.error('Voyage (Anthropic) embedding failed:', error.response?.data || error.message);
-      throw new Error(`Failed to generate Anthropic-aligned embeddings: ${error.message}`);
+      logger.error('Voyage embedding failed', { error: error.response?.data || error.message });
+      throw new Error(`Failed to generate Voyage embeddings: ${error.message}`);
     }
   }
 
@@ -58,13 +59,13 @@ export class AnthropicEmbeddingProvider implements EmbeddingProvider {
 
       return response.data.data[0].embedding;
     } catch (error: any) {
-      console.error('Voyage (Anthropic) query embedding failed:', error.response?.data || error.message);
-      throw new Error(`Failed to generate Anthropic-aligned query embedding: ${error.message}`);
+      logger.error('Voyage query embedding failed', { error: error.response?.data || error.message });
+      throw new Error(`Failed to generate Voyage query embeddings: ${error.message}`);
     }
   }
 
   getDimensions(): number {
-    return 1024; // Voyage-2 dimension
+    return 1024;
   }
 
   getModelName(): string {

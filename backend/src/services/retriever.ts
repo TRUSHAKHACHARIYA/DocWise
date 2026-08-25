@@ -1,5 +1,5 @@
 import { queryVectors, VectorMetadata } from './vectorStore';
-import { embedQuery } from './embedder';
+import { embedQuery } from '../modules/embeddings';
 import { rerankChunks } from './reranker';
 import { prisma } from '../utils/prisma';
 

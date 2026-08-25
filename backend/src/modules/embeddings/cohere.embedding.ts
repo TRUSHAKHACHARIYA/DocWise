@@ -1,5 +1,5 @@
 import { Cohere } from 'cohere-ai';
-import { EmbeddingProvider } from './index';
+import { EmbeddingProvider } from './embedding.interface';
 
 export class CohereEmbeddingProvider implements EmbeddingProvider {
   private client: any;
