@@ -18,6 +18,28 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Concurrent requests that all 401 at once must share a single refresh call —
+// otherwise each one independently POSTs /auth/refresh, and the resulting
+// race can rotate the refresh token cookie out from under a request that's
+// still in flight.
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+      .then((response) => {
+        const { accessToken } = response.data;
+        useAuthStore.getState().setAccessToken(accessToken);
+        return accessToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -27,13 +49,7 @@ api.interceptors.response.use(
       original._retry = true;
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
-          withCredentials: true,
-        });
-
-        const { accessToken } = response.data;
-        useAuthStore.getState().setAccessToken(accessToken);
-
+        const accessToken = await refreshAccessToken();
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
       } catch {

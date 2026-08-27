@@ -9,6 +9,7 @@ vi.mock("../utils/prisma", () => ({
     },
     chunk: {
       createMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
   },
 }));
@@ -25,6 +26,7 @@ vi.mock("../modules/embeddings", () => ({
 
 vi.mock("../services/vectorStore", () => ({
   upsertVectors: vi.fn(),
+  deleteVectorsByDocumentId: vi.fn(),
 }));
 
 vi.mock("../utils/logger", () => ({

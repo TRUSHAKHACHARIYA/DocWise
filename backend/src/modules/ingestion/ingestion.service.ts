@@ -1,7 +1,7 @@
 import { prisma } from '../../utils/prisma';
 import { chunkText } from '../chunking/chunker.factory';
 import { embedChunks } from '../embeddings';
-import { upsertVectors } from '../../services/vectorStore';
+import { upsertVectors, deleteVectorsByDocumentId } from '../../services/vectorStore';
 import { logger } from '../../utils/logger';
 import { DocumentStructure } from './parsers/parser.types';
 
@@ -20,6 +20,13 @@ export async function processTextIngestion(
 ) {
   try {
     logger.info(`Starting ingestion for document ${documentId}`, { userId, pageCount });
+
+    // A retry (BullMQ backoff or a manual dead-letter retry) re-runs this whole
+    // pipeline from scratch. Clear out any chunks/vectors a previous attempt
+    // already wrote so retries don't produce duplicate chunk rows or leave
+    // stale vectors behind when the new run produces fewer chunks.
+    await prisma.chunk.deleteMany({ where: { documentId } });
+    await deleteVectorsByDocumentId(userId, documentId);
 
     await prisma.document.update({
       where: { id: documentId },
