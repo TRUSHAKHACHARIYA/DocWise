@@ -163,7 +163,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     await prisma.user.delete({ where: { id: userId } });
 
-    reply.clearCookie('refreshToken', { path: '/' });
+    reply.clearCookie('refresh_token', { path: '/api/auth/refresh' });
     return reply.send({ message: 'Account deleted successfully' });
   });
 }

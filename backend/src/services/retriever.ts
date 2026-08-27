@@ -71,7 +71,7 @@ export async function retrieveRelevantChunks(
   // 5. Fetch document names for titles
   const foundDocIds = Array.from(new Set(initialChunks.map(c => c.documentId)));
   const docs = await prisma.document.findMany({
-    where: { id: { in: foundDocIds } },
+    where: { id: { in: foundDocIds }, userId },
     select: { id: true, name: true }
   });
   const docMap = new Map(docs.map(d => [d.id, d.name]));
