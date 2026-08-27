@@ -10,6 +10,8 @@ import {
   LogOut,
   Sparkles,
   Zap,
+  GitCompare,
+  FolderOpen,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUsage } from "@/hooks/useUsage";
@@ -19,6 +21,8 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Documents", href: "/documents", icon: Files },
   { name: "Chat", href: "/chat", icon: MessageSquare },
+  { name: "Compare", href: "/compare", icon: GitCompare },
+  { name: "Workspaces", href: "/workspaces", icon: FolderOpen },
   { name: "Billing", href: "/billing", icon: Zap },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

@@ -31,19 +31,28 @@ This document tracks completed improvements and the next highest-value follow-up
 - Duplicate document links are deduplicated before write.
 - Session rename updates now use the latest store state instead of a stale closure.
 
+### Product (2026)
+- **3-panel citation workspace**: documents sidebar, chat thread, and embedded PDF citation panel with source highlighting.
+- **Fast onboarding**: sample MSA and security policy documents plus suggested prompt chips on chat.
+- **Document comparison**: select two ready documents and get a cited summary of differences (`/compare`).
+- **Landing page**: homepage, hero, and auth marketing copy aligned to shipped features (citations, compare, onboarding).
+- **Workspaces & folders**: named workspaces, folders, document organization, and folder filters on Documents.
+- **Source-only chat mode**: per-session toggle for stricter grounding from retrieved passages only.
+- **PostgreSQL**: production-ready metadata store with Prisma migrations (local via Docker Compose).
+- **Token-based chunking**: 512-token chunks with overlap for improved retrieval.
+
 ## Suggested Next Steps
 
-### 1. PostgreSQL Migration
-- Move the current SQLite-backed metadata store to PostgreSQL for better concurrency and production resilience.
+### 1. Briefing & Analytics
+- One-click briefing generator and citation click analytics.
 
+### 2. GTM Pages
+- Dedicated use-case, security, and competitor comparison landing pages.
 
-### 3. Smarter Ingestion
-- Add token-based chunking for more precise context sizing.
+### 3. Team Sharing
+- Shared workspace members and document-level permissions.
 
-### 4. Better UX
-- Add PDF citation jump-to-source behavior for chat answers.
-
-### 5. Search and Retrieval
+### 4. Search and Retrieval
 - Explore hybrid search or metadata-aware retrieval for queries that mix semantic search with filters.
 
-Last Updated: April 23, 2026
+Last Updated: June 25, 2026

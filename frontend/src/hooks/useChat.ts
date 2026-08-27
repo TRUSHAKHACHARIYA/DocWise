@@ -45,9 +45,15 @@ export function useChat() {
   const fetchSessionMessages = async (sessionId: string) => {
     try {
       const response = await api.get(`/chat/${sessionId}`);
-      setMessages(response.data.session.messages);
+      const session = response.data.session;
+      setMessages(session.messages);
+      setSessions(useChatStore.getState().sessions.map((s) =>
+        s.id === sessionId ? { ...s, ...session } : s
+      ));
+      return session;
     } catch (err) {
       toast.error("Error", "Failed to load messages.");
+      return null;
     }
   };
 
@@ -208,6 +214,17 @@ export function useChat() {
     setStreaming(false);
   };
 
+  const updateSessionSettings = async (sessionId: string, settings: { sourceOnly?: boolean }) => {
+    try {
+      const response = await api.patch(`/chat/${sessionId}`, settings);
+      setSessions(useChatStore.getState().sessions.map((s) =>
+        s.id === sessionId ? { ...s, ...response.data.session } : s
+      ));
+    } catch {
+      toast.error("Error", "Failed to update session settings.");
+    }
+  };
+
   const submitMessageFeedback = async (messageId: string, isPositive: boolean, comment?: string) => {
     if (!activeSessionId) return;
     try {
@@ -232,6 +249,7 @@ export function useChat() {
     deleteSession,
     renameSession,
     updateSessionDocuments,
+    updateSessionSettings,
     sendMessage,
     submitMessageFeedback,
     cancelStream,
