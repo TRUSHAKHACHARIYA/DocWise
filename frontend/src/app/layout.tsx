@@ -3,6 +3,7 @@ import { DM_Sans, DM_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import AuthInitializer from "@/components/auth/AuthInitializer";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -69,6 +70,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <AuthInitializer />
           {children}
           <ToastContainer />
         </ThemeProvider>
