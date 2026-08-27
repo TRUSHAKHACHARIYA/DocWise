@@ -37,7 +37,7 @@ export async function getStreamingLLMResponse(
   reply: FastifyReply
 ): Promise<string> {
   const stream = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: env.ANTHROPIC_MODEL,
     max_tokens: 1024,
     system: systemPrompt,
     messages: messages,
@@ -59,11 +59,12 @@ export async function getStreamingLLMResponse(
 
 export async function getSimpleLLMResponse(
   systemPrompt: string,
-  messages: any[]
+  messages: any[],
+  maxTokens = 1024
 ): Promise<string> {
   const response = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 1024,
+    model: env.ANTHROPIC_MODEL,
+    max_tokens: maxTokens,
     system: systemPrompt,
     messages: messages,
   });

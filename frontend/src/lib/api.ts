@@ -26,11 +26,20 @@ let refreshPromise: Promise<string> | null = null;
 
 function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
+    const csrfToken = useAuthStore.getState().csrfToken;
     refreshPromise = axios
-      .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+      .post(
+        `${API_BASE_URL}/auth/refresh`,
+        {},
+        {
+          withCredentials: true,
+          headers: csrfToken ? { "x-csrf-token": csrfToken } : undefined,
+        }
+      )
       .then((response) => {
-        const { accessToken } = response.data;
+        const { accessToken, csrfToken: nextCsrfToken } = response.data;
         useAuthStore.getState().setAccessToken(accessToken);
+        useAuthStore.getState().setCsrfToken(nextCsrfToken);
         return accessToken;
       })
       .finally(() => {
@@ -64,4 +73,5 @@ api.interceptors.response.use(
   }
 );
 
+export { refreshAccessToken };
 export default api;

@@ -40,6 +40,14 @@ const refreshSchema = z.object({
 });
 
 export async function authRoutes(app: FastifyInstance) {
+  // Public: mints a CSRF token (and its backing secret cookie) for a browser
+  // that doesn't have one yet. The SPA calls this once on boot, before it has
+  // any session, so it can attach a valid x-csrf-token to the silent
+  // /auth/refresh call that resumes a session from the httpOnly cookie.
+  app.get('/csrf', async (_req, reply) => {
+    return reply.send({ csrfToken: reply.generateCsrf() });
+  });
+
   app.post('/register', async (req, reply) => {
     try {
       const { email, password, name } = registerSchema.parse(req.body);
@@ -119,14 +127,15 @@ export async function authRoutes(app: FastifyInstance) {
       });
 
       return reply.send({
-        user: { 
-          id: user.id, 
-          email: user.email, 
-          name: user.name, 
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
           plan: user.plan,
-          verified: !!user.verifiedAt 
+          verified: !!user.verifiedAt
         },
         accessToken: tokens.accessToken,
+        csrfToken: reply.generateCsrf(),
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -137,7 +146,12 @@ export async function authRoutes(app: FastifyInstance) {
     }
   });
 
-  app.post('/refresh', async (req, reply) => {
+  // The refresh token cookie is httpOnly and sent automatically by the browser,
+  // so this is the one mutating endpoint authenticated purely by a cookie —
+  // require a matching CSRF token (issued alongside the access token at
+  // login/verify/refresh) so a cross-site request can't trigger a token
+  // rotation on a logged-in user's behalf.
+  app.post('/refresh', { preHandler: app.csrfProtection }, async (req, reply) => {
     try {
       const refreshToken = req.cookies.refresh_token;
       
@@ -162,7 +176,7 @@ export async function authRoutes(app: FastifyInstance) {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      return reply.send({ accessToken: tokens.accessToken });
+      return reply.send({ accessToken: tokens.accessToken, csrfToken: reply.generateCsrf() });
     } catch (error) {
       return reply.code(401).send({ error: 'Invalid or expired refresh token' });
     }
@@ -209,6 +223,7 @@ export async function authRoutes(app: FastifyInstance) {
         message: 'Email verified successfully',
         user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
         accessToken: tokens.accessToken,
+        csrfToken: reply.generateCsrf(),
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
