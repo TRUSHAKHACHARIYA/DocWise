@@ -94,7 +94,21 @@ export async function webhookRoutes(app: FastifyInstance) {
       ? 'cancelled'
       : status || 'active';
 
-    await syncUserPlan(userId, gatewaySubId, planId || 'FREE', normalizedStatus, periodEndUnix);
+    try {
+      await syncUserPlan(userId, gatewaySubId, planId || 'FREE', normalizedStatus, periodEndUnix);
+    } catch (error: any) {
+      // A customerId from the payload that doesn't match a real user (a
+      // stale/test webhook, a manually-cleared account) throws Prisma's
+      // "record not found" — that's not a transient failure NMI should
+      // retry, so acknowledge it the same way the other invalid-payload
+      // branches above do rather than 500ing and triggering retry storms.
+      if (error?.code === 'P2025') {
+        app.log.warn({ userId, gatewaySubId }, 'NMI webhook referenced a user that no longer exists; ignoring.');
+        return reply.code(200).send({ received: true, ignored: true, reason: 'unknown_user' });
+      }
+      throw error;
+    }
+
     return reply.send({ received: true });
   });
 }

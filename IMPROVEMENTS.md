@@ -54,6 +54,12 @@ This document tracks completed improvements and the next highest-value follow-up
 - Added a folder filter to the chat sidebar's document picker (reusing the existing folders feature) with a "select all in this folder" action — a lightweight, metadata-aware way to scope retrieval without hand-picking every file.
 - Verified PDF citation jump-to-source (page jump + excerpt highlighting in the embedded viewer) is already fully implemented end-to-end; removed the stale "Better UX" and "Search and Retrieval" suggestions that predated that verification.
 
+### Production hardening
+- The chat LLM model was hardcoded (and duplicated) as `claude-3-5-sonnet-20241022` in two places; it's now a single `ANTHROPIC_MODEL` env var (default `claude-sonnet-5`), so upgrading the model no longer needs a code change.
+- Document comparison (`/compare`) called `JSON.parse` on the LLM's raw output with no error handling, and capped the response at 1024 tokens for a payload that can include up to 6 differences with excerpts — a truncated or malformed response threw an unhandled `SyntaxError` back to the user instead of a clean fallback. Raised the budget to 2048 tokens and added a fallback to the raw text on parse failure.
+- The NMI webhook handler didn't catch the case where a payload's `customer_id` doesn't match an existing user (a stale/test webhook, a manually-deleted account) — `prisma.user.update` throws, which surfaced as a 500 and would trigger NMI's retry storm indefinitely. Now caught and acknowledged the same way the handler's other invalid-payload branches already are.
+- Reviewed the newly-merged workspaces/folders/compare routes for the ownership-scoping and input-validation issues found in the original review pass — all clean, no further findings.
+
 ## Suggested Next Steps
 
 ### 1. Briefing & Analytics

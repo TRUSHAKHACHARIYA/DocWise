@@ -64,7 +64,9 @@ Include 3-6 meaningful differences with cited excerpts. ${focusLine}`;
     },
   ];
 
-  const raw = await getSimpleLLMResponse(systemPrompt, messages);
+  // 3-6 differences with excerpts can run past the default 1024-token cap and
+  // get cut off mid-JSON, so this call gets more headroom than a plain chat reply.
+  const raw = await getSimpleLLMResponse(systemPrompt, messages, 2048);
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
 
   if (!jsonMatch) {
@@ -74,7 +76,7 @@ Include 3-6 meaningful differences with cited excerpts. ${focusLine}`;
     };
   }
 
-  const parsed = JSON.parse(jsonMatch[0]) as {
+  let parsed: {
     summary: string;
     differences: Array<{
       topic: string;
@@ -83,6 +85,17 @@ Include 3-6 meaningful differences with cited excerpts. ${focusLine}`;
       docBExcerpt: string;
     }>;
   };
+
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    // The model can still truncate or malform JSON even with the larger
+    // token budget above — fall back to the raw text instead of throwing.
+    return {
+      summary: raw,
+      differences: [],
+    };
+  }
 
   return {
     summary: parsed.summary,

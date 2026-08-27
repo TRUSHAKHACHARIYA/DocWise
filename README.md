@@ -13,7 +13,7 @@ DocWise is a premium SaaS platform for legal, compliance, and research teams. Qu
 ## ✨ Key Features
 
 ### 🧠 Intelligent RAG Pipeline
--   **Context-Aware Chat**: Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`) for high-quality, grounded reasoning.
+-   **Context-Aware Chat**: Claude Sonnet 5 (`claude-sonnet-5`, configurable via `ANTHROPIC_MODEL`) for high-quality, grounded reasoning.
 -   **Source Citations**: Every answer includes clickable excerpts; citations jump to and highlight the source passage in the PDF viewer.
 -   **Multi-Document Analysis**: Select multiple files in the sidebar to query across your entire knowledge base simultaneously.
 -   **Semantic Search**: Powered by Pinecone vector storage with configurable embeddings (OpenAI, Anthropic, or Cohere).
@@ -50,7 +50,7 @@ See [`docs/PLAN.md`](docs/PLAN.md) for the full strategic roadmap.
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS, Zustand, Axios |
 | **Backend** | Fastify, Node.js 20+, TypeScript 6.0, Prisma ORM |
-| **AI/ML** | Claude 3.5 Sonnet, OpenAI/Anthropic/Cohere Embeddings, Cohere Rerank v3 |
+| **AI/ML** | Claude Sonnet 5, OpenAI/Anthropic/Cohere Embeddings, Cohere Rerank v3 |
 | **Database** | PostgreSQL (local via Docker / Neon / Supabase in prod), Pinecone (Vector), Redis (Queue & RL) |
 | **Security** | JWT (HttpOnly Cookies), API Keys (`dw_...`), Bcrypt, Helmet, Redis Rate Limiting, Audit Logs |
 | **Storage** | AWS S3 / R2 for file storage |
@@ -297,7 +297,7 @@ graph TB
         EMBEDDINGS[OpenAI Embeddings]
         VEC_STORE[Pinecone Vector DB]
         RERANK[Cohere Rerank v3]
-        CLAUDE[Claude 3.5 Sonnet]
+        CLAUDE[Claude Sonnet 5]
     end
 
     %% SaaS Infrastructure
@@ -436,7 +436,7 @@ graph TB
 | Feature Category | Core Components | User Benefits | Technical Implementation |
 |-----------------|-----------------|----------------|-------------------------|
 | **📄 Document Processing** | PDF Parser, OCR, Word Parser, Token Chunker, File Storage | Upload any document, automatic text extraction including scanned PDFs | pdf-parse, Tesseract OCR, Mammoth.js, 512/64 token chunking, AWS S3/R2 |
-| **🤖 AI-Powered Chat** | RAG Pipeline, Claude LLM, Citations + PDF Highlight | Get accurate answers with clickable, highlighted sources | Claude 3.5 Sonnet, Embeddings, Pinecone, Cohere Rerank |
+| **🤖 AI-Powered Chat** | RAG Pipeline, Claude LLM, Citations + PDF Highlight | Get accurate answers with clickable, highlighted sources | Claude Sonnet 5, Embeddings, Pinecone, Cohere Rerank |
 | **🔍 Smart Search** | Semantic Search, Vector DB, Multi-doc analysis | Find information across all documents | Pinecone Vector Search, Similarity Matching |
 | **👥 User Management** | Authentication, API Keys, Roles, Subscription plans | Secure access with tiered features and programmatic API | JWT, API keys (`dw_...`), bcrypt, NMI Integration |
 | **💳 Billing System** | Payment processing, Usage tracking, Webhooks | Automated billing with usage limits | NMI Tokenized Checkout, Customer Portal |
@@ -650,7 +650,7 @@ Key production environment variables include:
 - **Planned**: Markdown, plain text, web pages
 
 ### AI Model Configuration
-- **Primary LLM**: Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
+- **Primary LLM**: Claude Sonnet 5 (`claude-sonnet-5`, configurable via `ANTHROPIC_MODEL`)
 - **Embeddings**: Configurable via `EMBEDDING_PROVIDER` — OpenAI (`text-embedding-3-small`), Anthropic (`claude-embedding-3`), or Cohere (`embed-multilingual-v3.0`)
 - **Chunking**: 512 tokens per chunk, 64-token overlap
 - **Reranking**: Cohere Rerank v3 for improved relevance

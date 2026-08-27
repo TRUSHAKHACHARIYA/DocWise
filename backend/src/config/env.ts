@@ -29,6 +29,8 @@ const envSchema = z.object({
   S3_BUCKET_NAME: z.string().min(1, "Missing required env var: S3_BUCKET_NAME"),
   S3_REGION: z.string().default("auto"),
 
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-5"),
+
   EMBEDDING_PROVIDER: z.enum(["openai", "anthropic", "cohere"]).default("openai"),
   OPENAI_API_KEY: z.string().default(""),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
