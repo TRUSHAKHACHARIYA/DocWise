@@ -24,6 +24,7 @@ export interface ChatSession {
   id: string;
   userId: string;
   title: string;
+  sourceOnly?: boolean;
   createdAt: string;
   updatedAt: string;
   messages?: Message[];

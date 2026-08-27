@@ -22,15 +22,24 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "DocWise - AI-Powered Document Q&A",
+    default: "DocWise — Secure Multi-Document AI Workspace",
     template: "%s | DocWise",
   },
   description:
-    "Upload any PDF or document. Ask questions in plain English. Get accurate, cited answers instantly.",
-  keywords: ["document AI", "PDF chat", "RAG", "document Q&A", "AI assistant"],
+    "Grounded answers with citations across your document library. Multi-doc chat, 3-panel citation workspace, and document comparison for legal, compliance, and research teams.",
+  keywords: [
+    "document intelligence",
+    "multi-document AI",
+    "contract review",
+    "RAG",
+    "cited answers",
+    "document comparison",
+    "compliance",
+  ],
   openGraph: {
-    title: "DocWise - AI-Powered Document Q&A",
-    description: "Chat with your documents. Get cited answers powered by Claude.",
+    title: "DocWise — Secure Multi-Document AI Workspace",
+    description:
+      "Chat across your library with cited answers, verify sources in a 3-panel workspace, and compare documents side by side.",
     type: "website",
   },
 };

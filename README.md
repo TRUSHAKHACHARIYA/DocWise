@@ -40,11 +40,7 @@ DocWise is a premium SaaS platform for legal, compliance, and research teams. Qu
 -   **Developer Settings**: API key management UI at `/settings/developer` for Pro+ users.
 
 ### 🗺️ Roadmap (In Progress)
-See [`docs/PLAN.md`](docs/PLAN.md) for the full strategic roadmap. Upcoming priorities:
--   Document comparison workflows
--   Shared team workspaces, folders, and collections
--   Persistent 3-panel citation workspace
--   GTM landing pages (use cases, security, comparisons)
+See [`docs/PLAN.md`](docs/PLAN.md) for the full strategic roadmap.
 
 ---
 

@@ -128,12 +128,52 @@ export async function documentRoutes(app: FastifyInstance) {
 
   app.get('/', async (req, reply) => {
     const userId = req.user!.id;
+    const { folderId, unfiled } = z.object({
+      folderId: z.string().uuid().optional(),
+      unfiled: z.enum(['true', 'false']).optional(),
+    }).parse(req.query);
+
     const documents = await prisma.document.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' }
+      where: {
+        userId,
+        ...(folderId ? { folderId } : {}),
+        ...(unfiled === 'true' ? { folderId: null } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        folder: { select: { id: true, name: true } },
+      },
     });
 
     return reply.send({ documents });
+  });
+
+  app.patch('/:id/folder', async (req, reply) => {
+    const userId = req.user!.id;
+    const { id } = req.params as { id: string };
+    const { folderId } = z.object({
+      folderId: z.string().uuid().nullable(),
+    }).parse(req.body);
+
+    const document = await prisma.document.findFirst({ where: { id, userId } });
+    if (!document) {
+      return reply.code(404).send({ error: 'Document not found' });
+    }
+
+    if (folderId) {
+      const folder = await prisma.folder.findFirst({ where: { id: folderId, userId } });
+      if (!folder) {
+        return reply.code(404).send({ error: 'Folder not found' });
+      }
+    }
+
+    const updated = await prisma.document.update({
+      where: { id },
+      data: { folderId },
+      include: { folder: { select: { id: true, name: true } } },
+    });
+
+    return reply.send({ document: updated });
   });
 
   app.delete('/:id', async (req, reply) => {

@@ -22,12 +22,32 @@ import { incrementUsage } from '../services/usage';
 import createDOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import { ensureOwnedDocuments } from '../services/chatAccess';
+import { compareDocuments } from '../services/compare';
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 export async function chatRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireVerified);
+
+  // Compare two or more documents
+  app.post('/compare', { preHandler: [checkQuestionLimit] }, async (req, reply) => {
+    const userId = req.user!.id;
+    const { documentIds, focus } = z.object({
+      documentIds: z.array(z.string().uuid()).min(2).max(5),
+      focus: z.string().max(200).optional(),
+    }).parse(req.body);
+
+    const ownedIds = await ensureOwnedDocuments(userId, documentIds);
+
+    try {
+      const result = await compareDocuments(userId, ownedIds, focus);
+      await incrementUsage(userId, 'questionsUsed');
+      return reply.send(result);
+    } catch (error: any) {
+      return reply.code(400).send({ error: error.message || 'Comparison failed' });
+    }
+  });
 
   // Get all chat sessions
   app.get('/', async (req, reply) => {
@@ -177,8 +197,10 @@ export async function chatRoutes(app: FastifyInstance) {
     }));
 
     // Build prompt
-    const systemPrompt = "You are DocWise, an intelligent assistant. Only use the provided context to answer questions.";
-    const { messages } = await buildPrompt(systemPrompt, history, content, chunks);
+    const systemPrompt = session.sourceOnly
+      ? 'You are DocWise, a document-grounded assistant. You must only answer from the provided context passages. Never invent facts.'
+      : 'You are DocWise, an intelligent assistant. Only use the provided context to answer questions.';
+    const { messages } = await buildPrompt(systemPrompt, history, content, chunks, session.sourceOnly);
 
     // Set up SSE headers
     reply.raw.setHeader('Content-Type', 'text/event-stream');
@@ -258,13 +280,18 @@ export async function chatRoutes(app: FastifyInstance) {
     return reply.send({ success: true, feedback });
   });
 
-  // Rename session
+  // Update session (title and/or source-only mode)
   app.patch('/:sessionId', async (req, reply) => {
     const userId = req.user!.id;
     const { sessionId } = req.params as { sessionId: string };
-    const { title } = z.object({
-      title: z.string().min(1).max(100).trim()
+    const body = z.object({
+      title: z.string().min(1).max(100).trim().optional(),
+      sourceOnly: z.boolean().optional(),
     }).parse(req.body);
+
+    if (body.title === undefined && body.sourceOnly === undefined) {
+      return reply.code(400).send({ error: 'No updates provided' });
+    }
 
     const session = await prisma.chatSession.findFirst({
       where: { id: sessionId, userId }
@@ -274,7 +301,10 @@ export async function chatRoutes(app: FastifyInstance) {
 
     const updatedSession = await prisma.chatSession.update({
       where: { id: sessionId },
-      data: { title }
+      data: {
+        ...(body.title !== undefined ? { title: body.title } : {}),
+        ...(body.sourceOnly !== undefined ? { sourceOnly: body.sourceOnly } : {}),
+      }
     });
 
     return reply.send({ session: updatedSession });

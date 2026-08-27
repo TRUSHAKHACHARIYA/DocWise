@@ -13,6 +13,7 @@ import {
   Pencil,
   Trash2,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Skeleton from "@/components/ui/Skeleton";
@@ -42,11 +43,13 @@ export default function ChatPage() {
     isLoading, 
     isStreaming,
     fetchSessions, 
+    fetchSessionMessages,
     sendMessage,
     createSession,
     deleteSession,
     renameSession,
-    updateSessionDocuments
+    updateSessionDocuments,
+    updateSessionSettings,
   } = useChat();
 
   const { documents, loadDocuments, loadSampleDocuments } = useDocuments();
@@ -87,6 +90,27 @@ export default function ChatPage() {
     fetchSessions();
     loadDocuments();
   }, []);
+
+  useEffect(() => {
+    if (!activeSessionId) {
+      setSelectedDocIds([]);
+      return;
+    }
+
+    fetchSessionMessages(activeSessionId).then((session) => {
+      if (session?.documents) {
+        setSelectedDocIds(session.documents.map((link: { documentId: string }) => link.documentId));
+      }
+    });
+  }, [activeSessionId]);
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
+  const sourceOnly = activeSession?.sourceOnly ?? false;
+
+  const handleToggleSourceOnly = async () => {
+    if (!activeSessionId) return;
+    await updateSessionSettings(activeSessionId, { sourceOnly: !sourceOnly });
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -393,6 +417,16 @@ export default function ChatPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant={sourceOnly ? "primary" : "outline"}
+                  size="sm"
+                  onClick={handleToggleSourceOnly}
+                  className="gap-2 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                  title="Only answer from selected document passages"
+                >
+                  <ShieldCheck size={14} />
+                  {sourceOnly ? "Source only" : "Source only: off"}
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
