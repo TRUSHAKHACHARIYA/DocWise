@@ -11,6 +11,31 @@ export interface RetrievedChunk {
   page?: number;
 }
 
+const STOPWORDS = new Set([
+  'a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
+  'of', 'to', 'in', 'on', 'for', 'and', 'or', 'but', 'if', 'then',
+  'what', 'which', 'who', 'whom', 'whose', 'how', 'why', 'when', 'where',
+  'does', 'do', 'did', 'doing', 'can', 'could', 'should', 'would', 'will', 'shall',
+  'with', 'without', 'this', 'that', 'these', 'those', 'it', 'its', 'as', 'by',
+  'has', 'have', 'had', 'not', 'no', 'yes', 'you', 'your', 'i', 'we', 'me', 'my', 'about',
+]);
+
+/**
+ * Pulls out the significant, searchable words from a question. The keyword
+ * leg of hybrid search matches on these instead of the raw question text,
+ * since requiring a chunk to contain the entire question verbatim (the
+ * previous behavior) matches almost nothing in practice.
+ */
+export function extractKeywords(question: string, max = 8): string[] {
+  const words = question
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !STOPWORDS.has(word));
+
+  return Array.from(new Set(words)).slice(0, max);
+}
+
 /**
  * Given a user question and a namespace (userId), 
  * returns the most relevant text chunks from the indexed documents.
@@ -29,15 +54,30 @@ export async function retrieveRelevantChunks(
   const vectorMatches = await queryVectors(userId, questionEmbedding, queryTopK, documentIds);
 
   // 3. Query Database (Keyword Search)
-  const keywordMatches = await prisma.chunk.findMany({
-    where: {
-      userId,
-      documentId: documentIds?.length ? { in: documentIds } : undefined,
-      text: { contains: question } // Basic keyword matching
-    },
-    take: 10,
-    select: { id: true, text: true, documentId: true, startIndex: true, pageNumber: true }
-  });
+  const keywords = extractKeywords(question);
+  const keywordCandidates = keywords.length > 0
+    ? await prisma.chunk.findMany({
+        where: {
+          userId,
+          documentId: documentIds?.length ? { in: documentIds } : undefined,
+          OR: keywords.map((keyword) => ({ text: { contains: keyword, mode: 'insensitive' as const } })),
+        },
+        take: 30,
+        select: { id: true, text: true, documentId: true, startIndex: true, pageNumber: true }
+      })
+    : [];
+
+  // findMany's OR only tells us a chunk matched at least one keyword, not how
+  // relevant it is — rank by how many distinct keywords it actually contains
+  // and keep the strongest matches.
+  const keywordMatches = keywordCandidates
+    .map((candidate) => {
+      const lowerText = candidate.text.toLowerCase();
+      const matchCount = keywords.filter((keyword) => lowerText.includes(keyword)).length;
+      return { ...candidate, matchCount };
+    })
+    .sort((a, b) => b.matchCount - a.matchCount)
+    .slice(0, 10);
 
   // 4. Merge results and deduplicate
   // We prioritize vector search but include keyword matches if they are unique
@@ -60,7 +100,10 @@ export async function retrieveRelevantChunks(
         text: km.text,
         documentId: km.documentId,
         documentName: '...',
-        score: 0.5, // Arbitrary base score for keyword matches before reranking
+        // Base score for keyword matches before reranking, nudged up by how
+        // many distinct keywords matched so the pre-rerank pruning step
+        // (below) doesn't discard the strongest keyword hits first.
+        score: Math.min(0.5 + km.matchCount * 0.05, 0.9),
         page: km.pageNumber || undefined,
       });
     }

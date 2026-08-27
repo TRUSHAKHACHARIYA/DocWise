@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Plus, 
-  MessageSquare, 
+import {
+  Plus,
+  MessageSquare,
   ChevronLeft,
   ChevronRight,
   BrainCircuit,
   FileText,
+  FolderOpen,
   Download,
   MoreVertical,
   Pencil,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useFolders } from "@/hooks/useFolders";
 import { toast } from "@/store/toastStore";
 import ChatInput from "@/components/chat/ChatInput";
 import MessageBubble from "@/components/chat/MessageBubble";
@@ -53,9 +55,11 @@ export default function ChatPage() {
   } = useChat();
 
   const { documents, loadDocuments, loadSampleDocuments } = useDocuments();
+  const { folders, loadFolders } = useFolders();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  const [folderFilter, setFolderFilter] = useState<"all" | string>("all");
   const [renamingSessionId, setRenamingSessionId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
@@ -88,8 +92,24 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetchSessions();
-    loadDocuments();
+    loadFolders();
   }, []);
+
+  // Filter the "Active documents" list to a single folder — a lightweight,
+  // metadata-aware way to scope retrieval without hand-picking every file.
+  // Also covers the initial (unfiltered) load, matching the documents page's
+  // pattern of a single effect keyed on the filter.
+  useEffect(() => {
+    loadDocuments(true, folderFilter === "all" ? undefined : { folderId: folderFilter });
+  }, [folderFilter]);
+
+  const handleSelectAllInFolder = () => {
+    const idsInView = documents.map((doc) => doc.id);
+    setSelectedDocIds(idsInView);
+    if (activeSessionId) {
+      updateSessionDocuments(activeSessionId, idsInView);
+    }
+  };
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -327,6 +347,51 @@ export default function ChatPage() {
             <FileText size={14} />
             Active documents
           </h4>
+
+          {folders.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setFolderFilter("all")}
+                className={cn(
+                  "flex items-center gap-1 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-colors",
+                  folderFilter === "all"
+                    ? "bg-[var(--ink)] text-white"
+                    : "bg-[var(--cream)] text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
+                )}
+              >
+                All
+              </button>
+              {folders.map((folder) => (
+                <button
+                  key={folder.id}
+                  type="button"
+                  onClick={() => setFolderFilter(folder.id)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-colors",
+                    folderFilter === folder.id
+                      ? "bg-[var(--ink)] text-white"
+                      : "bg-[var(--cream)] text-[var(--ink-faint)] hover:text-[var(--ink-muted)]"
+                  )}
+                >
+                  <FolderOpen size={11} />
+                  <span className="max-w-[6rem] truncate">{folder.name}</span>
+                </button>
+              ))}
+              {folderFilter !== "all" && (
+                <button
+                  type="button"
+                  onClick={handleSelectAllInFolder}
+                  disabled={documents.length === 0}
+                  className="rounded-lg bg-[var(--rust-light)] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-[var(--rust-dark)] transition-colors hover:bg-[var(--rust)] hover:text-white disabled:opacity-40"
+                  title="Select every document in this folder for the active conversation"
+                >
+                  Select all
+                </button>
+              )}
+            </div>
+          )}
+
           <div className="custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-1">
             {documents.map((doc) => (
               <div
