@@ -132,7 +132,8 @@ export async function authRoutes(app: FastifyInstance) {
           email: user.email,
           name: user.name,
           plan: user.plan,
-          verified: !!user.verifiedAt
+          verified: !!user.verifiedAt,
+          verifiedAt: user.verifiedAt,
         },
         accessToken: tokens.accessToken,
         csrfToken: reply.generateCsrf(),
@@ -197,7 +198,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: 'Invalid or expired verification token' });
       }
 
-      await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           verifiedAt: new Date(),
@@ -221,7 +222,7 @@ export async function authRoutes(app: FastifyInstance) {
 
       return reply.send({
         message: 'Email verified successfully',
-        user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
+        user: { id: user.id, email: user.email, name: user.name, plan: user.plan, verifiedAt: updatedUser.verifiedAt },
         accessToken: tokens.accessToken,
         csrfToken: reply.generateCsrf(),
       });

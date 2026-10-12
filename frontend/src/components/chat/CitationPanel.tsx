@@ -1,9 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import PDFViewer from "./PDFViewer";
 import { Source } from "./SourceCard";
+
+const PDFViewer = dynamic(() => import("./PDFViewer"), { ssr: false });
 
 interface CitationPanelProps {
   sources: Source[];

@@ -5,6 +5,12 @@ import { buildApp } from "../app";
 import { prisma } from "../utils/prisma";
 import { env } from "../config/env";
 
+// env.ts parses process.env at import time, so the secret has to exist
+// before ../app is loaded; without it the route short-circuits with 202.
+vi.hoisted(() => {
+  process.env.NMI_WEBHOOK_SECRET ||= "test-nmi-webhook-secret";
+});
+
 vi.mock("../utils/prisma", () => ({
   prisma: {
     subscription: {

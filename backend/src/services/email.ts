@@ -1,17 +1,32 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env';
 
-// Create a transporter
-// In production, you'd use a real SMTP server or an API like Resend
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER || 'test@ethereal.email',
-    pass: process.env.SMTP_PASS || 'password',
-  },
-});
+// Explicit SMTP_* settings win. Otherwise, if RESEND_API_KEY is set (what the
+// deploy docs ask for), send through Resend's SMTP relay. Without either, mail
+// goes to Ethereal's test inbox and real users never get verification links —
+// which locks them out of documents/chat (requireVerified).
+const transporter = process.env.SMTP_HOST || !env.RESEND_API_KEY
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER || 'test@ethereal.email',
+        pass: process.env.SMTP_PASS || 'password',
+      },
+    })
+  : nodemailer.createTransport({
+      host: 'smtp.resend.com',
+      port: 465,
+      secure: true,
+      auth: { user: 'resend', pass: env.RESEND_API_KEY },
+    });
+
+if (env.NODE_ENV === 'production' && !process.env.SMTP_HOST && !env.RESEND_API_KEY) {
+  console.warn(
+    '[email] Neither SMTP_HOST nor RESEND_API_KEY is set — verification and password-reset emails will not be delivered.'
+  );
+}
 
 export const sendVerificationEmail = async (email: string, name: string, token: string) => {
   const verificationUrl = `${env.FRONTEND_URL}/verify-email?token=${token}`;
