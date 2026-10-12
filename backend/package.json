@@ -2,10 +2,10 @@
   "name": "docwise-backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "ts-node-dev --respawn src/server.ts",
+    "dev": "node init && ts-node-dev --respawn src/server.ts",
     "typecheck": "tsc --noEmit",
-    "build": "prisma generate && tsc",
-    "start": "node dist/server.js",
+    "build": "node init && prisma generate && tsc",
+    "start": "node init && node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
@@ -14,7 +14,7 @@
     "test:vitest": "vitest run --dir src --pool=threads --maxWorkers=1",
     "test:watch": "vitest",
     "eval": "ts-node evals/run_eval.ts",
-    "start:prod": "prisma migrate deploy && node dist/server.js"
+    "start:prod": "node init && prisma migrate deploy && node dist/server.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
