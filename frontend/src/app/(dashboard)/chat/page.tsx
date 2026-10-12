@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import {
   Plus,
   MessageSquare,
@@ -27,9 +28,11 @@ import { toast } from "@/store/toastStore";
 import ChatInput from "@/components/chat/ChatInput";
 import MessageBubble from "@/components/chat/MessageBubble";
 import CitationPanel from "@/components/chat/CitationPanel";
-import PDFViewer from "@/components/chat/PDFViewer";
 import { Source } from "@/components/chat/SourceCard";
 import { SUGGESTED_PROMPTS } from "@/lib/onboarding";
+
+// pdf.js is ~2MB; only load it once a source is actually opened.
+const PDFViewer = dynamic(() => import("@/components/chat/PDFViewer"), { ssr: false });
 
 export default function ChatPage() {
   const { user } = useAuth();

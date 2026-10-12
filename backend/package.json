@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
@@ -13,7 +13,8 @@
     "test": "npm run build && node scripts/smoke-tests.mjs",
     "test:vitest": "vitest run --dir src --pool=threads --maxWorkers=1",
     "test:watch": "vitest",
-    "eval": "ts-node evals/run_eval.ts"
+    "eval": "ts-node evals/run_eval.ts",
+    "start:prod": "prisma migrate deploy && node dist/server.js"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -44,6 +45,7 @@
     "@opentelemetry/instrumentation-http": "^0.215.0",
     "@pinecone-database/pinecone": "^7.1.0",
     "@prisma/client": "^6.19.3",
+    "@sentry/core": "^10.48.0",
     "@sentry/node": "^10.48.0",
     "@types/dompurify": "^3.0.5",
     "@types/jsdom": "^28.0.1",
