@@ -92,3 +92,6 @@ Last Updated: August 27, 2026
 - Backend build now runs `prisma generate`; added `start:prod` (migrate then start) and `backend/railway.json` with a `/healthz` health check.
 - Webhook tests now set their own `NMI_WEBHOOK_SECRET` instead of depending on the shell environment.
 - Rewrote `docs/DEPLOYMENT_GUIDE.md` as a code-verified launch runbook (domains/cookies, env vars, smoke test, rollback, day-by-day schedule).
+- Added `/privacy` and `/terms` (linked from the landing footer and sign-up form). Company name, support email and governing law come from `frontend/src/lib/legal.ts` / `NEXT_PUBLIC_*` env vars; have both pages reviewed for your jurisdiction before launch.
+- Optional browser error reporting via `NEXT_PUBLIC_SENTRY_DSN` (lazy-loaded; zero bundle cost when unset), including errors caught by `ErrorBoundary`.
+- `backend/create-admin.js` no longer creates `admin@docwise.ai` / `admin12345`; it promotes an existing registered user (`node create-admin.js you@domain.com`).

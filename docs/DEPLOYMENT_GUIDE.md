@@ -117,6 +117,8 @@ NMI_PLAN_PRO=PRO
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `https://api.yourdomain.com` (the origin; a trailing `/api` is also accepted) |
 | `NEXT_PUBLIC_NMI_COLLECT_JS_KEY` | NMI public key (only if billing is live) |
+| `NEXT_PUBLIC_SENTRY_DSN` | Optional: browser error reporting |
+| `NEXT_PUBLIC_COMPANY_NAME`, `NEXT_PUBLIC_SUPPORT_EMAIL`, `NEXT_PUBLIC_GOVERNING_LAW` | Shown on `/privacy` and `/terms`. Set these, and have the pages reviewed for your jurisdiction. |
 
 3. Add the custom domain `app.yourdomain.com`.
 
@@ -125,9 +127,8 @@ NMI_PLAN_PRO=PRO
 ## 4. Post-deploy wiring
 
 - NMI webhook (if billing is live): `https://api.yourdomain.com/api/webhooks/nmi`, with signing secret = `NMI_WEBHOOK_SECRET`.
-- Create your admin account: register and verify through the UI, then promote that user in the production database:
+- Create your admin account: register and verify through the UI, then promote that user. Either run `node create-admin.js you@yourdomain.com` from `backend/` with `DATABASE_URL` set to production (Railway: `railway run node create-admin.js you@yourdomain.com`), or run this SQL:
   `UPDATE "User" SET role = 'ADMIN' WHERE email = 'you@yourdomain.com';`
-  **Do not run `backend/create-admin.js` against production.** It creates `admin@docwise.ai` with the hardcoded password `admin12345`.
 - GitHub → Settings → Secrets → `RAILWAY_TOKEN`, so pushes to `main` redeploy the backend (`.github/workflows/main.yml`).
 
 ---
