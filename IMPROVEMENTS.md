@@ -81,3 +81,17 @@ This document tracks completed improvements and the next highest-value follow-up
 - `canvas@2.11.2` sits in an already-invalid state (doesn't satisfy jsdom's own `^3.0.0` peer requirement) and is the source of the one remaining critical `npm audit` finding (`tar`, no fix available). A full fix means auditing whether `pdfjs-dist`'s Node-side canvas usage is actually exercised at runtime, then upgrading/removing it — real native-module surgery that needs to be tested against a real build, not attempted blind.
 
 Last Updated: August 27, 2026
+
+### Launch readiness (Oct 2026)
+- `npm ci` failed on Linux (Vercel/Railway/CI) because the Windows-generated lockfile lacked `@sentry/cli-linux-x64` and `@unrs/resolver-binding-linux-x64-gnu`; pinned both as frontend `optionalDependencies` (same approach as `lightningcss`).
+- `@sentry/node` could not load (`@sentry/core` was only installed nested); added it as a direct backend dependency and re-enabled backend Sentry (active only when `SENTRY_DSN` is set; 500s are captured).
+- Verification emails were never sent with the documented config: the mailer only read `SMTP_*`, while the docs said to set `RESEND_API_KEY`. `RESEND_API_KEY` now sends via Resend's SMTP relay, and production logs a warning if no mail transport is configured. This mattered because documents/chat/workspaces require a verified email.
+- The "verify your email" banner never went away: the API returned `verified` but the UI reads `verifiedAt`. Login, verify-email and `/user/me` now return `verifiedAt`.
+- `NEXT_PUBLIC_API_URL` set with a trailing `/api` (as one deploy doc said) produced `/api/api/...` 404s on every request; the client now normalizes it.
+- `/chat` first-load JS dropped from 2.15 MB to 142 kB by lazy-loading the pdf.js viewer.
+- Backend build now runs `prisma generate`; added `start:prod` (migrate then start) and `backend/railway.json` with a `/healthz` health check.
+- Webhook tests now set their own `NMI_WEBHOOK_SECRET` instead of depending on the shell environment.
+- Rewrote `docs/DEPLOYMENT_GUIDE.md` as a code-verified launch runbook (domains/cookies, env vars, smoke test, rollback, day-by-day schedule).
+- Added `/privacy` and `/terms` (linked from the landing footer and sign-up form). Company name, support email and governing law come from `frontend/src/lib/legal.ts` / `NEXT_PUBLIC_*` env vars; have both pages reviewed for your jurisdiction before launch.
+- Optional browser error reporting via `NEXT_PUBLIC_SENTRY_DSN` (lazy-loaded; zero bundle cost when unset), including errors caught by `ErrorBoundary`.
+- `backend/create-admin.js` no longer creates `admin@docwise.ai` / `admin12345`; it promotes an existing registered user (`node create-admin.js you@domain.com`).

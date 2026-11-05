@@ -111,6 +111,12 @@ export default function RegisterPage() {
         <Button type="submit" className="w-full mt-2" size="lg" loading={loading}>
           Create account
         </Button>
+
+        <p className="text-center text-xs text-slate-500">
+          By creating an account you agree to our{" "}
+          <Link href="/terms" className="underline hover:text-slate-700">Terms of Service</Link> and{" "}
+          <Link href="/privacy" className="underline hover:text-slate-700">Privacy Policy</Link>.
+        </p>
       </form>
 
       <p className="mt-8 text-center text-sm text-slate-500">

@@ -20,6 +20,7 @@ export async function userRoutes(app: FastifyInstance) {
         name: true,
         plan: true,
         role: true,
+        verifiedAt: true,
         trialEndsAt: true,
         subscription: true
       }
@@ -44,6 +45,7 @@ export async function userRoutes(app: FastifyInstance) {
           name: user.name,
           plan: user.plan,
           role: user.role,
+          verifiedAt: user.verifiedAt,
           trialEndsAt: user.trialEndsAt,
           inTrial
       },
