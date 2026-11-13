@@ -9,8 +9,7 @@ import underPressure from "@fastify/under-pressure";
 import cookie from "@fastify/cookie";
 import csrf from "@fastify/csrf-protection";
 import Redis from "ioredis";
-// // @ts-ignore
-// import * as Sentry from "@sentry/node";
+import * as Sentry from "@sentry/node";
 import { z } from "zod";
 import { env } from "./config/env";
 import { prisma } from "./utils/prisma";
@@ -114,8 +113,6 @@ export const buildApp = (opts = {}) => {
   });
 
   app.setErrorHandler((error: any, request, reply) => {
-    // Sentry.captureException(error);
-    
     if (error instanceof z.ZodError) {
       return reply.code(400).send({
         error: "Validation Error",
@@ -127,6 +124,8 @@ export const buildApp = (opts = {}) => {
       return reply.code(error.statusCode).send({ error: error.message });
     }
 
+    // No-op unless SENTRY_DSN is set (see server.ts).
+    Sentry.captureException(error);
     request.log.error(error);
     return reply.code(500).send({ error: "Internal Server Error" });
   });
