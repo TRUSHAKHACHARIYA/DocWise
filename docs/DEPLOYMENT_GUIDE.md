@@ -1,4 +1,4 @@
-# DocWise Production Deployment Guide — Launch Runbook (target: 19 Oct 2026)
+# DocWise Production Deployment Guide — Launch Runbook (target: 30 Nov 2026)
 
 This is the single source of truth for deploying DocWise. Every variable and
 route below was checked against the code (`backend/src/config/env.ts`,
@@ -162,14 +162,13 @@ NMI_PLAN_PRO=PRO
 
 ---
 
-## 7. Suggested schedule to 19 Oct
+## 7. Suggested schedule to 30 Nov
 
 | Day | Work |
 |---|---|
-| Mon 13 | Buy/choose the domain; create the Anthropic, OpenAI, Pinecone, S3/R2, Resend and Sentry accounts; start Resend domain verification (DNS) |
-| Tue 14 | Railway backend + Postgres + Redis; `/healthz` and `/readyz` green |
-| Wed 15 | Vercel frontend; custom domains; run the full §5 smoke test |
-| Thu 16 | Fix anything the smoke test finds; decide whether NMI billing is in or out for day 1 |
-| Fri 17 | Upload 10–20 real documents of your own; check answer quality and speed |
-| Sat 18 | Freeze code; final smoke test; snapshot the database |
-| Sun 19 | Launch 🚀 and watch Sentry and Railway logs for the first hours |
+| Wed 25 | Security clean-up (`LAUNCH_TASKS.md` §0); buy/choose the domain; create the Anthropic, OpenAI, Pinecone, S3/R2, Resend and Sentry accounts; start Resend domain verification (DNS) |
+| Thu 26 | Railway backend + Postgres + Redis (`/healthz` and `/readyz` green); Vercel frontend; custom domains |
+| Fri 27 | Run the full §5 smoke test; fix what it finds; decide whether NMI billing is in or out for day 1 |
+| Sat 28 | Upload 10–20 real documents of your own; check answer quality and speed |
+| Sun 29 | Freeze code; final smoke test; snapshot the database |
+| Mon 30 | Launch 🚀 and watch Sentry and Railway logs for the first hours |

@@ -1,8 +1,28 @@
-# DocWise Launch Task List (target: Sunday 19 Oct 2026)
+# DocWise Launch Task List (target: Monday 30 Nov 2026)
 
-All code needed for launch is in PR [#45](https://github.com/TRUSHAKHACHARIYA/DocWise/pull/45), and CI is green.
-What's left is account setup, deployment and checks only you can do.
+The launch code is on branch `ccr-3615d6f6-xmfse1` (clean, rebuilt from the pre-attack commits of PR #45). CI is green.
+What's left is the security clean-up, account setup, deployment and checks only you can do.
 Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md).
+
+---
+
+## 0. Security incident clean-up (do first: Wed 25 Nov)
+
+On 5 Nov and 13 Nov a stolen GitHub credential was used to force-push rewritten commits onto
+`master`, `claude/code-review-improvements-5vraw5`, `claude/dazzling-davinci-311br4`,
+`feat/phase-b-workspaces-folders` and `feat/product-roadmap-phases`. The rewrites kept the original
+author, date and message but added an obfuscated JavaScript payload (`init` files run by
+`node init` in package.json scripts, code hidden after spaces in `postcss.config.mjs`, and a hidden
+`.vscode/tasks.json` that runs a fake font file when the folder is opened). `main` was **not** affected.
+
+- [ ] **Do not merge PR #45** (its branch is infected) and do not run `npm run dev/build` or open any of the 5 branches in VS Code
+- [ ] If you opened one of those branches in VS Code or ran `npm run dev/build` on it after 5 Nov: treat that computer as compromised. Run a malware scan and change passwords from a different, clean device
+- [ ] GitHub → Settings → Password and authentication: change your password, turn on 2FA, sign out all sessions
+- [ ] GitHub → Settings → Developer settings: **revoke all personal access tokens** and review OAuth apps and SSH keys
+- [ ] Rotate every secret that was on an affected machine or in a `.env` file (API keys, JWT secrets, database URLs, `RAILWAY_TOKEN`)
+- [ ] Restore or delete the 5 infected branches (the original clean commits are still on GitHub)
+- [ ] GitHub → repo Settings → Rules: protect `main` (require PRs, block force pushes)
+- [x] CI now runs `scripts/check-integrity.mjs`, which fails the build if this payload pattern reappears
 
 ---
 
@@ -18,11 +38,12 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 - [x] Privacy Policy and Terms pages, linked from the footer and the sign-up form
 - [x] Make `create-admin.js` safe (no hardcoded `admin12345` password)
 - [x] Rewrite the deployment guide as a launch runbook
-- [ ] **Approve and merge PR #45 into `main`**
+- [x] Remove the malware and rebuild the launch work on a clean branch
+- [ ] **Open a new PR from the clean branch and merge it into `main`** (not PR #45)
 
 ---
 
-## 2. Accounts and keys: Mon 13 Oct
+## 2. Accounts and keys: Wed 25 Nov
 
 - [ ] Buy or choose a domain (e.g. `yourdomain.com`)
 - [ ] **Anthropic**: create an API key → `ANTHROPIC_API_KEY`
@@ -37,7 +58,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 3. Backend on Railway: Tue 14 Oct
+## 3. Backend on Railway: Thu 26 Nov
 
 - [ ] New Railway project → deploy from the GitHub repo → **Root Directory `backend`**, service name `docwise-backend`
 - [ ] Add the **Postgres** and **Redis** plugins
@@ -53,7 +74,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 4. Frontend on Vercel: Wed 15 Oct
+## 4. Frontend on Vercel: Thu 26 Nov
 
 - [ ] Import the repo into Vercel → **Root Directory `frontend`**
 - [ ] Set the environment variables:
@@ -69,7 +90,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 5. Launch-day test: Wed 15 Oct (repeat Sat 18 Oct)
+## 5. Launch-day test: Fri 27 Nov (repeat Sun 29 Nov)
 
 - [ ] `https://app.yourdomain.com` loads
 - [ ] Register → the verification email arrives (check spam)
@@ -87,7 +108,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 6. Decisions and reviews: Thu 16 Oct
+## 6. Decisions and reviews: Fri 27 Nov
 
 - [ ] Decide: **are paid plans live on day 1?**
   - If yes: add the NMI keys (`NMI_PRIVATE_API_KEY`, `NMI_WEBHOOK_SECRET`, `NEXT_PUBLIC_NMI_COLLECT_JS_KEY`), set the webhook to `https://api.yourdomain.com/api/webhooks/nmi`, and test a subscription
@@ -97,7 +118,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 7. Quality check: Fri 17 Oct
+## 7. Quality check: Sat 28 Nov
 
 - [ ] Upload 10–20 real documents of the kind your users will use
 - [ ] Ask realistic questions; check that the answers and citations are correct
@@ -105,7 +126,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 8. Freeze: Sat 18 Oct
+## 8. Freeze: Sun 29 Nov
 
 - [ ] No more code changes
 - [ ] Run the full launch-day test (§5) again
@@ -114,7 +135,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 9. Launch: Sun 19 Oct 🚀
+## 9. Launch: Mon 30 Nov 🚀
 
 - [ ] Announce
 - [ ] Watch Sentry and the Railway logs for the first few hours
@@ -122,7 +143,7 @@ Full step-by-step instructions are in [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.m
 
 ---
 
-## 10. After launch (not needed for 19 Oct)
+## 10. After launch (not needed for 30 Nov)
 
 | Task | Size |
 |---|---|
