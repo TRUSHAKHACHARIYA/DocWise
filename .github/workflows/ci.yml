@@ -32,6 +32,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
           
+      - name: Repository integrity check
+        run: node scripts/check-integrity.mjs
+
       - name: Install dependencies
         run: npm install
         

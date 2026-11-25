@@ -9,3 +9,4 @@ coverage/
 evals/results/*.json
 *.db
 *.db-journal
+.vscode/
